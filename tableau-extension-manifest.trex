@@ -2,7 +2,7 @@
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
   <dashboard-extension id="com.yourcompany.ai-summary" extension-version="0.1.0">
     <default-locale>en_US</default-locale>
-    <name>AI Program Summary</name>
+    <name>AI Program Summary</n>
     <description>AI-powered program data summary generator</description>
     <author name="Your Name" email="your.email@company.com" organization="Your Organization" website="https://yourwebsite.com"/>
     <min-api-version>1.0</min-api-version>
