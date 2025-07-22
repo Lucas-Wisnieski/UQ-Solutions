@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Program Summary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
+    <!-- Correct Tableau API URL for Tableau Desktop -->
+    <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js" onload="console.log('✅ Tableau API loaded for Desktop')" onerror="console.log('❌ Failed to load Desktop API')"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -202,6 +203,46 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
+        // Dynamic script loader for Tableau Extensions API
+        function loadTableauAPI() {
+            const apiUrls = [
+                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
+                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
+                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
+            ];
+            
+            function tryLoadScript(index) {
+                if (index >= apiUrls.length) {
+                    console.error('❌ All Tableau API URLs failed to load');
+                    return;
+                }
+                
+                console.log(`Attempting to load Tableau API from: ${apiUrls[index]}`);
+                
+                const script = document.createElement('script');
+                script.src = apiUrls[index];
+                
+                script.onload = function() {
+                    console.log(`✅ Tableau API loaded successfully from: ${apiUrls[index]}`);
+                    console.log('Tableau object type:', typeof tableau);
+                    if (typeof tableau !== 'undefined') {
+                        console.log('Tableau extensions available:', typeof tableau.extensions);
+                        // Initialize once API is loaded
+                        setTimeout(initializeExtension, 100);
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.log(`❌ Failed to load from: ${apiUrls[index]}`);
+                    tryLoadScript(index + 1);
+                };
+                
+                document.head.appendChild(script);
+            }
+            
+            tryLoadScript(0);
+        }
+        
         let apiKey = '';
         
         // Initialize the extension - enhanced debugging
@@ -269,10 +310,25 @@
         
         // Wait for both jQuery and DOM to be ready
         if (typeof $ !== 'undefined') {
-            $(document).ready(initializeExtension);
+            $(document).ready(function() {
+                console.log('Document ready, checking for Tableau API...');
+                if (typeof tableau === 'undefined') {
+                    console.log('Tableau API not found, attempting to load...');
+                    loadTableauAPI();
+                } else {
+                    console.log('Tableau API already available');
+                    initializeExtension();
+                }
+            });
         } else {
             // Fallback if jQuery doesn't load
-            document.addEventListener('DOMContentLoaded', initializeExtension);
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof tableau === 'undefined') {
+                    loadTableauAPI();
+                } else {
+                    initializeExtension();
+                }
+            });
         }
         
         function checkApiKey() {
@@ -502,23 +558,63 @@ Total Rows: ${data.totalRows}`;
             document.getElementById('errorMessage').style.display = 'none';
         }
         
-        function runDiagnostics() {
+        // Enhanced environment detection
+        function detectTableauEnvironment() {
+            console.log('=== DETECTING TABLEAU ENVIRONMENT ===');
+            
+            // Get environment information
+            const referrer = document.referrer;
+            const parentUrl = (window.parent !== window) ? document.referrer : 'None';
+            const userAgent = navigator.userAgent;
+            
+            console.log('Referrer:', referrer);
+            console.log('Parent URL:', parentUrl);
+            console.log('User Agent:', userAgent);
+            
+            // Try to detect Tableau environment from referrer/parent
+            let detectedApiUrl = null;
+            let environment = 'Unknown';
+            
+            if (referrer.includes('public.tableau.com')) {
+                detectedApiUrl = 'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js';
+                environment = 'Tableau Public';
+            } else if (referrer.includes('online.tableau.com')) {
+                const domain = referrer.match(/https?:\/\/([^\/]+)/)[1];
+                detectedApiUrl = `https://${domain}/javascripts/api/tableau.extensions.1.latest.min.js`;
+                environment = 'Tableau Cloud - ' + domain;
+            } else if (referrer.includes('tableau') || userAgent.includes('Tableau')) {
+                environment = 'Tableau Desktop or Server';
+                detectedApiUrl = 'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js';
+            }
+            
+            console.log('Detected Environment:', environment);
+            console.log('Suggested API URL:', detectedApiUrl);
+            
+            return {
+                environment: environment,
+                apiUrl: detectedApiUrl,
+                referrer: referrer
+            };
+        }
             console.log('=== RUNNING TABLEAU DIAGNOSTICS ===');
             document.getElementById('summaryText').innerHTML = `
-<strong>DIAGNOSTIC REPORT</strong>
+<strong>ENHANCED DIAGNOSTIC REPORT</strong>
 
-Environment:
+Environment Detection:
+- Detected Environment: ${envInfo.environment}
+- Referrer URL: ${envInfo.referrer || 'None'}
+- Suggested API URL: ${envInfo.apiUrl || 'Not determined'}
+
+Current Environment:
 - URL: ${window.location.href}
 - Protocol: ${window.location.protocol}
 - Host: ${window.location.hostname}
 - In iframe: ${window.frameElement !== null}
 - Parent exists: ${window.parent !== window}
-- Referrer: ${document.referrer || 'None'}
 
-Tableau API:
+Tableau API Status:
 - Tableau object: ${typeof tableau}
 - jQuery loaded: ${typeof $ !== 'undefined'}
-- User Agent: ${navigator.userAgent}
 
 ${typeof tableau !== 'undefined' ? 
 `✅ Tableau API is available!
@@ -526,9 +622,14 @@ ${typeof tableau !== 'undefined' ?
 - Dashboard available: ${typeof tableau.extensions?.dashboardContent}
 ` : 
 `❌ Tableau API not found
-This suggests the extension is not running within Tableau, or the API failed to load.`}
 
-Next steps: Check the browser console for detailed debugging information.
+Recommended Next Steps:
+1. Use the suggested API URL above
+2. If using Tableau Cloud, check your specific pod URL
+3. If using Tableau Server, use your server's domain
+4. For Tableau Desktop, try the standard public API URL`}
+
+Console: Check browser console for detailed script loading attempts.
             `;
             
             // Also run the full diagnostic in console
