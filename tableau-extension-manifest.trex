@@ -7,10 +7,10 @@
     <author name="Your Name" email="your.email@company.com" organization="Your Organization" website="https://yourwebsite.com"/>
     <min-api-version>1.0</min-api-version>
     <source-location>
-      <url>https://yourdomain.github.io/tableau-ai-extension/ai-summary-extension.html</url>
+      <url>https://github.com/Lucas-Wisnieski/UQ-Solutions/ai-summary-extension.html</url>
     </source-location>
     <icon>
-      <url>https://yourdomain.github.io/tableau-ai-extension/icon.png</url>
+      <url>https://github.com/Lucas-Wisnieski/UQ-Solutions/icon.png</url>
     </icon>
     <permissions>
       <permission>full data</permission>
