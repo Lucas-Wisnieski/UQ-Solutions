@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Program Summary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tableau-extensions-api/1.11.0/tableau.extensions.1.latest.min.js"></script>
+    <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -206,9 +206,40 @@
             console.log('Tableau object:', typeof tableau);
             
             if (typeof tableau === 'undefined') {
-                console.error('Tableau Extensions API not loaded');
-                showError('Tableau Extensions API failed to load. This extension must be run within Tableau.');
-                return;
+                console.warn('Tableau Extensions API not loaded - using demo mode');
+                // For testing - create a mock tableau object
+                window.tableau = {
+                    extensions: {
+                        initializeAsync: function() {
+                            return Promise.resolve();
+                        },
+                        dashboardContent: {
+                            dashboard: {
+                                worksheets: [{
+                                    name: "Demo Worksheet",
+                                    getUnderlyingDataAsync: function() {
+                                        return Promise.resolve({
+                                            columns: [
+                                                {fieldName: "CIP Code & Award Level"},
+                                                {fieldName: "Measure Names"}, 
+                                                {fieldName: "UQ Job"},
+                                                {fieldName: "Measure Values"}
+                                            ],
+                                            data: [
+                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Total Score"}, {value: "Software Developers"}, {value: 5.35}],
+                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Market Growth Score"}, {value: "Software Developers"}, {value: 0.2}],
+                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Schools Like Us Score"}, {value: "Software Developers"}, {value: 1.65}],
+                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Opportunity Size Score"}, {value: "Software Developers"}, {value: 0.8}],
+                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Workforce Demand Score"}, {value: "Software Developers"}, {value: 2}]
+                                            ]
+                                        });
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                };
+                showError('Running in demo mode - using sample data. In Tableau, this will use real dashboard data.');
             }
             
             tableau.extensions.initializeAsync().then(function() {
@@ -343,30 +374,84 @@ Please provide a clear, actionable summary that includes:
 
 Keep the summary concise but comprehensive, suitable for academic administrators and program directors.`;
 
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [{
-                        role: 'user',
-                        content: prompt
-                    }],
-                    max_tokens: 800,
-                    temperature: 0.7
-                })
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => null);
-                throw new Error(`OpenAI API error: ${response.status} - ${errorData?.error?.message || 'Unknown error'}`);
+            // Try direct API call first, then fallback to proxy if needed
+            const apiUrls = [
+                'https://api.openai.com/v1/chat/completions',
+                'https://cors-anywhere.herokuapp.com/https://api.openai.com/v1/chat/completions'
+            ];
+
+            for (let i = 0; i < apiUrls.length; i++) {
+                try {
+                    console.log(`Trying API URL ${i + 1}:`, apiUrls[i]);
+                    
+                    const response = await fetch(apiUrls[i], {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                            ...(i === 1 && { 'X-Requested-With': 'XMLHttpRequest' })
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-3.5-turbo',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            max_tokens: 800,
+                            temperature: 0.7
+                        })
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('API error response:', errorText);
+                        
+                        if (i === apiUrls.length - 1) {
+                            // Last attempt failed
+                            throw new Error(`OpenAI API error: ${response.status}`);
+                        }
+                        continue; // Try next URL
+                    }
+                    
+                    const result = await response.json();
+                    console.log('OpenAI API success');
+                    return result.choices[0].message.content;
+                    
+                } catch (error) {
+                    console.error(`API attempt ${i + 1} failed:`, error);
+                    
+                    if (i === apiUrls.length - 1) {
+                        // All attempts failed
+                        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                            return `CORS Error: Direct API calls are blocked by the browser. 
+
+For a working solution, you need to:
+1. Set up a backend server to proxy OpenAI API calls, or
+2. Use this extension in Tableau Server/Cloud where CORS restrictions may be different
+
+Demo Summary Based on Your Data:
+The Computer Science Bachelor's program shows a Total Score of 5.35 for Software Developer positions. Key metrics include:
+- Market Growth Score: 0.2 (indicating limited growth)  
+- Schools Like Us Score: 1.65 (competitive advantage)
+- Opportunity Size Score: 0.8 (moderate opportunities)
+- Workforce Demand Score: 2.0 (good demand)
+- Earning Outcomes Score: 0.7 (decent salary prospects)
+
+Recommendations:
+1. Focus on the competitive advantage (Schools Like Us Score of 1.65)
+2. Address the low market growth by exploring emerging tech areas
+3. Leverage the strong workforce demand (2.0 score)
+4. Consider program enhancements to improve earning outcomes
+
+This is demo content - a real implementation would provide more detailed analysis.`;
+                        } else {
+                            throw error;
+                        }
+                    }
+                }
             }
-            
-            const result = await response.json();
-            return result.choices[0].message.content;
         }
         
         function showDataPreview(data) {
