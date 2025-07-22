@@ -9,7 +9,6 @@
     <source-location>
       <url>https://lucas-wisnieski.github.io/UQ-Solutions/ai-summary-extension.html</url>
     </source-location>
-    <icon>https://lucas-wisnieski.github.io/UQ-Solutions/icon.png</icon>
     <permissions>
       <permission>full data</permission>
     </permissions>
