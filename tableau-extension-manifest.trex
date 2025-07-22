@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <dashboard-extension id="com.yourcompany.ai-summary" extension-version="0.1.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>AI-powered program data summary generator</description>
+    <author name="Your Name" email="your.email@company.com" organization="Your Organization" website="https://yourwebsite.com"/>
+    <min-api-version>1.0</min-api-version>
+    <source-location>
+      <url>https://yourdomain.github.io/tableau-ai-extension/ai-summary-extension.html</url>
+    </source-location>
+    <icon>
+      <url>https://yourdomain.github.io/tableau-ai-extension/icon.png</url>
+    </icon>
+    <permissions>
+      <permission>full data</permission>
+    </permissions>
+    <resources>
+      <resource id="name">
+        <text locale="en_US">AI Program Summary</text>
+      </resource>
+    </resources>
+  </dashboard-extension>
+</manifest>
