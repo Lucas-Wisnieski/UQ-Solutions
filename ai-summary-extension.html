@@ -162,9 +162,14 @@
     <div class="container">
         <div class="header">
             <h1 class="title">AI Program Summary</h1>
-            <button class="refresh-btn" id="refreshBtn" onclick="generateSummary()">
-                Generate Summary
-            </button>
+            <div>
+                <button onclick="runDiagnostics()" style="margin-right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px;">
+                    Run Diagnostics
+                </button>
+                <button class="refresh-btn" id="refreshBtn" onclick="generateSummary()">
+                    Generate Summary
+                </button>
+            </div>
         </div>
         
         <div class="config-section" id="configSection">
@@ -199,56 +204,67 @@
     <script>
         let apiKey = '';
         
-        // Initialize the extension - with fallback if Tableau API not available
+        // Initialize the extension - enhanced debugging
         function initializeExtension() {
-            console.log('Initializing extension...');
-            console.log('jQuery available:', typeof $);
-            console.log('Tableau object:', typeof tableau);
+            console.log('=== DEBUGGING TABLEAU CONNECTION ===');
+            console.log('1. Initializing extension...');
+            console.log('2. jQuery available:', typeof $);
+            console.log('3. Document URL:', window.location.href);
+            console.log('4. User Agent:', navigator.userAgent);
+            console.log('5. Tableau object type:', typeof tableau);
             
-            if (typeof tableau === 'undefined') {
-                console.warn('Tableau Extensions API not loaded - using demo mode');
-                // For testing - create a mock tableau object
-                window.tableau = {
-                    extensions: {
-                        initializeAsync: function() {
-                            return Promise.resolve();
-                        },
-                        dashboardContent: {
-                            dashboard: {
-                                worksheets: [{
-                                    name: "Demo Worksheet",
-                                    getUnderlyingDataAsync: function() {
-                                        return Promise.resolve({
-                                            columns: [
-                                                {fieldName: "CIP Code & Award Level"},
-                                                {fieldName: "Measure Names"}, 
-                                                {fieldName: "UQ Job"},
-                                                {fieldName: "Measure Values"}
-                                            ],
-                                            data: [
-                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Total Score"}, {value: "Software Developers"}, {value: 5.35}],
-                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Market Growth Score"}, {value: "Software Developers"}, {value: 0.2}],
-                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Schools Like Us Score"}, {value: "Software Developers"}, {value: 1.65}],
-                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Opportunity Size Score"}, {value: "Software Developers"}, {value: 0.8}],
-                                                [{value: "11.0701 | Computer Science | Bachelor's"}, {value: "Workforce Demand Score"}, {value: "Software Developers"}, {value: 2}]
-                                            ]
-                                        });
-                                    }
-                                }]
-                            }
-                        }
-                    }
-                };
-                showError('Running in demo mode - using sample data. In Tableau, this will use real dashboard data.');
+            // Check if we're actually running inside Tableau
+            console.log('6. Parent window:', window.parent !== window ? 'Has parent (likely in iframe)' : 'No parent (standalone)');
+            console.log('7. Window name:', window.name);
+            console.log('8. Referrer:', document.referrer);
+            
+            if (typeof tableau !== 'undefined') {
+                console.log('9. Tableau object found!');
+                console.log('   - Extensions available:', typeof tableau.extensions);
+                console.log('   - Version info:', tableau.version || 'Not available');
+                
+                // Try to initialize
+                console.log('10. Attempting to initialize Tableau Extensions API...');
+                tableau.extensions.initializeAsync().then(function() {
+                    console.log('✅ SUCCESS: Extension initialized successfully!');
+                    console.log('11. Dashboard info:');
+                    console.log('   - Name:', tableau.extensions.dashboardContent.dashboard.name);
+                    console.log('   - Worksheets count:', tableau.extensions.dashboardContent.dashboard.worksheets.length);
+                    
+                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                    worksheets.forEach((ws, index) => {
+                        console.log(`   - Worksheet ${index + 1}: "${ws.name}"`);
+                    });
+                    
+                    checkApiKey();
+                }).catch(function(error) {
+                    console.error('❌ FAILED: Error initializing extension:', error);
+                    console.log('Error details:', error.message);
+                    console.log('Error stack:', error.stack);
+                    showError('Failed to initialize Tableau extension: ' + error.message);
+                });
+            } else {
+                console.log('❌ Tableau object NOT FOUND');
+                console.log('9. Possible reasons:');
+                console.log('   - Extension not loaded within Tableau');
+                console.log('   - Tableau Extensions API script failed to load');
+                console.log('   - CORS/security restrictions');
+                
+                // Let's check what scripts loaded
+                console.log('10. Checking loaded scripts:');
+                const scripts = document.querySelectorAll('script');
+                scripts.forEach((script, index) => {
+                    console.log(`   Script ${index + 1}: ${script.src || 'inline script'}`);
+                });
+                
+                // Check if we can detect Tableau environment
+                console.log('11. Environment detection:');
+                console.log('   - Is HTTPS:', window.location.protocol === 'https:');
+                console.log('   - Domain:', window.location.hostname);
+                console.log('   - In iframe:', window.frameElement !== null);
+                
+                showError('Tableau Extensions API not available. Please ensure this extension is loaded within Tableau Desktop or Tableau Cloud.');
             }
-            
-            tableau.extensions.initializeAsync().then(function() {
-                console.log('Extension initialized successfully');
-                checkApiKey();
-            }).catch(function(error) {
-                console.error('Error initializing extension:', error);
-                showError('Failed to initialize Tableau extension: ' + error);
-            });
         }
         
         // Wait for both jQuery and DOM to be ready
@@ -484,6 +500,39 @@ Total Rows: ${data.totalRows}`;
         
         function hideError() {
             document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function runDiagnostics() {
+            console.log('=== RUNNING TABLEAU DIAGNOSTICS ===');
+            document.getElementById('summaryText').innerHTML = `
+<strong>DIAGNOSTIC REPORT</strong>
+
+Environment:
+- URL: ${window.location.href}
+- Protocol: ${window.location.protocol}
+- Host: ${window.location.hostname}
+- In iframe: ${window.frameElement !== null}
+- Parent exists: ${window.parent !== window}
+- Referrer: ${document.referrer || 'None'}
+
+Tableau API:
+- Tableau object: ${typeof tableau}
+- jQuery loaded: ${typeof $ !== 'undefined'}
+- User Agent: ${navigator.userAgent}
+
+${typeof tableau !== 'undefined' ? 
+`✅ Tableau API is available!
+- Extensions: ${typeof tableau.extensions}
+- Dashboard available: ${typeof tableau.extensions?.dashboardContent}
+` : 
+`❌ Tableau API not found
+This suggests the extension is not running within Tableau, or the API failed to load.`}
+
+Next steps: Check the browser console for detailed debugging information.
+            `;
+            
+            // Also run the full diagnostic in console
+            initializeExtension();
         }
     </script>
 </body>
