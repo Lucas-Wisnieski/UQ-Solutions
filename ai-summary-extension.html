@@ -253,12 +253,7 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
         }
         
         function generateSummary() {
-            console.log('Generate summary clicked - getting real dashboard data...');
-            
-            if (!claudeApiKey) {
-                showError('Please configure your Claude API key first.');
-                return;
-            }
+            console.log('Generate summary clicked - using proxy server...');
             
             // Show loading state
             document.getElementById('loadingIndicator').style.display = 'block';
@@ -266,21 +261,21 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
             
             // Try to get real data from Tableau dashboard
             getRealTableauData().then(data => {
-                console.log('Using real dashboard data:', data);
+                console.log('Using dashboard data:', data);
                 return callClaudeAPI(data);
             }).catch(error => {
                 console.warn('Could not get real data, using sample:', error);
                 // Fallback to sample data if real data unavailable
                 const sampleData = {
-                    program: "11.0701 | Computer Science | Bachelor's",
-                    jobTarget: "Software Developers", 
+                    program: "13.0101 | Education | Bachelor's",
+                    jobTarget: "Elementary School Teacher", 
                     metrics: [
-                        { name: "Total Score", value: 5.35 },
-                        { name: "Market Growth Score", value: 0.2 },
-                        { name: "Schools Like Us Score", value: 1.65 },
-                        { name: "Opportunity Size Score", value: 0.8 },
-                        { name: "Workforce Demand Score", value: 2.0 },
-                        { name: "Earning Outcomes Score", value: 0.7 }
+                        { name: "Total Score", value: 0.90 },
+                        { name: "Market Growth Score", value: -0.10 },
+                        { name: "Schools Like Us Score", value: 0.00 },
+                        { name: "Opportunity Size Score", value: 1.25 },
+                        { name: "Workforce Demand Score", value: -0.55 },
+                        { name: "Earning Outcomes Score", value: 0.56 }
                     ]
                 };
                 return callClaudeAPI(sampleData);
@@ -622,6 +617,119 @@ ${isRealData ?
 
 Keep the summary concise but comprehensive, suitable for academic administrators and program directors. Format it with clear sections and bullet points for readability.`;
 
+            // Try proxy server first, then fallback
+            const proxyUrls = [
+                'https://uq-solutions.vercel.app/api/claude',  // Your working proxy!
+                // Add backup proxy here if needed in future
+            ];
+
+            for (let i = 0; i < proxyUrls.length; i++) {
+                try {
+                    console.log(`Trying proxy server ${i + 1}: ${proxyUrls[i]}`);
+                    
+                    const response = await fetch(proxyUrls[i], {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt
+                        })
+                    });
+
+                    console.log(`Proxy response status: ${response.status}`);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log('✅ Proxy server success!');
+                            return result.content;
+                        } else {
+                            throw new Error(result.error || 'Proxy returned error');
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        console.error(`Proxy error: ${response.status} - ${errorText}`);
+                        if (i === proxyUrls.length - 1) {
+                            throw new Error(`Proxy server error: ${response.status}`);
+                        }
+                        continue; // Try next proxy
+                    }
+                    
+                } catch (error) {
+                    console.error(`Proxy attempt ${i + 1} failed:`, error);
+                    
+                    if (i === proxyUrls.length - 1) {
+                        // All proxies failed, use fallback
+                        console.log('All proxy servers failed, using fallback analysis');
+                        return generateFallbackAnalysis(data);
+                    }
+                }
+            }
+        }
+        
+        function generateFallbackAnalysis(data) {
+            // Enhanced fallback analysis
+            return `<strong>🤖 AI ANALYSIS - ${data.program?.toUpperCase() || 'PROGRAM ANALYSIS'}</strong>
+
+<strong>📊 OVERALL PERFORMANCE ASSESSMENT</strong>
+${data.program ? `The ${data.program} program` : 'This program'} ${data.jobTarget ? `targeting ${data.jobTarget} positions` : ''} shows performance across ${data.metrics.length} key metrics${data.recordCount ? ` based on ${data.recordCount} data points` : ''}.
+
+<strong>💪 KEY STRENGTHS</strong>
+${data.metrics.filter(m => typeof m.value === 'number' && m.value > 0).slice(0, 3).map(m => 
+    `• <strong>${m.name} (${m.value}):</strong> ${getMetricInsight(m.name, m.value, 'strength')}`
+).join('\n') || '• Strong foundational program elements identified'}
+
+<strong>⚠️ AREAS FOR IMPROVEMENT</strong>
+${data.metrics.filter(m => typeof m.value === 'number' && m.value <= 0).slice(0, 3).map(m => 
+    `• <strong>${m.name} (${m.value}):</strong> ${getMetricInsight(m.name, m.value, 'improvement')}`
+).join('\n') || '• Opportunities for enhancement across multiple dimensions'}
+
+<strong>🎯 STRATEGIC RECOMMENDATIONS</strong>
+
+<strong>1. Data-Driven Improvements</strong>
+• Focus on metrics showing negative trends
+• Leverage strengths in high-performing areas
+
+<strong>2. Market Positioning</strong>
+• Address competitive challenges
+• Capitalize on demand opportunities
+
+<strong>3. Program Enhancement</strong>
+• Update curriculum based on market feedback
+• Strengthen industry partnerships
+
+<strong>📈 EXPECTED OUTCOMES</strong>
+Implementation of targeted improvements should enhance overall program performance and market competitiveness.
+
+<strong>🔧 Technical Note:</strong>
+<em>Proxy server connection unavailable - using enhanced local analysis. For real-time AI insights, ensure proxy server is configured and running.</em>
+
+<strong>📊 Data Source:</strong> ${data.dataSource} | Records: ${data.recordCount || 'Sample'}`;
+        }
+        
+        function getMetricInsight(metricName, value, type) {
+            const name = metricName.toLowerCase();
+            
+            if (name.includes('score') || name.includes('demand') || name.includes('opportunity')) {
+                if (type === 'strength') {
+                    return value > 1 ? 'Excellent performance indicator' : 'Positive trend observed';
+                } else {
+                    return value < 0 ? 'Requires immediate attention' : 'Below optimal performance';
+                }
+            }
+            
+            if (name.includes('growth') || name.includes('%')) {
+                if (type === 'strength') {
+                    return 'Strong market position';
+                } else {
+                    return 'Growth opportunities available';
+                }
+            }
+            
+            return type === 'strength' ? 'Competitive advantage' : 'Area for strategic focus';
+        }
+
             try {
                 console.log('Sending request to Claude API...');
                 
@@ -713,14 +821,9 @@ Implementing these recommendations should improve the Total Score from 5.35 to 6
         }
         
         function checkApiKey() {
-            claudeApiKey = localStorage.getItem('claude_api_key');
-            if (claudeApiKey) {
-                document.getElementById('configSection').style.display = 'none';
-                console.log('✅ API key found');
-            } else {
-                document.getElementById('configSection').style.display = 'block';
-                console.log('⚠️ API key needed');
-            }
+            // Since we're using proxy server, we don't need API key input anymore!
+            document.getElementById('configSection').style.display = 'none';
+            console.log('✅ Using secure proxy server - no API key needed');
         }
         
         // Set up event listeners when page loads
