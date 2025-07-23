@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
-    "build": "vercel build",
-    "deploy": "vercel --prod"
+    "start": "node server.js"
   },
   "dependencies": {},
   "devDependencies": {}
