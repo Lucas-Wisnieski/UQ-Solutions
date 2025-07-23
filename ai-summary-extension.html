@@ -157,10 +157,16 @@
     
     <!-- Main Extension Script -->
     <script>
-        console.log('Starting extension initialization...');
+        console.log('🚀 AI Summary Extension v2025.01.23.01 loaded');
+        const EXTENSION_VERSION = 'v2025.01.23.01';
         
         // Global variables
         let claudeApiKey = '';
+        
+        // Show version in title
+        document.addEventListener('DOMContentLoaded', function() {
+            document.title = `AI Program Summary ${EXTENSION_VERSION}`;
+        });
         
         // Core functions - define these first
         function runDiagnostics() {
@@ -182,7 +188,12 @@
             };
             
             document.getElementById('summaryText').innerHTML = `
-<strong>ENHANCED DIAGNOSTIC REPORT</strong>
+<strong>🔍 DIAGNOSTIC REPORT ${EXTENSION_VERSION}</strong>
+
+<strong>Version Info:</strong>
+- Extension Version: ${EXTENSION_VERSION}
+- Last Updated: January 23, 2025
+- Console Version Check: Look for "🚀 AI Summary Extension v2025.01.23.01 loaded"
 
 Environment:
 - URL: ${window.location.href}
@@ -216,9 +227,11 @@ ${typeof tableau !== 'undefined' ?
 `❌ Tableau API not found - This may be normal if APIs failed to load`}
 
 Button Test: ✅ Buttons are working!
+API Key: ${claudeApiKey ? '✅ Configured' : '❌ Not set'}
 
-Next: If this is truly running in Tableau but iframe shows false, 
-there may be a Tableau-specific loading issue.
+<strong>🔄 Cache Status:</strong>
+If you see ${EXTENSION_VERSION} above, you have the latest version.
+If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
             `;
         }
         
