@@ -167,19 +167,58 @@
             console.log('=== RUNNING DIAGNOSTICS ===');
             alert('Diagnostics button clicked! Check console for details.');
             
+            // More comprehensive iframe detection
+            const isInIframe = window.frameElement !== null || 
+                              window.self !== window.top || 
+                              window.parent !== window || 
+                              window.location !== window.parent.location;
+            
+            const parentInfo = {
+                hasParent: window.parent !== window,
+                isTop: window.self === window.top,
+                frameElement: window.frameElement !== null,
+                referrer: document.referrer,
+                parentLocation: (window.parent !== window) ? 'Has parent' : 'No parent'
+            };
+            
             document.getElementById('summaryText').innerHTML = `
-<strong>DIAGNOSTIC REPORT</strong>
+<strong>ENHANCED DIAGNOSTIC REPORT</strong>
 
 Environment:
 - URL: ${window.location.href}
-- In iframe: ${window.frameElement !== null}
-- Parent exists: ${window.parent !== window}
+- Protocol: ${window.location.protocol}
+- Host: ${window.location.hostname}
+
+Iframe Detection (Multiple Methods):
+- frameElement !== null: ${window.frameElement !== null}
+- self !== top: ${window.self !== window.top}
+- parent !== window: ${window.parent !== window}
+- Combined iframe check: ${isInIframe}
+
+Parent Window Info:
+- Has parent: ${parentInfo.hasParent}
+- Is top window: ${parentInfo.isTop}
+- Referrer: ${parentInfo.referrer || 'None'}
+- Parent location: ${parentInfo.parentLocation}
+
+Tableau Status:
 - Tableau available: ${typeof tableau}
 - jQuery available: ${typeof $ !== 'undefined'}
 
+Window Hierarchy:
+- window.name: ${window.name || 'No name'}
+- window.length: ${window.length} (number of child frames)
+
+${typeof tableau !== 'undefined' ? 
+`✅ Tableau API is available!
+- Extensions: ${typeof tableau.extensions}
+` : 
+`❌ Tableau API not found - This may be normal if APIs failed to load`}
+
 Button Test: ✅ Buttons are working!
 
-Next step: Check console for detailed information.
+Next: If this is truly running in Tableau but iframe shows false, 
+there may be a Tableau-specific loading issue.
             `;
         }
         
