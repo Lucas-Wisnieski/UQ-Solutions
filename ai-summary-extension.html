@@ -253,7 +253,7 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
         }
         
         function generateSummary() {
-            console.log('Generate summary clicked');
+            console.log('Generate summary clicked - getting real dashboard data...');
             
             if (!claudeApiKey) {
                 showError('Please configure your Claude API key first.');
@@ -264,38 +264,156 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
             
-            // Use sample data similar to your Excel file for now
-            const sampleData = {
-                program: "11.0701 | Computer Science | Bachelor's",
-                jobTarget: "Software Developers",
-                metrics: [
-                    { name: "Total Score", value: 5.35 },
-                    { name: "Market Growth Score", value: 0.2 },
-                    { name: "Schools Like Us Score", value: 1.65 },
-                    { name: "Opportunity Size Score", value: 0.8 },
-                    { name: "Workforce Demand Score", value: 2.0 },
-                    { name: "Earning Outcomes Score", value: 0.7 },
-                    { name: "S.U.G., Geog. Mkt.", value: 0.183 },
-                    { name: "% Insts Growing, Geog. Mkt.", value: 0.556 }
-                ]
-            };
-            
-            console.log('Calling Claude API with sample data...');
-            callClaudeAPI(sampleData).then(summary => {
+            // Try to get real data from Tableau dashboard
+            getRealTableauData().then(data => {
+                console.log('Using real dashboard data:', data);
+                return callClaudeAPI(data);
+            }).catch(error => {
+                console.warn('Could not get real data, using sample:', error);
+                // Fallback to sample data if real data unavailable
+                const sampleData = {
+                    program: "11.0701 | Computer Science | Bachelor's",
+                    jobTarget: "Software Developers", 
+                    metrics: [
+                        { name: "Total Score", value: 5.35 },
+                        { name: "Market Growth Score", value: 0.2 },
+                        { name: "Schools Like Us Score", value: 1.65 },
+                        { name: "Opportunity Size Score", value: 0.8 },
+                        { name: "Workforce Demand Score", value: 2.0 },
+                        { name: "Earning Outcomes Score", value: 0.7 }
+                    ]
+                };
+                return callClaudeAPI(sampleData);
+            }).then(summary => {
                 document.getElementById('summaryText').innerHTML = summary;
                 document.getElementById('loadingIndicator').style.display = 'none';
             }).catch(error => {
-                console.error('Claude API error:', error);
+                console.error('Summary generation error:', error);
                 showError('Error generating summary: ' + error.message);
                 document.getElementById('loadingIndicator').style.display = 'none';
             });
         }
         
+        async function getRealTableauData() {
+            console.log('Attempting to get real Tableau data...');
+            
+            // If we have Tableau API access
+            if (typeof tableau !== 'undefined' && tableau.extensions) {
+                try {
+                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                    console.log('Available worksheets:', worksheets.map(w => w.name));
+                    
+                    // Look for worksheet with data (try different possible names)
+                    let dataWorksheet = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('data') ||
+                        ws.name.toLowerCase().includes('table') ||
+                        ws.name.toLowerCase().includes('summary') ||
+                        ws.name.toLowerCase().includes('program')
+                    );
+                    
+                    // If not found, use first worksheet
+                    if (!dataWorksheet && worksheets.length > 0) {
+                        dataWorksheet = worksheets[0];
+                        console.log('Using first available worksheet:', dataWorksheet.name);
+                    }
+                    
+                    if (dataWorksheet) {
+                        const dataTable = await dataWorksheet.getUnderlyingDataAsync();
+                        return processRealTableauData(dataTable);
+                    }
+                } catch (error) {
+                    console.error('Error accessing Tableau data:', error);
+                }
+            }
+            
+            // Alternative: Try to read data from page elements (if Tableau API unavailable)
+            return getDataFromPageElements();
+        }
+        
+        function processRealTableauData(dataTable) {
+            console.log('Processing real Tableau data...');
+            const columns = dataTable.columns.map(col => col.fieldName);
+            const rows = dataTable.data;
+            
+            console.log('Columns found:', columns);
+            console.log('Row count:', rows.length);
+            
+            // Extract program information
+            let program = 'Unknown Program';
+            let jobTarget = 'Unknown Job';
+            let metrics = [];
+            
+            // Process the data to extract meaningful information
+            rows.forEach(row => {
+                const rowData = {};
+                columns.forEach((col, index) => {
+                    rowData[col] = row[index].value;
+                });
+                
+                // Extract program info (adjust field names based on your data)
+                if (rowData['CIP Code & Award Level']) {
+                    program = rowData['CIP Code & Award Level'];
+                }
+                if (rowData['UQ Job']) {
+                    jobTarget = rowData['UQ Job'];
+                }
+                
+                // Extract metrics
+                Object.keys(rowData).forEach(key => {
+                    if (key.toLowerCase().includes('score') || 
+                        key.toLowerCase().includes('rate') ||
+                        key.toLowerCase().includes('%') ||
+                        (typeof rowData[key] === 'number' && !key.includes('Code'))) {
+                        metrics.push({
+                            name: key,
+                            value: rowData[key]
+                        });
+                    }
+                });
+            });
+            
+            return {
+                program: program,
+                jobTarget: jobTarget,
+                metrics: metrics.slice(0, 10), // Limit to first 10 metrics
+                dataSource: 'Real Tableau Data',
+                recordCount: rows.length
+            };
+        }
+        
+        function getDataFromPageElements() {
+            console.log('Attempting to read data from page elements...');
+            
+            // Try to read the current filter selections and table data
+            const result = {
+                program: 'Program from filters',
+                jobTarget: 'Job from data',
+                metrics: [],
+                dataSource: 'Page Elements',
+                recordCount: 0
+            };
+            
+            // This would need to be customized based on your specific page structure
+            // For now, return sample data with note that it's from page elements
+            result.metrics = [
+                { name: "Total Score", value: "From current filters" },
+                { name: "Market Growth Score", value: "From table data" },
+                { name: "Note", value: "Real data extraction needs dashboard-specific implementation" }
+            ];
+            
+            return Promise.resolve(result);
+        }
+        
         async function callClaudeAPI(data) {
+            const isRealData = data.dataSource && data.dataSource.includes('Real');
+            
             const prompt = `Analyze the following program performance data and create a comprehensive summary:
 
+${isRealData ? 'REAL DASHBOARD DATA ANALYSIS' : 'SAMPLE DATA ANALYSIS'}
 Program: ${data.program}
 Job Target: ${data.jobTarget}
+Data Source: ${data.dataSource || 'Sample Data'}
+Records Analyzed: ${data.recordCount || 'Sample'}
 
 Key Performance Metrics:
 ${data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n')}
@@ -305,6 +423,10 @@ Please provide a clear, actionable summary that includes:
 2. Key strengths and areas for improvement  
 3. Market opportunity analysis
 4. Recommendations for program development
+
+${isRealData ? 
+'This analysis is based on current dashboard data reflecting the selected filters and real-time metrics.' :
+'Note: This analysis uses sample data for demonstration purposes.'}
 
 Keep the summary concise but comprehensive, suitable for academic administrators and program directors. Format it with clear sections and bullet points for readability.`;
 
