@@ -5,8 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Program Summary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- Tableau API URL for Tableau Cloud -->
-    <script src="https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js" onload="console.log('✅ Tableau API loaded for Cloud')" onerror="console.log('❌ Failed to load Cloud API')"></script>
+    <!-- Try multiple Tableau API sources with better error handling -->
+    <script>
+        console.log('Loading Tableau API...');
+        
+        // Try to load Tableau API dynamically
+        function loadTableauScript() {
+            const urls = [
+                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
+                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryLoad() {
+                if (currentIndex >= urls.length) {
+                    console.error('All Tableau API URLs failed');
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = urls[currentIndex];
+                
+                script.onload = function() {
+                    console.log('✅ Tableau API loaded from:', urls[currentIndex]);
+                };
+                
+                script.onerror = function() {
+                    console.log('❌ Failed to load from:', urls[currentIndex]);
+                    currentIndex++;
+                    tryLoad();
+                };
+                
+                document.head.appendChild(script);
+            }
+            
+            tryLoad();
+        }
+        
+        loadTableauScript();
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -164,10 +202,10 @@
         <div class="header">
             <h1 class="title">AI Program Summary</h1>
             <div>
-                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="runDiagnostics()">
                     Run Diagnostics
                 </button>
-                <button class="refresh-btn" id="refreshBtn" style="cursor: pointer;">
+                <button class="refresh-btn" id="refreshBtn" style="cursor: pointer;" onclick="generateSummary()">
                     Generate Summary
                 </button>
             </div>
@@ -177,7 +215,7 @@
             <h4>Configuration Required</h4>
             <p>Please enter your Claude API key to generate summaries:</p>
             <input type="password" class="config-input" id="apiKeyInput" placeholder="Enter your Claude API key (sk-ant-api03-...)">
-            <button id="saveApiBtn" style="margin-top: 8px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+            <button id="saveApiBtn" style="margin-top: 8px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="saveApiKey()">Save</button>
         </div>
         
         <div id="loadingIndicator" class="loading" style="display: none;">
@@ -203,15 +241,84 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
-        let apiKey = '';
+        // Initialize variables
+        let claudeApiKey = '';
         
-        // Dynamic script loader for Tableau Extensions API
-        function loadTableauAPI() {
-            const apiUrls = [
-                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
-                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
-                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
-            ];
+        // Simple test functions first
+        function runDiagnostics() {
+            console.log('=== RUNNING TABLEAU DIAGNOSTICS ===');
+            alert('Diagnostics button works! Check console for details.');
+            
+            const envInfo = detectTableauEnvironment();
+            
+            document.getElementById('summaryText').innerHTML = `
+<strong>ENHANCED DIAGNOSTIC REPORT</strong>
+
+Environment Detection:
+- Detected Environment: ${envInfo.environment}
+- Referrer URL: ${envInfo.referrer || 'None'}
+- Suggested API URL: ${envInfo.apiUrl || 'Not determined'}
+
+Current Environment:
+- URL: ${window.location.href}
+- Protocol: ${window.location.protocol}
+- Host: ${window.location.hostname}
+- In iframe: ${window.frameElement !== null}
+- Parent exists: ${window.parent !== window}
+
+Tableau API Status:
+- Tableau object: ${typeof tableau}
+- jQuery loaded: ${typeof $ !== 'undefined'}
+
+${typeof tableau !== 'undefined' ? 
+`✅ Tableau API is available!
+- Extensions: ${typeof tableau.extensions}
+- Dashboard available: ${typeof tableau.extensions?.dashboardContent}
+` : 
+`❌ Tableau API not found
+
+Recommended Next Steps:
+1. Use the suggested API URL above
+2. If using Tableau Cloud, check your specific pod URL
+3. If using Tableau Server, use your server's domain
+4. For Tableau Desktop, try the standard public API URL`}
+
+Console: Check browser console for detailed script loading attempts.
+            `;
+            
+            // Also run the full diagnostic in console
+            initializeExtension();
+        }
+        
+        function saveApiKey() {
+            console.log('Save API key function called');
+            alert('Save button works!');
+            
+            const input = document.getElementById('apiKeyInput');
+            if (input && input.value.trim()) {
+                claudeApiKey = input.value.trim();
+                localStorage.setItem('claude_api_key', claudeApiKey);
+                document.getElementById('configSection').style.display = 'none';
+                input.value = '';
+                console.log('✅ Claude API key saved');
+                alert('API key saved successfully!');
+            } else {
+                alert('Please enter a valid API key');
+            }
+        }
+        
+        function generateSummary() {
+            alert('Generate summary button works!');
+            console.log('Generate summary called');
+            
+            if (!claudeApiKey) {
+                showError('Please configure your Claude API key first.');
+                return;
+            }
+            
+            // Rest of the function will be added once basic clicking works
+            showError('Function is working! Now we can add the real functionality.');
+        }
             
             function tryLoadScript(index) {
                 if (index >= apiUrls.length) {
@@ -373,24 +480,13 @@
         
         function checkApiKey() {
             // Check if Claude API key is stored
-            apiKey = localStorage.getItem('claude_api_key');
-            if (apiKey) {
+            claudeApiKey = localStorage.getItem('claude_api_key');
+            if (claudeApiKey) {
                 document.getElementById('configSection').style.display = 'none';
                 console.log('✅ Claude API key found');
             } else {
                 document.getElementById('configSection').style.display = 'block';
                 console.log('⚠️ Claude API key needed');
-            }
-        }
-        
-        function saveApiKey() {
-            const input = document.getElementById('apiKeyInput');
-            if (input.value.trim()) {
-                apiKey = input.value.trim();
-                localStorage.setItem('claude_api_key', apiKey);
-                document.getElementById('configSection').style.display = 'none';
-                input.value = '';
-                console.log('✅ Claude API key saved');
             }
         }
         
