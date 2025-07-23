@@ -1,0 +1,13 @@
+{
+  "name": "tableau-claude-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server for Tableau Extension to Claude API",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
