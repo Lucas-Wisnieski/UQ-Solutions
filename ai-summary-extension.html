@@ -4,47 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Program Summary</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- Try multiple Tableau API sources with better error handling -->
-    <script>
-        console.log('Loading Tableau API...');
-        
-        // Try to load Tableau API dynamically
-        function loadTableauScript() {
-            const urls = [
-                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
-                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
-            ];
-            
-            let currentIndex = 0;
-            
-            function tryLoad() {
-                if (currentIndex >= urls.length) {
-                    console.error('All Tableau API URLs failed');
-                    return;
-                }
-                
-                const script = document.createElement('script');
-                script.src = urls[currentIndex];
-                
-                script.onload = function() {
-                    console.log('✅ Tableau API loaded from:', urls[currentIndex]);
-                };
-                
-                script.onerror = function() {
-                    console.log('❌ Failed to load from:', urls[currentIndex]);
-                    currentIndex++;
-                    tryLoad();
-                };
-                
-                document.head.appendChild(script);
-            }
-            
-            tryLoad();
-        }
-        
-        loadTableauScript();
-    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -88,19 +47,11 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
         
         .refresh-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .refresh-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
         }
         
         .loading {
@@ -128,10 +79,6 @@
             100% { transform: rotate(360deg); }
         }
         
-        .summary-container {
-            margin-top: 20px;
-        }
-        
         .summary-text {
             background: #ffffff;
             border: 2px solid #e9ecef;
@@ -144,26 +91,20 @@
             white-space: pre-wrap;
         }
         
-        .data-preview {
+        .config-section {
             margin-top: 20px;
             padding: 16px;
-            background: #f8f9fa;
+            background: #fff3cd;
             border-radius: 8px;
-            border: 1px solid #dee2e6;
+            border: 1px solid #ffeaa7;
         }
         
-        .data-preview h4 {
-            margin: 0 0 12px 0;
-            color: #495057;
+        .config-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .data-preview pre {
-            margin: 0;
-            font-size: 12px;
-            color: #6c757d;
-            overflow-x: auto;
         }
         
         .error {
@@ -174,27 +115,6 @@
             border: 1px solid #ffcdd2;
             margin-top: 20px;
         }
-        
-        .config-section {
-            margin-top: 20px;
-            padding: 16px;
-            background: #fff3cd;
-            border-radius: 8px;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .config-section h4 {
-            margin: 0 0 12px 0;
-            color: #856404;
-        }
-        
-        .config-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -202,10 +122,10 @@
         <div class="header">
             <h1 class="title">AI Program Summary</h1>
             <div>
-                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="runDiagnostics()">
+                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Run Diagnostics
                 </button>
-                <button class="refresh-btn" id="refreshBtn" style="cursor: pointer;" onclick="generateSummary()">
+                <button class="refresh-btn" id="refreshBtn" style="cursor: pointer;">
                     Generate Summary
                 </button>
             </div>
@@ -215,7 +135,7 @@
             <h4>Configuration Required</h4>
             <p>Please enter your Claude API key to generate summaries:</p>
             <input type="password" class="config-input" id="apiKeyInput" placeholder="Enter your Claude API key (sk-ant-api03-...)">
-            <button id="saveApiBtn" style="margin-top: 8px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="saveApiKey()">Save</button>
+            <button id="saveApiBtn" style="margin-top: 8px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
         </div>
         
         <div id="loadingIndicator" class="loading" style="display: none;">
@@ -229,70 +149,43 @@
             </div>
         </div>
         
-        <div class="data-preview" id="dataPreview" style="display: none;">
-            <h4>Current Data Preview:</h4>
-            <pre id="dataContent"></pre>
-        </div>
-        
         <div id="errorMessage" class="error" style="display: none;"></div>
     </div>
 
-    <!-- jQuery (required by Tableau Extensions API) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Load jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     
+    <!-- Main Extension Script -->
     <script>
-        // Initialize variables
+        console.log('Starting extension initialization...');
+        
+        // Global variables
         let claudeApiKey = '';
         
-        // Simple test functions first
+        // Core functions - define these first
         function runDiagnostics() {
-            console.log('=== RUNNING TABLEAU DIAGNOSTICS ===');
-            alert('Diagnostics button works! Check console for details.');
-            
-            const envInfo = detectTableauEnvironment();
+            console.log('=== RUNNING DIAGNOSTICS ===');
+            alert('Diagnostics button clicked! Check console for details.');
             
             document.getElementById('summaryText').innerHTML = `
-<strong>ENHANCED DIAGNOSTIC REPORT</strong>
+<strong>DIAGNOSTIC REPORT</strong>
 
-Environment Detection:
-- Detected Environment: ${envInfo.environment}
-- Referrer URL: ${envInfo.referrer || 'None'}
-- Suggested API URL: ${envInfo.apiUrl || 'Not determined'}
-
-Current Environment:
+Environment:
 - URL: ${window.location.href}
-- Protocol: ${window.location.protocol}
-- Host: ${window.location.hostname}
 - In iframe: ${window.frameElement !== null}
 - Parent exists: ${window.parent !== window}
+- Tableau available: ${typeof tableau}
+- jQuery available: ${typeof $ !== 'undefined'}
 
-Tableau API Status:
-- Tableau object: ${typeof tableau}
-- jQuery loaded: ${typeof $ !== 'undefined'}
+Button Test: ✅ Buttons are working!
 
-${typeof tableau !== 'undefined' ? 
-`✅ Tableau API is available!
-- Extensions: ${typeof tableau.extensions}
-- Dashboard available: ${typeof tableau.extensions?.dashboardContent}
-` : 
-`❌ Tableau API not found
-
-Recommended Next Steps:
-1. Use the suggested API URL above
-2. If using Tableau Cloud, check your specific pod URL
-3. If using Tableau Server, use your server's domain
-4. For Tableau Desktop, try the standard public API URL`}
-
-Console: Check browser console for detailed script loading attempts.
+Next step: Check console for detailed information.
             `;
-            
-            // Also run the full diagnostic in console
-            initializeExtension();
         }
         
         function saveApiKey() {
-            console.log('Save API key function called');
-            alert('Save button works!');
+            console.log('Save API key clicked');
+            alert('Save button clicked!');
             
             const input = document.getElementById('apiKeyInput');
             if (input && input.value.trim()) {
@@ -300,7 +193,7 @@ Console: Check browser console for detailed script loading attempts.
                 localStorage.setItem('claude_api_key', claudeApiKey);
                 document.getElementById('configSection').style.display = 'none';
                 input.value = '';
-                console.log('✅ Claude API key saved');
+                console.log('✅ API key saved');
                 alert('API key saved successfully!');
             } else {
                 alert('Please enter a valid API key');
@@ -308,371 +201,21 @@ Console: Check browser console for detailed script loading attempts.
         }
         
         function generateSummary() {
-            alert('Generate summary button works!');
-            console.log('Generate summary called');
+            console.log('Generate summary clicked');
+            alert('Generate Summary button clicked!');
             
-            if (!claudeApiKey) {
-                showError('Please configure your Claude API key first.');
-                return;
-            }
-            
-            // Rest of the function will be added once basic clicking works
-            showError('Function is working! Now we can add the real functionality.');
-        }
-            
-            function tryLoadScript(index) {
-                if (index >= apiUrls.length) {
-                    console.error('❌ All Tableau API URLs failed to load');
-                    return;
-                }
-                
-                console.log(`Attempting to load Tableau API from: ${apiUrls[index]}`);
-                
-                const script = document.createElement('script');
-                script.src = apiUrls[index];
-                
-                script.onload = function() {
-                    console.log(`✅ Tableau API loaded successfully from: ${apiUrls[index]}`);
-                    console.log('Tableau object type:', typeof tableau);
-                    if (typeof tableau !== 'undefined') {
-                        console.log('Tableau extensions available:', typeof tableau.extensions);
-                        // Initialize once API is loaded
-                        setTimeout(initializeExtension, 100);
-                    }
-                };
-                
-                script.onerror = function() {
-                    console.log(`❌ Failed to load from: ${apiUrls[index]}`);
-                    tryLoadScript(index + 1);
-                };
-                
-                document.head.appendChild(script);
-            }
-            
-            tryLoadScript(0);
-        }
-        
-        let apiKey = '';
-        
-        // Initialize the extension - enhanced debugging
-        function initializeExtension() {
-            console.log('=== DEBUGGING TABLEAU CONNECTION ===');
-            console.log('1. Initializing extension...');
-            console.log('2. jQuery available:', typeof $);
-            console.log('3. Document URL:', window.location.href);
-            console.log('4. User Agent:', navigator.userAgent);
-            console.log('5. Tableau object type:', typeof tableau);
-            
-            // Check if we're actually running inside Tableau
-            console.log('6. Parent window:', window.parent !== window ? 'Has parent (likely in iframe)' : 'No parent (standalone)');
-            console.log('7. Window name:', window.name);
-            console.log('8. Referrer:', document.referrer);
-            
-            if (typeof tableau !== 'undefined') {
-                console.log('9. Tableau object found!');
-                console.log('   - Extensions available:', typeof tableau.extensions);
-                console.log('   - Version info:', tableau.version || 'Not available');
-                
-                // Try to initialize
-                console.log('10. Attempting to initialize Tableau Extensions API...');
-                tableau.extensions.initializeAsync().then(function() {
-                    console.log('✅ SUCCESS: Extension initialized successfully!');
-                    console.log('11. Dashboard info:');
-                    console.log('   - Name:', tableau.extensions.dashboardContent.dashboard.name);
-                    console.log('   - Worksheets count:', tableau.extensions.dashboardContent.dashboard.worksheets.length);
-                    
-                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                    worksheets.forEach((ws, index) => {
-                        console.log(`   - Worksheet ${index + 1}: "${ws.name}"`);
-                    });
-                    
-                    checkApiKey();
-                }).catch(function(error) {
-                    console.error('❌ FAILED: Error initializing extension:', error);
-                    console.log('Error details:', error.message);
-                    console.log('Error stack:', error.stack);
-                    showError('Failed to initialize Tableau extension: ' + error.message);
-                });
-            } else {
-                console.log('❌ Tableau object NOT FOUND');
-                console.log('9. Possible reasons:');
-                console.log('   - Extension not loaded within Tableau');
-                console.log('   - Tableau Extensions API script failed to load');
-                console.log('   - CORS/security restrictions');
-                
-                // Let's check what scripts loaded
-                console.log('10. Checking loaded scripts:');
-                const scripts = document.querySelectorAll('script');
-                scripts.forEach((script, index) => {
-                    console.log(`   Script ${index + 1}: ${script.src || 'inline script'}`);
-                });
-                
-                // Check if we can detect Tableau environment
-                console.log('11. Environment detection:');
-                console.log('   - Is HTTPS:', window.location.protocol === 'https:');
-                console.log('   - Domain:', window.location.hostname);
-                console.log('   - In iframe:', window.frameElement !== null);
-                
-                showError('Tableau Extensions API not available. Please ensure this extension is loaded within Tableau Desktop or Tableau Cloud.');
-            }
-        }
-        
-        // Wait for both jQuery and DOM to be ready
-        function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            
-            // Add click event listeners using proper event binding
-            const refreshBtn = document.getElementById('refreshBtn');
-            const diagnosticsBtn = document.getElementById('diagnosticsBtn');
-            const saveApiBtn = document.getElementById('saveApiBtn');
-            
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', generateSummary);
-                console.log('✅ Generate Summary button listener added');
-            }
-            
-            if (diagnosticsBtn) {
-                diagnosticsBtn.addEventListener('click', runDiagnostics);
-                console.log('✅ Diagnostics button listener added');
-            }
-            
-            if (saveApiBtn) {
-                saveApiBtn.addEventListener('click', saveApiKey);
-                console.log('✅ Save API Key button listener added');
-            }
-            
-            // Also allow Enter key in API input
-            const apiInput = document.getElementById('apiKeyInput');
-            if (apiInput) {
-                apiInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        saveApiKey();
-                    }
-                });
-            }
-        }
-        
-        if (typeof $ !== 'undefined') {
-            $(document).ready(function() {
-                console.log('Document ready, setting up...');
-                setupEventListeners();
-                
-                if (typeof tableau === 'undefined') {
-                    console.log('Tableau API not found, attempting to load...');
-                    loadTableauAPI();
-                } else {
-                    console.log('Tableau API already available');
-                    initializeExtension();
-                }
-            });
-        } else {
-            // Fallback if jQuery doesn't load
-            document.addEventListener('DOMContentLoaded', function() {
-                setupEventListeners();
-                
-                if (typeof tableau === 'undefined') {
-                    loadTableauAPI();
-                } else {
-                    initializeExtension();
-                }
-            });
-        }
-        
-        function checkApiKey() {
-            // Check if Claude API key is stored
-            claudeApiKey = localStorage.getItem('claude_api_key');
-            if (claudeApiKey) {
-                document.getElementById('configSection').style.display = 'none';
-                console.log('✅ Claude API key found');
-            } else {
-                document.getElementById('configSection').style.display = 'block';
-                console.log('⚠️ Claude API key needed');
-            }
-        }
-        
-        async function generateSummary() {
-            if (!apiKey) {
-                showError('Please configure your Claude API key first.');
-                return;
-            }
-            
-            showLoading(true);
-            hideError();
-            
-            try {
-                // Get data from Tableau
-                const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                console.log('Found worksheets:', worksheets.map(w => w.name));
-                
-                // Try to find the worksheet with our data
-                let targetWorksheet = worksheets.find(w => 
-                    w.name.toLowerCase().includes('program') || 
-                    w.name.toLowerCase().includes('score') ||
-                    w.name.toLowerCase().includes('data')
-                );
-                
-                // If no specific worksheet found, use the first one
-                if (!targetWorksheet && worksheets.length > 0) {
-                    targetWorksheet = worksheets[0];
-                }
-                
-                if (!targetWorksheet) {
-                    throw new Error('No worksheets found in the dashboard');
-                }
-                
-                console.log('Using worksheet:', targetWorksheet.name);
-                
-                // Get the underlying data
-                const dataTable = await targetWorksheet.getUnderlyingDataAsync();
-                const data = processTableauData(dataTable);
-                
-                // Show data preview
-                showDataPreview(data);
-                
-                // Generate AI summary using Claude
-                const summary = await callClaudeAPI(data);
-                
-                // Display the summary
-                document.getElementById('summaryText').textContent = summary;
-                
-            } catch (error) {
-                console.error('Error generating summary:', error);
-                showError('Error generating summary: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-        
-        function processTableauData(dataTable) {
-            const columns = dataTable.columns;
-            const data = dataTable.data;
-            
-            // Convert Tableau data to a more readable format
-            const processedData = data.map(row => {
-                const rowObj = {};
-                columns.forEach((col, index) => {
-                    rowObj[col.fieldName] = row[index].value;
-                });
-                return rowObj;
-            });
-            
-            return {
-                columns: columns.map(col => col.fieldName),
-                rows: processedData,
-                totalRows: data.length
-            };
-        }
-        
-        async function callClaudeAPI(data) {
-            const prompt = `Analyze the following program performance data and create a comprehensive summary:
+            document.getElementById('summaryText').innerHTML = `
+<strong>BUTTON TEST SUCCESSFUL!</strong>
 
-Data Structure:
-- Program: ${data.rows[0]?.['CIP Code & Award Level'] || 'Program data'}
-- Job Target: ${data.rows[0]?.['UQ Job'] || 'Job information'}
-- Metrics Available: ${data.columns.join(', ')}
-- Total Data Points: ${data.totalRows}
+✅ All buttons are now working correctly!
 
-Key Metrics from the data:
-${data.rows.slice(0, 10).map(row => 
-    `${row['Measure Names']}: ${row['Measure Values']}`
-).join('\n')}
+Next steps:
+1. Add your Claude API key
+2. Connect to Tableau data
+3. Generate real AI summaries
 
-Please provide a clear, actionable summary that includes:
-1. Overall program performance assessment
-2. Key strengths and areas for improvement  
-3. Market opportunity analysis
-4. Recommendations for program development
-
-Keep the summary concise but comprehensive, suitable for academic administrators and program directors.`;
-
-            try {
-                console.log('Calling Claude API...');
-                
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-3-sonnet-20240229',
-                        max_tokens: 1000,
-                        messages: [{
-                            role: 'user',
-                            content: prompt
-                        }]
-                    })
-                });
-                
-                console.log('Claude API Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Claude API error response:', errorText);
-                    throw new Error(`Claude API error: ${response.status} - ${errorText}`);
-                }
-                
-                const result = await response.json();
-                console.log('✅ Claude API success');
-                return result.content[0].text;
-                
-            } catch (error) {
-                console.error('Claude API error details:', error);
-                
-                // Provide fallback summary if API fails
-                if (error.message.includes('fetch') || error.message.includes('CORS')) {
-                    return `API Connection Issue - Demo Summary for ${data.rows[0]?.['CIP Code & Award Level'] || 'Program'}:
-
-📊 PROGRAM PERFORMANCE OVERVIEW
-The ${data.rows[0]?.['CIP Code & Award Level']?.split('|')[1]?.trim() || 'program'} targeting ${data.rows[0]?.['UQ Job']} positions shows mixed performance across key metrics.
-
-🔍 KEY FINDINGS:
-${data.rows.slice(0, 6).map(row => `• ${row['Measure Names']}: ${row['Measure Values']}`).join('\n')}
-
-💪 STRENGTHS:
-• Strong workforce demand indicators suggest good employment prospects
-• Competitive positioning within similar institutions
-• Solid foundational program structure
-
-🎯 IMPROVEMENT OPPORTUNITIES:
-• Market growth metrics indicate need for program modernization
-• Earning outcomes could be enhanced through industry partnerships
-• Geographic market expansion may increase opportunities
-
-📈 RECOMMENDATIONS:
-1. Strengthen industry connections to improve earning outcomes
-2. Update curriculum to address emerging market trends
-3. Develop targeted marketing for geographic expansion
-4. Enhance career services to leverage workforce demand
-
-Note: This is a demo summary. For full AI analysis, resolve the API connection issue.`;
-                } else {
-                    throw error;
-                }
-            }
-        }
-        
-        function showDataPreview(data) {
-            const preview = document.getElementById('dataPreview');
-            const content = document.getElementById('dataContent');
-            
-            const previewText = `Columns: ${data.columns.join(', ')}
-            
-Sample Data (first 5 rows):
-${data.rows.slice(0, 5).map((row, i) => 
-    `Row ${i + 1}: ${JSON.stringify(row, null, 2)}`
-).join('\n\n')}
-
-Total Rows: ${data.totalRows}`;
-            
-            content.textContent = previewText;
-            preview.style.display = 'block';
-        }
-        
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
-            document.getElementById('refreshBtn').disabled = show;
+Current status: Button functionality restored.
+            `;
         }
         
         function showError(message) {
@@ -685,83 +228,75 @@ Total Rows: ${data.totalRows}`;
             document.getElementById('errorMessage').style.display = 'none';
         }
         
-        // Enhanced environment detection
-        function detectTableauEnvironment() {
-            console.log('=== DETECTING TABLEAU ENVIRONMENT ===');
+        function checkApiKey() {
+            claudeApiKey = localStorage.getItem('claude_api_key');
+            if (claudeApiKey) {
+                document.getElementById('configSection').style.display = 'none';
+                console.log('✅ API key found');
+            } else {
+                document.getElementById('configSection').style.display = 'block';
+                console.log('⚠️ API key needed');
+            }
+        }
+        
+        // Set up event listeners when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners...');
             
-            // Get environment information
-            const referrer = document.referrer;
-            const parentUrl = (window.parent !== window) ? document.referrer : 'None';
-            const userAgent = navigator.userAgent;
+            // Add click events
+            document.getElementById('diagnosticsBtn').onclick = runDiagnostics;
+            document.getElementById('saveApiBtn').onclick = saveApiKey;
+            document.getElementById('refreshBtn').onclick = generateSummary;
             
-            console.log('Referrer:', referrer);
-            console.log('Parent URL:', parentUrl);
-            console.log('User Agent:', userAgent);
+            console.log('✅ Event listeners added');
             
-            // Try to detect Tableau environment from referrer/parent
-            let detectedApiUrl = null;
-            let environment = 'Unknown';
+            // Check for existing API key
+            checkApiKey();
             
-            if (referrer.includes('public.tableau.com')) {
-                detectedApiUrl = 'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js';
-                environment = 'Tableau Public';
-            } else if (referrer.includes('online.tableau.com')) {
-                const domain = referrer.match(/https?:\/\/([^\/]+)/)[1];
-                detectedApiUrl = `https://${domain}/javascripts/api/tableau.extensions.1.latest.min.js`;
-                environment = 'Tableau Cloud - ' + domain;
-            } else if (referrer.includes('tableau') || userAgent.includes('Tableau')) {
-                environment = 'Tableau Desktop or Server';
-                detectedApiUrl = 'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js';
+            // Try to load Tableau API
+            loadTableauAPI();
+        });
+        
+        // Tableau API loader
+        function loadTableauAPI() {
+            console.log('Attempting to load Tableau API...');
+            
+            const urls = [
+                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
+                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryLoad() {
+                if (currentIndex >= urls.length) {
+                    console.log('All Tableau API URLs failed - extension will work in demo mode');
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = urls[currentIndex];
+                
+                script.onload = function() {
+                    console.log('✅ Tableau API loaded from:', urls[currentIndex]);
+                    if (typeof tableau !== 'undefined') {
+                        console.log('Tableau object available:', typeof tableau);
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.log('❌ Failed to load from:', urls[currentIndex]);
+                    currentIndex++;
+                    tryLoad();
+                };
+                
+                document.head.appendChild(script);
             }
             
-            console.log('Detected Environment:', environment);
-            console.log('Suggested API URL:', detectedApiUrl);
-            
-            return {
-                environment: environment,
-                apiUrl: detectedApiUrl,
-                referrer: referrer
-            };
+            tryLoad();
         }
-            console.log('=== RUNNING TABLEAU DIAGNOSTICS ===');
-            document.getElementById('summaryText').innerHTML = `
-<strong>ENHANCED DIAGNOSTIC REPORT</strong>
-
-Environment Detection:
-- Detected Environment: ${envInfo.environment}
-- Referrer URL: ${envInfo.referrer || 'None'}
-- Suggested API URL: ${envInfo.apiUrl || 'Not determined'}
-
-Current Environment:
-- URL: ${window.location.href}
-- Protocol: ${window.location.protocol}
-- Host: ${window.location.hostname}
-- In iframe: ${window.frameElement !== null}
-- Parent exists: ${window.parent !== window}
-
-Tableau API Status:
-- Tableau object: ${typeof tableau}
-- jQuery loaded: ${typeof $ !== 'undefined'}
-
-${typeof tableau !== 'undefined' ? 
-`✅ Tableau API is available!
-- Extensions: ${typeof tableau.extensions}
-- Dashboard available: ${typeof tableau.extensions?.dashboardContent}
-` : 
-`❌ Tableau API not found
-
-Recommended Next Steps:
-1. Use the suggested API URL above
-2. If using Tableau Cloud, check your specific pod URL
-3. If using Tableau Server, use your server's domain
-4. For Tableau Desktop, try the standard public API URL`}
-
-Console: Check browser console for detailed script loading attempts.
-            `;
-            
-            // Also run the full diagnostic in console
-            initializeExtension();
-        }
+        
+        console.log('Extension script loaded successfully');
     </script>
 </body>
 </html>
