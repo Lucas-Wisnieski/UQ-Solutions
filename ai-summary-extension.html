@@ -376,7 +376,7 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
             };
         }
         
-        function getDataFromPageElements() {
+        async function getDataFromPageElements() {
             console.log('Attempting to read data from dashboard page elements...');
             
             const result = {
@@ -502,7 +502,7 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
                 ];
             }
             
-            return Promise.resolve(result);
+            return result;
         }
         
         function extractTableData(tableElement) {
