@@ -322,7 +322,7 @@ If not, try: Remove extension → Re-add → Hard refresh (Ctrl+Shift+R)
             }
             
             // Alternative: Try to read data from page elements (if Tableau API unavailable)
-            return getDataFromPageElements();
+            return await getDataFromPageElements();
         }
         
         function processRealTableauData(dataTable) {
