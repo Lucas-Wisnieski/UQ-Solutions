@@ -203,44 +203,335 @@ Ready to generate AI summaries!
         }
         
         function generateSummary() {
-            console.log('Generate summary clicked - using proxy server...');
+            console.log('Generate summary clicked - ONLY using real table data...');
             
             // Show loading state
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
             
-            // Get dashboard data and generate summary
-            getRealTableauData().then(function(data) {
-                console.log('Using dashboard data:', data);
+            // ONLY try to get real data - no fallbacks to generic data
+            getActualTableData().then(function(data) {
+                if (!data || !data.metrics || data.metrics.length === 0) {
+                    throw new Error('No real table data found. Please ensure the data table is visible and contains metrics.');
+                }
+                
+                console.log('✅ Using REAL table data:', data);
                 return callClaudeAPI(data);
             }).then(function(summary) {
                 document.getElementById('summaryText').innerHTML = summary;
                 document.getElementById('loadingIndicator').style.display = 'none';
             }).catch(function(error) {
-                console.error('Summary generation error:', error);
-                showError('Error generating summary: ' + error.message);
+                console.error('Failed to get real data:', error);
                 document.getElementById('loadingIndicator').style.display = 'none';
+                showError('Could not read real table data: ' + error.message + '\n\nPlease ensure:\n1. The data table is visible in your dashboard\n2. The table contains program metrics\n3. Try refreshing the dashboard');
             });
         }
         
-        function getRealTableauData() {
-            console.log('Attempting to get real Tableau data...');
+        function getActualTableData() {
+            console.log('🎯 STRICT MODE: Only reading actual table data - no fallbacks!');
             
-            // If we have Tableau API access
-            if (typeof tableau !== 'undefined' && tableau.extensions) {
-                return tableau.extensions.dashboardContent.dashboard.worksheets[0]
-                    .getUnderlyingDataAsync()
-                    .then(function(dataTable) {
-                        return processRealTableauData(dataTable);
-                    })
-                    .catch(function(error) {
-                        console.error('Error accessing Tableau data:', error);
-                        return getDataFromPageElements();
+            return new Promise(function(resolve, reject) {
+                // Method 1: Try Tableau Extensions API first (most reliable)
+                if (typeof tableau !== 'undefined' && tableau.extensions) {
+                    console.log('Attempting Tableau API data extraction...');
+                    
+                    try {
+                        const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                        console.log('Found worksheets:', worksheets.map(w => w.name));
+                        
+                        if (worksheets.length === 0) {
+                            reject(new Error('No worksheets found in dashboard'));
+                            return;
+                        }
+                        
+                        // Try each worksheet until we find one with data
+                        let worksheetIndex = 0;
+                        
+                        function tryNextWorksheet() {
+                            if (worksheetIndex >= worksheets.length) {
+                                reject(new Error('No worksheets contain accessible data'));
+                                return;
+                            }
+                            
+                            const worksheet = worksheets[worksheetIndex];
+                            console.log(`Trying worksheet ${worksheetIndex + 1}: "${worksheet.name}"`);
+                            
+                            worksheet.getUnderlyingDataAsync()
+                                .then(function(dataTable) {
+                                    console.log(`✅ Got data from "${worksheet.name}":`, dataTable.data.length, 'rows');
+                                    
+                                    if (dataTable.data.length === 0) {
+                                        console.log('Worksheet has no data, trying next...');
+                                        worksheetIndex++;
+                                        tryNextWorksheet();
+                                        return;
+                                    }
+                                    
+                                    const processedData = processTableauAPIData(dataTable, worksheet.name);
+                                    if (processedData.metrics.length === 0) {
+                                        console.log('No metrics found in this worksheet, trying next...');
+                                        worksheetIndex++;
+                                        tryNextWorksheet();
+                                        return;
+                                    }
+                                    
+                                    console.log('✅ Successfully processed real Tableau API data!');
+                                    resolve(processedData);
+                                })
+                                .catch(function(error) {
+                                    console.log(`Failed to get data from "${worksheet.name}":`, error.message);
+                                    worksheetIndex++;
+                                    tryNextWorksheet();
+                                });
+                        }
+                        
+                        tryNextWorksheet();
+                        
+                    } catch (error) {
+                        console.error('Tableau API error:', error);
+                        // Fall through to Method 2
+                        tryParentWindowExtraction();
+                    }
+                } else {
+                    console.log('Tableau API not available, trying parent window extraction...');
+                    tryParentWindowExtraction();
+                }
+                
+                function tryParentWindowExtraction() {
+                    console.log('Method 2: Attempting to extract from parent window DOM...');
+                    
+                    try {
+                        if (!window.parent || window.parent === window) {
+                            reject(new Error('Not running in iframe - cannot access parent dashboard'));
+                            return;
+                        }
+                        
+                        // Try to access parent document
+                        let parentDoc;
+                        try {
+                            parentDoc = window.parent.document;
+                        } catch (crossOriginError) {
+                            reject(new Error('Cannot access parent window due to cross-origin restrictions'));
+                            return;
+                        }
+                        
+                        // Look for tables in parent document
+                        const tableSelectors = [
+                            'table',
+                            '[role="grid"]',
+                            '[role="table"]',
+                            '.tabular-data',
+                            '.crosstab',
+                            '[class*="table"]',
+                            '[class*="tabular"]'
+                        ];
+                        
+                        let foundData = null;
+                        
+                        for (let selector of tableSelectors) {
+                            const tables = parentDoc.querySelectorAll(selector);
+                            console.log(`Found ${tables.length} elements with selector: ${selector}`);
+                            
+                            for (let table of tables) {
+                                const extractedData = extractRealTableData(table);
+                                if (extractedData && extractedData.length > 0) {
+                                    console.log('✅ Successfully extracted table data!');
+                                    foundData = extractedData;
+                                    break;
+                                }
+                            }
+                            
+                            if (foundData) break;
+                        }
+                        
+                        if (!foundData) {
+                            reject(new Error('No readable table data found in dashboard. Ensure the data table is visible and contains metrics.'));
+                            return;
+                        }
+                        
+                        const processedData = processDOMExtractedData(foundData);
+                        if (processedData.metrics.length === 0) {
+                            reject(new Error('Table found but contains no numeric metrics to analyze'));
+                            return;
+                        }
+                        
+                        console.log('✅ Successfully processed DOM-extracted data!');
+                        resolve(processedData);
+                        
+                    } catch (error) {
+                        reject(new Error('Failed to extract data from dashboard: ' + error.message));
+                    }
+                }
+            });
+        }
+        
+        function processTableauAPIData(dataTable, worksheetName) {
+            const columns = dataTable.columns.map(col => col.fieldName);
+            const rows = dataTable.data;
+            
+            console.log('Processing Tableau API data:');
+            console.log('- Columns:', columns);
+            console.log('- Rows:', rows.length);
+            
+            let program = 'Unknown Program';
+            let jobTarget = 'Unknown Job';
+            const metrics = [];
+            const allData = [];
+            
+            // Process each row
+            rows.forEach(function(row, rowIndex) {
+                const rowData = {};
+                columns.forEach(function(col, colIndex) {
+                    if (row[colIndex] && row[colIndex].value !== null) {
+                        rowData[col] = row[colIndex].value;
+                    }
+                });
+                allData.push(rowData);
+                
+                // Extract program and job info from first row or any row that has it
+                if (rowData['CIP Code & Award Level'] && program === 'Unknown Program') {
+                    program = rowData['CIP Code & Award Level'];
+                }
+                if (rowData['UQ Job'] && jobTarget === 'Unknown Job') {
+                    jobTarget = rowData['UQ Job'];
+                }
+            });
+            
+            // Extract all unique metrics
+            const metricsSeen = new Set();
+            allData.forEach(function(row) {
+                Object.keys(row).forEach(function(key) {
+                    const value = row[key];
+                    if (typeof value === 'number' && !metricsSeen.has(key)) {
+                        metrics.push({
+                            name: key,
+                            value: value
+                        });
+                        metricsSeen.add(key);
+                    }
+                });
+            });
+            
+            console.log('Extracted from Tableau API:');
+            console.log('- Program:', program);
+            console.log('- Job Target:', jobTarget);
+            console.log('- Metrics:', metrics.length);
+            
+            return {
+                program: program,
+                jobTarget: jobTarget,
+                metrics: metrics,
+                dataSource: `Real Tableau Data (${worksheetName})`,
+                recordCount: rows.length,
+                extractionMethod: 'Tableau Extensions API',
+                timestamp: new Date().toLocaleString()
+            };
+        }
+        
+        function extractRealTableData(tableElement) {
+            try {
+                const rows = tableElement.querySelectorAll('tr');
+                if (rows.length < 2) return null; // Need header + data
+                
+                console.log(`Examining table with ${rows.length} rows`);
+                
+                // Get headers from first row
+                const headerRow = rows[0];
+                const headers = Array.from(headerRow.querySelectorAll('th, td'))
+                    .map(cell => cell.textContent.trim())
+                    .filter(header => header.length > 0);
+                
+                if (headers.length === 0) return null;
+                
+                console.log('Table headers:', headers);
+                
+                // Extract data from remaining rows
+                const dataRows = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = Array.from(rows[i].querySelectorAll('td, th'));
+                    const rowData = {};
+                    let hasData = false;
+                    
+                    cells.forEach(function(cell, index) {
+                        if (headers[index]) {
+                            const cellText = cell.textContent.trim();
+                            if (cellText.length > 0) {
+                                // Try to parse as number
+                                const numValue = parseFloat(cellText.replace(/[,%$]/g, ''));
+                                rowData[headers[index]] = isNaN(numValue) ? cellText : numValue;
+                                hasData = true;
+                            }
+                        }
                     });
+                    
+                    if (hasData) {
+                        dataRows.push(rowData);
+                    }
+                }
+                
+                console.log(`Extracted ${dataRows.length} data rows from table`);
+                return dataRows.length > 0 ? dataRows : null;
+                
+            } catch (error) {
+                console.error('Error extracting table data:', error);
+                return null;
             }
+        }
+        
+        function processDOMExtractedData(tableData) {
+            let program = 'Current Dashboard Selection';
+            let jobTarget = 'Current Job Target';
+            const metrics = [];
             
-            // Alternative: Try to read data from page elements
-            return getDataFromPageElements();
+            console.log('Processing DOM extracted data:', tableData.length, 'rows');
+            
+            // Find program and job info
+            tableData.forEach(function(row) {
+                Object.keys(row).forEach(function(key) {
+                    const value = row[key];
+                    if (typeof value === 'string') {
+                        if (key.toLowerCase().includes('cip') || 
+                            key.toLowerCase().includes('program') || 
+                            key.toLowerCase().includes('award') ||
+                            (typeof value === 'string' && value.includes('|'))) {
+                            program = value;
+                        }
+                        if (key.toLowerCase().includes('job') || key.toLowerCase().includes('uq job')) {
+                            jobTarget = value;
+                        }
+                    }
+                });
+            });
+            
+            // Extract all numeric metrics
+            const metricsSeen = new Set();
+            tableData.forEach(function(row) {
+                Object.keys(row).forEach(function(key) {
+                    const value = row[key];
+                    if (typeof value === 'number' && !metricsSeen.has(key)) {
+                        metrics.push({
+                            name: key,
+                            value: value
+                        });
+                        metricsSeen.add(key);
+                    }
+                });
+            });
+            
+            console.log('Processed DOM data:');
+            console.log('- Program:', program);
+            console.log('- Job Target:', jobTarget);
+            console.log('- Metrics:', metrics.length);
+            
+            return {
+                program: program,
+                jobTarget: jobTarget,
+                metrics: metrics,
+                dataSource: 'Real Dashboard Table (DOM Extraction)',
+                recordCount: tableData.length,
+                extractionMethod: 'DOM Parsing',
+                timestamp: new Date().toLocaleString()
+            };
         }
         
         function processRealTableauData(dataTable) {
@@ -290,28 +581,10 @@ Ready to generate AI summaries!
             };
         }
         
-        function getDataFromPageElements() {
-            console.log('Using sample data based on page context...');
-            
-            return Promise.resolve({
-                program: "13.0101 | Education | Bachelor's",
-                jobTarget: "Elementary School Teacher",
-                metrics: [
-                    { name: "Total Score", value: 0.90 },
-                    { name: "Market Growth Score", value: -0.10 },
-                    { name: "Schools Like Us Score", value: 0.00 },
-                    { name: "Opportunity Size Score", value: 1.25 },
-                    { name: "Workforce Demand Score", value: -0.55 },
-                    { name: "Earning Outcomes Score", value: 0.56 },
-                    { name: "S.U.G., Geog. Mkt.", value: 0.56 },
-                    { name: "% Insts Growing, Geog. Mkt.", value: 71 },
-                    { name: "S.U.G., Seg. Mkt.", value: -0.29 },
-                    { name: "% Growing, Seg. Mkt.", value: 48 }
-                ],
-                dataSource: 'Dashboard Context Data',
-                recordCount: 1
-            });
-        }
+        // Remove all the old fallback functions that created generic data
+        // getDataFromCurrentView, createContextualData, etc. - DELETED
+        
+        // Keep only the essential functions for real data processing
         
         function callClaudeAPI(data) {
             const isRealData = data.dataSource && data.dataSource.includes('Real');
