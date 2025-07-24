@@ -746,8 +746,15 @@ Implementation of targeted improvements should enhance overall program performan
             // Check for existing API key
             checkApiKey();
             
-            // Try to load Tableau API
-            loadTableauAPI();
+            // First check if Tableau API is available internally
+            const internalAPI = checkInternalTableauAPI();
+            if (internalAPI) {
+                window.tableau = internalAPI;
+                initializeTableauExtension();
+            } else {
+                // Try to load external scripts as fallback
+                loadTableauAPI();
+            }
         });
         
         // Enhanced API discovery - try to find the correct API URL
@@ -849,14 +856,63 @@ Implementation of targeted improvements should enhance overall program performan
             tryLoad();
         }
         
+        // Check if Tableau provides the API internally (without external scripts)
+        function checkInternalTableauAPI() {
+            console.log('🔍 Checking for internal Tableau API availability...');
+            
+            // Check if tableau object exists in global scope
+            if (typeof window.tableau !== 'undefined') {
+                console.log('✅ Found tableau in window scope:', typeof window.tableau);
+                return window.tableau;
+            }
+            
+            // Check if it exists in parent window
+            try {
+                if (window.parent && typeof window.parent.tableau !== 'undefined') {
+                    console.log('✅ Found tableau in parent window:', typeof window.parent.tableau);
+                    return window.parent.tableau;
+                }
+            } catch (e) {
+                console.log('Cannot access parent.tableau:', e.message);
+            }
+            
+            // Check if it's injected by Tableau
+            const checkInterval = setInterval(function() {
+                if (typeof window.tableau !== 'undefined') {
+                    console.log('✅ Tableau API became available:', typeof window.tableau);
+                    clearInterval(checkInterval);
+                    initializeTableauExtension();
+                }
+            }, 100);
+            
+            // Stop checking after 5 seconds
+            setTimeout(function() {
+                clearInterval(checkInterval);
+                if (typeof window.tableau === 'undefined') {
+                    console.log('❌ No internal Tableau API found after 5 seconds');
+                    console.log('📊 Proceeding with DOM-based data extraction');
+                }
+            }, 5000);
+            
+            return null;
+        }
+        
+        // Modified initialization to check internal API first
         function initializeTableauExtension() {
+            console.log('🚀 Attempting to initialize Tableau Extensions...');
+            
             if (typeof tableau !== 'undefined' && tableau.extensions) {
-                console.log('Initializing Tableau Extensions API...');
+                console.log('✅ Tableau Extensions API available!');
+                
                 tableau.extensions.initializeAsync().then(function() {
-                    console.log('✅ Tableau Extension initialized successfully!');
+                    console.log('🎉 SUCCESS! Tableau Extension initialized!');
+                    console.log('Dashboard name:', tableau.extensions.dashboardContent.dashboard.name);
+                    console.log('Worksheets:', tableau.extensions.dashboardContent.dashboard.worksheets.map(w => w.name));
                 }).catch(function(error) {
-                    console.error('❌ Tableau Extension initialization failed:', error);
+                    console.error('❌ Extension initialization failed:', error);
                 });
+            } else {
+                console.log('❌ Tableau Extensions API not available');
             }
         }
         
