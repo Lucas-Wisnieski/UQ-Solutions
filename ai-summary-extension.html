@@ -288,138 +288,90 @@
         }
         
         function getActualTableData() {
-            console.log('🎯 STRICT MODE: Only reading actual table data - no fallbacks!');
+            console.log('🎯 Attempting to get REAL dashboard data - API first, DOM backup');
             
             return new Promise(function(resolve, reject) {
-                // Method 1: Try Tableau Extensions API first (most reliable)
+                // Method 1: Try Tableau Extensions API (PRIMARY)
                 if (typeof tableau !== 'undefined' && tableau.extensions) {
-                    console.log('Attempting Tableau API data extraction...');
+                    console.log('✅ Tableau API available - attempting data extraction...');
                     
                     try {
                         const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
                         console.log('Found worksheets:', worksheets.map(w => w.name));
                         
                         if (worksheets.length === 0) {
-                            reject(new Error('No worksheets found in dashboard'));
+                            console.log('No worksheets found, falling back to DOM...');
+                            tryDOMExtraction();
                             return;
                         }
                         
-                        // Try each worksheet until we find one with data
-                        let worksheetIndex = 0;
+                        // Try to get data from the first worksheet with data
+                        let found = false;
                         
-                        function tryNextWorksheet() {
-                            if (worksheetIndex >= worksheets.length) {
-                                reject(new Error('No worksheets contain accessible data'));
-                                return;
-                            }
-                            
-                            const worksheet = worksheets[worksheetIndex];
-                            console.log(`Trying worksheet ${worksheetIndex + 1}: "${worksheet.name}"`);
+                        for (let i = 0; i < worksheets.length && !found; i++) {
+                            const worksheet = worksheets[i];
+                            console.log(`Trying worksheet: "${worksheet.name}"`);
                             
                             worksheet.getUnderlyingDataAsync()
                                 .then(function(dataTable) {
-                                    console.log(`✅ Got data from "${worksheet.name}":`, dataTable.data.length, 'rows');
-                                    
-                                    if (dataTable.data.length === 0) {
-                                        console.log('Worksheet has no data, trying next...');
-                                        worksheetIndex++;
-                                        tryNextWorksheet();
-                                        return;
+                                    if (dataTable.data.length > 0) {
+                                        console.log(`✅ Got ${dataTable.data.length} rows from "${worksheet.name}"`);
+                                        const processedData = processTableauAPIData(dataTable, worksheet.name);
+                                        
+                                        if (processedData.metrics.length > 0) {
+                                            console.log('✅ Successfully processed Tableau API data!');
+                                            found = true;
+                                            resolve(processedData);
+                                        } else {
+                                            console.log('No metrics found, trying DOM fallback...');
+                                            tryDOMExtraction();
+                                        }
+                                    } else {
+                                        console.log('Worksheet empty, trying DOM fallback...');
+                                        tryDOMExtraction();
                                     }
-                                    
-                                    const processedData = processTableauAPIData(dataTable, worksheet.name);
-                                    if (processedData.metrics.length === 0) {
-                                        console.log('No metrics found in this worksheet, trying next...');
-                                        worksheetIndex++;
-                                        tryNextWorksheet();
-                                        return;
-                                    }
-                                    
-                                    console.log('✅ Successfully processed real Tableau API data!');
-                                    resolve(processedData);
                                 })
                                 .catch(function(error) {
-                                    console.log(`Failed to get data from "${worksheet.name}":`, error.message);
-                                    worksheetIndex++;
-                                    tryNextWorksheet();
+                                    console.error(`Error accessing worksheet "${worksheet.name}":`, error);
+                                    tryDOMExtraction();
                                 });
                         }
                         
-                        tryNextWorksheet();
-                        
                     } catch (error) {
                         console.error('Tableau API error:', error);
-                        // Fall through to Method 2
-                        tryParentWindowExtraction();
+                        tryDOMExtraction();
                     }
                 } else {
-                    console.log('Tableau API not available, trying parent window extraction...');
-                    tryParentWindowExtraction();
+                    console.log('❌ Tableau API not available - this is the main issue we need to fix');
+                    console.log('Falling back to DOM extraction...');
+                    tryDOMExtraction();
                 }
                 
-                function tryParentWindowExtraction() {
-                    console.log('Method 2: Attempting to extract from parent window DOM...');
+                function tryDOMExtraction() {
+                    console.log('Method 2: DOM extraction fallback...');
                     
+                    // Simple DOM extraction attempt
                     try {
-                        if (!window.parent || window.parent === window) {
-                            reject(new Error('Not running in iframe - cannot access parent dashboard'));
-                            return;
-                        }
-                        
-                        // Try to access parent document
-                        let parentDoc;
-                        try {
-                            parentDoc = window.parent.document;
-                        } catch (crossOriginError) {
-                            reject(new Error('Cannot access parent window due to cross-origin restrictions'));
-                            return;
-                        }
-                        
-                        // Look for tables in parent document
-                        const tableSelectors = [
-                            'table',
-                            '[role="grid"]',
-                            '[role="table"]',
-                            '.tabular-data',
-                            '.crosstab',
-                            '[class*="table"]',
-                            '[class*="tabular"]'
-                        ];
-                        
-                        let foundData = null;
-                        
-                        for (let selector of tableSelectors) {
-                            const tables = parentDoc.querySelectorAll(selector);
-                            console.log(`Found ${tables.length} elements with selector: ${selector}`);
+                        if (window.parent && window.parent.document) {
+                            const tables = window.parent.document.querySelectorAll('table');
+                            console.log(`Found ${tables.length} tables in parent document`);
                             
-                            for (let table of tables) {
-                                const extractedData = extractRealTableData(table);
-                                if (extractedData && extractedData.length > 0) {
-                                    console.log('✅ Successfully extracted table data!');
-                                    foundData = extractedData;
-                                    break;
+                            if (tables.length > 0) {
+                                // Try to extract from first table
+                                const tableData = extractRealTableData(tables[0]);
+                                if (tableData && tableData.length > 0) {
+                                    const processedData = processDOMExtractedData(tableData);
+                                    resolve(processedData);
+                                    return;
                                 }
                             }
-                            
-                            if (foundData) break;
                         }
                         
-                        if (!foundData) {
-                            reject(new Error('No readable table data found in dashboard. Ensure the data table is visible and contains metrics.'));
-                            return;
-                        }
-                        
-                        const processedData = processDOMExtractedData(foundData);
-                        if (processedData.metrics.length === 0) {
-                            reject(new Error('Table found but contains no numeric metrics to analyze'));
-                            return;
-                        }
-                        
-                        console.log('✅ Successfully processed DOM-extracted data!');
-                        resolve(processedData);
+                        // If we get here, everything failed
+                        reject(new Error('Could not access real dashboard data. Primary issue: Tableau Extensions API not loading. Secondary issue: Cross-origin restrictions prevent DOM access.'));
                         
                     } catch (error) {
-                        reject(new Error('Failed to extract data from dashboard: ' + error.message));
+                        reject(new Error(`Data extraction failed: ${error.message}`));
                     }
                 }
             });
@@ -798,21 +750,40 @@ Implementation of targeted improvements should enhance overall program performan
             loadTableauAPI();
         });
         
-        // Tableau API loader
+        // Tableau API loader with more URLs to try
         function loadTableauAPI() {
-            console.log('Attempting to load Tableau API...');
+            console.log('Attempting to load Tableau Extensions API with multiple URLs...');
             
             const urls = [
+                // Try your specific Tableau Cloud pod first
                 'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
+                
+                // Try different versions
+                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.0.min.js',
+                
+                // Try generic online URLs
                 'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
-                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
+                'https://online.tableau.com/javascripts/api/tableau.extensions.1.0.min.js',
+                
+                // Try public (fallback)
+                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
+                'https://public.tableau.com/javascripts/api/tableau.extensions.1.0.min.js',
+                
+                // Try without version
+                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.min.js',
+                'https://online.tableau.com/javascripts/api/tableau.extensions.min.js'
             ];
             
             let currentIndex = 0;
             
             function tryLoad() {
                 if (currentIndex >= urls.length) {
-                    console.log('All Tableau API URLs failed - extension will work in demo mode');
+                    console.log('🚨 ALL Tableau API URLs failed - this is the core issue!');
+                    console.log('📋 This means:');
+                    console.log('   1. Network connectivity issue');
+                    console.log('   2. Tableau Cloud configuration problem'); 
+                    console.log('   3. Browser security blocking the scripts');
+                    console.log('   4. Extension not properly sandboxed');
                     return;
                 }
                 
@@ -820,15 +791,19 @@ Implementation of targeted improvements should enhance overall program performan
                 script.src = urls[currentIndex];
                 
                 script.onload = function() {
-                    console.log('✅ Tableau API loaded from:', urls[currentIndex]);
+                    console.log('✅ SUCCESS! Tableau API loaded from:', urls[currentIndex]);
                     if (typeof tableau !== 'undefined') {
-                        console.log('Tableau object available:', typeof tableau);
+                        console.log('✅ Tableau object available:', typeof tableau);
+                        console.log('✅ Extensions available:', typeof tableau.extensions);
                         initializeTableauExtension();
+                    } else {
+                        console.log('⚠️ Script loaded but tableau object not defined');
+                        tryLoad(); // Try next URL
                     }
                 };
                 
                 script.onerror = function() {
-                    console.log('❌ Failed to load from:', urls[currentIndex]);
+                    console.log(`❌ Failed to load from: ${urls[currentIndex]}`);
                     currentIndex++;
                     tryLoad();
                 };
