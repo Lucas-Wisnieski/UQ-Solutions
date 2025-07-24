@@ -165,35 +165,83 @@
         
         // Core functions - define these first
         function runDiagnostics() {
-            console.log('=== RUNNING DIAGNOSTICS ===');
-            alert('Diagnostics button clicked! Check console for details.');
+            console.log('=== RUNNING DETAILED DIAGNOSTICS ===');
+            alert('Running comprehensive diagnostics - check console for details!');
             
-            const isInIframe = window.frameElement !== null || 
-                              window.self !== window.top || 
-                              window.parent !== window || 
-                              window.location !== window.parent.location;
+            // Check Tableau API status
+            let tableauStatus = 'Not Available';
+            let apiPermissions = 'Unknown';
+            
+            if (typeof tableau !== 'undefined') {
+                tableauStatus = 'Object Available';
+                if (tableau.extensions) {
+                    try {
+                        const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                        apiPermissions = `${worksheets.length} worksheets accessible`;
+                    } catch (error) {
+                        apiPermissions = `Error: ${error.message}`;
+                    }
+                }
+            }
+            
+            // Check DOM access
+            let domAccess = 'No Access';
+            let tablesFound = 0;
+            
+            try {
+                if (window.parent && window.parent.document) {
+                    const tables = window.parent.document.querySelectorAll('table, [role="grid"], [role="table"]');
+                    tablesFound = tables.length;
+                    domAccess = `${tablesFound} tables found`;
+                }
+            } catch (error) {
+                domAccess = `Blocked: ${error.message}`;
+            }
             
             document.getElementById('summaryText').innerHTML = `
-<strong>🔍 DIAGNOSTIC REPORT ${EXTENSION_VERSION}</strong>
+<strong>🔍 COMPREHENSIVE DIAGNOSTIC REPORT</strong>
 
-<strong>Version Info:</strong>
-- Extension Version: ${EXTENSION_VERSION}
-- Last Updated: January 24, 2025
-- Using Secure Proxy Server
+<strong>🎯 Extension Status:</strong>
+- Version: ${EXTENSION_VERSION}
+- Running in Tableau: ${window.frameElement !== null || window.self !== window.top}
+- Parent window access: ${window.parent !== window}
 
-Environment:
-- URL: ${window.location.href}
-- In iframe: ${isInIframe}
-- Parent exists: ${window.parent !== window}
-- Tableau available: ${typeof tableau}
+<strong>🔌 Tableau Extensions API:</strong>
+- API Status: ${tableauStatus}
+- Permissions: ${apiPermissions}
+- Dashboard Access: ${tableau?.extensions?.dashboardContent ? 'Available' : 'Not Available'}
 
-Proxy Server:
+<strong>🌐 DOM Data Access:</strong>
+- Parent DOM Access: ${domAccess}
+- Tables Found: ${tablesFound}
+
+<strong>🔧 Proxy Server:</strong>
 - URL: https://uq-solutions.vercel.app/api/claude
-- Status: Ready for use
+- Status: Ready (tested earlier)
 
-Button Test: ✅ Buttons are working!
+<strong>📋 Recommendations:</strong>
 
-Ready to generate AI summaries!
+${tableauStatus === 'Not Available' ? 
+`🚨 TABLEAU API ISSUE:
+1. Check extension permissions in Tableau Cloud Settings
+2. Ensure 'fullDataAllowed: true' is set
+3. Verify extension URL is in safelist
+4. Try refreshing the dashboard` : 
+`✅ Tableau API detected - checking permissions...`}
+
+${tablesFound === 0 ? 
+`🚨 DOM ACCESS ISSUE:
+1. Extension may need 'full data' permissions
+2. Check if data table is visible in dashboard
+3. Try different browser or disable ad blockers` : 
+`✅ ${tablesFound} tables accessible via DOM`}
+
+<strong>🎯 Next Steps:</strong>
+1. Update extension permissions if needed
+2. Test "Generate Summary" with different filter selections
+3. Check console logs for detailed extraction attempts
+
+Ready to test real data extraction!
             `;
         }
         
