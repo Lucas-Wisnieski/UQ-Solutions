@@ -757,35 +757,28 @@ Implementation of targeted improvements should enhance overall program performan
             }
         });
         
-        // Enhanced API discovery - try to find the correct API URL
+        // Enhanced API discovery with correct Extensions API paths
         function loadTableauAPI() {
-            console.log('🔍 Starting Tableau API discovery process...');
-            
-            // First, try to detect what Tableau provides
-            console.log('Environment detection:');
-            console.log('- Current domain:', window.location.hostname);
-            console.log('- Parent domain:', window.parent !== window ? document.referrer : 'No parent');
-            console.log('- User agent:', navigator.userAgent);
+            console.log('🔍 Loading Tableau Extensions API with official paths...');
             
             const urls = [
-                // Try different path patterns for your specific pod
-                'https://prod-useast-b.online.tableau.com/api/extensions/tableau.extensions.1.latest.min.js',
-                'https://prod-useast-b.online.tableau.com/extensions/api/tableau.extensions.1.latest.min.js',
-                'https://prod-useast-b.online.tableau.com/public/extensions/tableau.extensions.1.latest.min.js',
+                // Official Extensions API paths (from documentation)
+                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.js',
+                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.js', 
+                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.js',
                 
                 // Try without version numbers
-                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.min.js',
-                'https://prod-useast-b.online.tableau.com/api/tableau.extensions.min.js',
+                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.js',
+                'https://online.tableau.com/javascripts/api/tableau.extensions.js',
+                'https://public.tableau.com/javascripts/api/tableau.extensions.js',
                 
-                // Try generic online versions
-                'https://online.tableau.com/api/extensions/tableau.extensions.1.latest.min.js',
-                'https://online.tableau.com/extensions/api/tableau.extensions.1.latest.min.js',
+                // Try relative paths (might work from within Tableau)
+                '/javascripts/api/tableau.extensions.1.latest.js',
+                '/javascripts/api/tableau.extensions.js',
+                'javascripts/api/tableau.extensions.1.latest.js',
+                'javascripts/api/tableau.extensions.js',
                 
-                // Try public versions
-                'https://public.tableau.com/api/extensions/tableau.extensions.1.latest.min.js',
-                'https://public.tableau.com/extensions/api/tableau.extensions.1.latest.min.js',
-                
-                // Original paths (known to fail but included for completeness)
+                // Legacy minified versions (our previous attempts)
                 'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
                 'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
                 'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
@@ -796,23 +789,22 @@ Implementation of targeted improvements should enhance overall program performan
             
             function tryLoad() {
                 if (currentIndex >= urls.length) {
-                    console.log('🚨 ALL TABLEAU API DISCOVERY ATTEMPTS FAILED');
+                    console.log('🚨 ALL TABLEAU EXTENSIONS API ATTEMPTS FAILED');
                     console.log('📋 Attempted URLs:', loadAttempts);
                     console.log('');
-                    console.log('🔧 DIAGNOSIS:');
-                    console.log('   ❌ All Extensions API scripts return 404');
-                    console.log('   ❌ This suggests:');
-                    console.log('      1. Extensions disabled on your Tableau Cloud instance');
-                    console.log('      2. Different API path structure for your version');
-                    console.log('      3. Network/firewall blocking resources');
+                    console.log('🔧 FINAL DIAGNOSIS:');
+                    console.log('   ❌ Extensions API library not accessible from any known location');
+                    console.log('   ❌ This indicates:');
+                    console.log('      1. Extensions API disabled on Tableau Cloud instance');
+                    console.log('      2. Non-standard Tableau configuration');
+                    console.log('      3. Network restrictions preventing access');
                     console.log('');
-                    console.log('🎯 NEXT STEPS:');
-                    console.log('   1. Contact Tableau Cloud admin to verify Extensions are enabled');
-                    console.log('   2. Check Tableau version and API compatibility');
-                    console.log('   3. Try disabling ad blocker completely');
-                    console.log('   4. Test from different network/browser');
+                    console.log('🎯 RESOLUTION OPTIONS:');
+                    console.log('   1. Contact Tableau Cloud administrator');
+                    console.log('   2. Use DOM-based data extraction (current fallback)');
+                    console.log('   3. Request different Tableau Cloud configuration');
                     console.log('');
-                    console.log('📊 CURRENT STATUS: Using DOM extraction as backup');
+                    console.log('📊 PROCEEDING: DOM extraction for data access');
                     return;
                 }
                 
@@ -823,7 +815,7 @@ Implementation of targeted improvements should enhance overall program performan
                 script.src = currentUrl;
                 
                 script.onload = function() {
-                    console.log(`🎉 SUCCESS! Tableau API loaded from: ${currentUrl}`);
+                    console.log(`🎉 SUCCESS! Extensions API loaded from: ${currentUrl}`);
                     loadAttempts.push(`✅ ${currentUrl} - SUCCESS`);
                     
                     if (typeof tableau !== 'undefined') {
@@ -846,8 +838,8 @@ Implementation of targeted improvements should enhance overall program performan
                     loadAttempts.push(`❌ ${currentUrl} - 404/Failed`);
                     currentIndex++;
                     
-                    // Small delay between attempts to avoid overwhelming the server
-                    setTimeout(tryLoad, 100);
+                    // Small delay between attempts
+                    setTimeout(tryLoad, 50);
                 };
                 
                 document.head.appendChild(script);
