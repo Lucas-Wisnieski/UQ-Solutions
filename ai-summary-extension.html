@@ -307,11 +307,11 @@ ${apiStatus === 'Available' ?
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
             
-            // Add timeout to prevent hanging - 30 seconds
+            // Add timeout to prevent hanging - increase to 60 seconds for large datasets
             const timeoutPromise = new Promise(function(_, reject) {
                 setTimeout(function() {
-                    reject(new Error('Data extraction timed out after 30 seconds'));
-                }, 30000);
+                    reject(new Error('Data extraction timed out after 60 seconds'));
+                }, 60000);
             });
             
             Promise.race([getTableauData(), timeoutPromise])
@@ -379,8 +379,33 @@ ${apiStatus === 'Available' ?
 
                         console.log(`Getting data from worksheet: "${targetWorksheet.name}"`);
 
-                        // Use NEW API methods to avoid deprecation warning
-                        targetWorksheet.getUnderlyingTablesAsync()
+                        // First try to get the summary data that's actually displayed
+                        targetWorksheet.getSummaryDataAsync()
+                            .then(function(summaryData) {
+                                console.log(`✅ Got ${summaryData.data.length} summary rows`);
+                                if (summaryData.data.length > 0) {
+                                    console.log('Summary columns:', summaryData.columns.map(col => col.fieldName));
+                                    const processedData = processTableauAPIData(summaryData, targetWorksheet.name + ' (Summary)');
+                                    
+                                    // If summary data has good metrics, use it
+                                    if (processedData.metrics.length > 5) {
+                                        resolve(processedData);
+                                        return;
+                                    }
+                                }
+                                
+                                // If summary data isn't good enough, fall back to underlying data
+                                console.log('Summary data insufficient, trying underlying data...');
+                                return tryUnderlyingData();
+                            })
+                            .catch(function(error) {
+                                console.error('Summary data error:', error);
+                                return tryUnderlyingData();
+                            });
+                        
+                        function tryUnderlyingData() {
+                            // Use NEW API methods to avoid deprecation warning
+                            return targetWorksheet.getUnderlyingTablesAsync()
                             .then(function(tables) {
                                 if (tables.length === 0) {
                                     console.log('No tables found, trying DOM extraction...');
@@ -472,8 +497,8 @@ ${apiStatus === 'Available' ?
             const metrics = [];
             const allRowData = [];
             
-            // Process only first 100 rows to avoid timeout
-            const maxRows = Math.min(rows.length, 100);
+            // Process only first 20 rows to avoid timeout with large datasets
+            const maxRows = Math.min(rows.length, 20);
             console.log(`Processing first ${maxRows} rows out of ${rows.length} total`);
             
             for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
@@ -539,9 +564,9 @@ ${apiStatus === 'Available' ?
             // Debug: Show sample data from first few rows
             console.log('Sample row data:', allRowData.slice(0, 3));
             
-            // Extract unique numeric metrics from processed data
+            // Extract unique numeric metrics from processed data - limit to 10 rows for speed
             const metricsSeen = new Set();
-            const sampleSize = Math.min(allRowData.length, 50); // Limit to 50 rows for metrics
+            const sampleSize = Math.min(allRowData.length, 10); // Reduced from 50 to 10
             
             console.log(`Searching for metrics in ${sampleSize} rows...`);
             
@@ -552,21 +577,54 @@ ${apiStatus === 'Available' ?
                     
                     // Look for numeric metrics - specifically target score fields from your dashboard
                     if (typeof value === 'number' && !metricsSeen.has(key)) {
+                        // Target the EXACT metrics visible in the user's dashboard
+                        const dashboardMetrics = [
+                            'Total Score',
+                            'Market Growth Score', 
+                            'Schools Like Us Score',
+                            'Opportunity Size Score',
+                            'Workforce Demand Score',
+                            'Earning Outcomes Score',
+                            'S.U.G., Geog. Mkt.',
+                            '% Insts Growing, Geog. Mkt.',
+                            'S.U.G., Seg. Mkt.',
+                            '% Growing, Seg. Mkt.',
+                            '# Insts. with Pgm., Seg. Mkt.',
+                            '% Insts. with Pgm., Seg. Mkt.',
+                            '% Growing, Add\'l Ref. Mkt.',
+                            'Market Concentration, Largest Two Programs, Geog. Mkt.',
+                            'Expected Completions per Year',
+                            'Median Compl\'s/Yr., Seg. Mkt.',
+                            'Relative Interquartile Ratio',
+                            'Program Size Consistency Index'
+                        ];
+                        
+                        const isDashboardMetric = dashboardMetrics.some(dm => 
+                            key.toLowerCase().includes(dm.toLowerCase()) || 
+                            key.toLowerCase().replace(/[^a-z0-9]/g, '').includes(dm.toLowerCase().replace(/[^a-z0-9]/g, ''))
+                        );
+                        
+                        // Prioritize the exact metrics from the user's dashboard
+                        const isHighPriorityMetric = isDashboardMetric ||
+                                                   key.toLowerCase().includes('total score') ||
+                                                   key.toLowerCase().includes('market growth score') ||
+                                                   key.toLowerCase().includes('schools like us score') ||
+                                                   key.toLowerCase().includes('opportunity size score') ||
+                                                   key.toLowerCase().includes('workforce demand score') ||
+                                                   key.toLowerCase().includes('earning outcomes score') ||
+                                                   key.toLowerCase().includes('s.u.g') ||
+                                                   key.toLowerCase().includes('% institutions growing') ||
+                                                   key.toLowerCase().includes('% insts');
+                        
                         // Include these specific fields we can see in your dashboard
-                        const isScoreField = key.toLowerCase().includes('score') ||
-                                           key.toLowerCase().includes('total') ||
-                                           key.toLowerCase().includes('market') ||
+                        const isScoreField = isHighPriorityMetric ||
+                                           key.toLowerCase().includes('score') ||
                                            key.toLowerCase().includes('growth') ||
-                                           key.toLowerCase().includes('schools') ||
-                                           key.toLowerCase().includes('opportunity') ||
-                                           key.toLowerCase().includes('workforce') ||
-                                           key.toLowerCase().includes('earning') ||
                                            key.toLowerCase().includes('demand') ||
                                            key.toLowerCase().includes('outcomes') ||
-                                           key.toLowerCase().includes('s.u.g') ||
-                                           key.toLowerCase().includes('inst') ||
-                                           key.toLowerCase().includes('geog') ||
-                                           key.toLowerCase().includes('segment') ||
+                                           key.toLowerCase().includes('earning') ||
+                                           key.toLowerCase().includes('market') ||
+                                           key.toLowerCase().includes('ratio') ||
                                            key.toLowerCase().includes('%');
                         
                         // Skip obvious non-metric fields
@@ -582,12 +640,16 @@ ${apiStatus === 'Available' ?
                                           key.toLowerCase().includes('ranking');
                         
                         if (isScoreField || (!isNonMetric && (value > 0 || value < 0))) {
-                            metrics.push({
+                            // Prioritize high-priority metrics
+                            const metric = {
                                 name: key,
-                                value: value
-                            });
+                                value: value,
+                                priority: isHighPriorityMetric ? 1 : 2
+                            };
+                            
+                            metrics.push(metric);
                             metricsSeen.add(key);
-                            console.log(`Found metric: ${key} = ${value}`);
+                            console.log(`Found metric: ${key} = ${value}${isHighPriorityMetric ? ' (HIGH PRIORITY)' : ''}`);
                         }
                     }
                     
@@ -643,15 +705,22 @@ ${apiStatus === 'Available' ?
             console.log('- Metrics found:', metrics.length);
             console.log('- Sample metrics:', metrics.slice(0, 5));
             
+            // Sort metrics by priority and limit to most important ones
+            metrics.sort((a, b) => (a.priority || 2) - (b.priority || 2));
+            const topMetrics = metrics.slice(0, 15); // Limit to top 15 metrics
+            
+            console.log('- Priority metrics being used:', topMetrics.map(m => `${m.name}: ${m.value}`));
+            
             return {
                 program: program,
                 jobTarget: jobTarget,
-                metrics: metrics,
+                metrics: topMetrics,
                 dataSource: `Tableau Extensions API (${worksheetName})`,
                 recordCount: allRowData.length,
                 extractionMethod: 'Tableau Extensions API (New Methods)',
                 timestamp: new Date().toLocaleString(),
-                rawDataSample: allRowData.slice(0, 3) // Include sample for debugging
+                totalMetricsFound: metrics.length,
+                rawDataSample: allRowData.slice(0, 1) // Include just 1 sample for debugging
             };
         }
 
