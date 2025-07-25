@@ -477,95 +477,76 @@
             console.log('Measure Values column index:', measureValuesIndex);
             console.log('Measure Names column index:', measureNamesIndex);
             
-            // Define the exact metrics we want to extract based on your table
-            const targetMetrics = [
-                'Market Growth Score',
-                'Schools Like Us Score', 
-                'Opportunity Size Score',
-                'Workforce Demand Score',
-                'Earnings Outcomes Score',
-                'Total Score'
-            ];
-            
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
-                console.log('✅ Found Measure Names/Values columns - extracting specific target metrics...');
+                console.log('✅ Found Measure Names/Values columns - extracting ALL available metrics...');
                 
-                // Process each row to extract measure name/value pairs
+                // Process each row to extract ALL measure name/value pairs
                 rows.forEach(function(row, rowIndex) {
-                    if (rowIndex < 50) { // Process more rows to find all target metrics
-                        let measureName = null;
-                        let measureValue = null;
+                    let measureName = null;
+                    let measureValue = null;
+                    
+                    // Extract measure name
+                    if (row[measureNamesIndex]) {
+                        const nameCell = row[measureNamesIndex];
+                        measureName = (typeof nameCell === 'object' && nameCell.value !== undefined) 
+                            ? nameCell.value : nameCell;
+                    }
+                    
+                    // Extract measure value
+                    if (row[measureValuesIndex]) {
+                        const valueCell = row[measureValuesIndex];
+                        measureValue = (typeof valueCell === 'object' && valueCell.value !== undefined) 
+                            ? valueCell.value : valueCell;
+                    }
+                    
+                    // If we have both name and numeric value, include it
+                    if (measureName && typeof measureValue === 'number') {
+                        // Clean up the measure name for better readability
+                        let cleanName = measureName;
                         
-                        // Extract measure name
-                        if (row[measureNamesIndex]) {
-                            const nameCell = row[measureNamesIndex];
-                            measureName = (typeof nameCell === 'object' && nameCell.value !== undefined) 
-                                ? nameCell.value : nameCell;
-                        }
-                        
-                        // Extract measure value
-                        if (row[measureValuesIndex]) {
-                            const valueCell = row[measureValuesIndex];
-                            measureValue = (typeof valueCell === 'object' && valueCell.value !== undefined) 
-                                ? valueCell.value : valueCell;
-                        }
-                        
-                        // If we have both name and numeric value, check if it's a target metric
-                        if (measureName && typeof measureValue === 'number') {
-                            // Clean up the measure name for better readability
-                            let cleanName = measureName;
-                            
-                            // Remove Tableau's internal field references
-                            if (typeof cleanName === 'string') {
-                                // Extract the actual measure name from Tableau's internal format
-                                const nameMatch = cleanName.match(/\[usr:([^\]]+)\]/);
-                                if (nameMatch) {
-                                    cleanName = nameMatch[1]
-                                        .replace(/_\d+:/g, '') // Remove ID numbers and colons
-                                        .replace(/qk\]?$/, '') // Remove 'qk' suffix
-                                        .replace(/\s+\(copy[^)]*\)/gi, '') // Remove "(copy)" variations
-                                        .replace(/[_]/g, ' ') // Replace underscores with spaces
-                                        .trim();
-                                }
-                                
-                                // If no match, try to clean the original name
-                                if (!nameMatch) {
-                                    cleanName = cleanName
-                                        .replace(/\[federated[^\]]+\]\./g, '') // Remove federated prefix
-                                        .replace(/\[usr:/g, '') // Remove usr: prefix
-                                        .replace(/\]/g, '') // Remove brackets
-                                        .replace(/_\d+:/g, '') // Remove ID numbers
-                                        .replace(/qk$/, '') // Remove qk suffix
-                                        .replace(/\s+\(copy[^)]*\)/gi, '') // Remove copy variations
-                                        .replace(/[_]/g, ' ') // Replace underscores with spaces
-                                        .trim();
-                                }
+                        // Remove Tableau's internal field references
+                        if (typeof cleanName === 'string') {
+                            // Extract the actual measure name from Tableau's internal format
+                            const nameMatch = cleanName.match(/\[usr:([^\]]+)\]/);
+                            if (nameMatch) {
+                                cleanName = nameMatch[1]
+                                    .replace(/_\d+:/g, '') // Remove ID numbers and colons
+                                    .replace(/qk\]?$/, '') // Remove 'qk' suffix
+                                    .replace(/\s+\(copy[^)]*\)/gi, '') // Remove "(copy)" variations
+                                    .replace(/[_]/g, ' ') // Replace underscores with spaces
+                                    .trim();
                             }
                             
-                            // Check if this is one of our target metrics
-                            const isTargetMetric = targetMetrics.some(target => 
-                                cleanName.toLowerCase().includes(target.toLowerCase()) ||
-                                target.toLowerCase().includes(cleanName.toLowerCase())
-                            );
-                            
-                            if (isTargetMetric && !metrics.some(m => m.name === cleanName)) {
-                                console.log(`✅ Found TARGET metric: ${cleanName} = ${measureValue}`);
-                                
-                                metrics.push({
-                                    name: cleanName,
-                                    value: measureValue,
-                                    originalName: measureName // Keep original for debugging
-                                });
-                            } else if (!isTargetMetric) {
-                                console.log(`⚠️ Skipping non-target metric: ${cleanName} = ${measureValue}`);
+                            // If no match, try to clean the original name
+                            if (!nameMatch) {
+                                cleanName = cleanName
+                                    .replace(/\[federated[^\]]+\]\./g, '') // Remove federated prefix
+                                    .replace(/\[usr:/g, '') // Remove usr: prefix
+                                    .replace(/\]/g, '') // Remove brackets
+                                    .replace(/_\d+:/g, '') // Remove ID numbers
+                                    .replace(/qk$/, '') // Remove qk suffix
+                                    .replace(/\s+\(copy[^)]*\)/gi, '') // Remove copy variations
+                                    .replace(/[_]/g, ' ') // Replace underscores with spaces
+                                    .trim();
                             }
+                        }
+                        
+                        // Include ALL metrics (no filtering) - avoid duplicates only
+                        if (!metrics.some(m => m.name === cleanName)) {
+                            console.log(`✅ Found metric: ${cleanName} = ${measureValue}`);
+                            
+                            metrics.push({
+                                name: cleanName,
+                                value: measureValue,
+                                originalName: measureName // Keep original for debugging
+                            });
                         }
                     }
                 });
             } else {
                 console.log('⚠️ Measure Names/Values columns not found, trying alternative approach...');
                 
-                // Fallback: look for score columns directly
+                // Fallback: look for ALL numeric columns directly
                 rows.forEach(function(row, rowIndex) {
                     if (rowIndex < 10) {
                         columns.forEach(function(col, colIndex) {
@@ -577,20 +558,13 @@
                                     value = value.value;
                                 }
                                 
-                                // Check if it's a number and one of our target metrics
-                                if (typeof value === 'number') {
-                                    const isTargetMetric = targetMetrics.some(target => 
-                                        col.toLowerCase().includes(target.toLowerCase()) ||
-                                        target.toLowerCase().includes(col.toLowerCase())
-                                    );
-                                    
-                                    if (isTargetMetric && !metrics.some(m => m.name === col)) {
-                                        console.log(`✅ Found direct TARGET metric: ${col} = ${value}`);
-                                        metrics.push({
-                                            name: col,
-                                            value: value
-                                        });
-                                    }
+                                // Include ALL numeric values
+                                if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
+                                    console.log(`✅ Found direct metric: ${col} = ${value}`);
+                                    metrics.push({
+                                        name: col,
+                                        value: value
+                                    });
                                 }
                             }
                         });
@@ -647,16 +621,8 @@
             console.log('Underlying rows count:', rows.length);
             
             const metrics = [];
-            const targetMetrics = [
-                'Market Growth Score',
-                'Schools Like Us Score', 
-                'Opportunity Size Score',
-                'Workforce Demand Score',
-                'Earnings Outcomes Score',
-                'Total Score'
-            ];
             
-            // Process only first few rows for speed
+            // Process first few rows to extract ALL available metrics
             for (let i = 0; i < Math.min(rows.length, 10); i++) {
                 const row = rows[i];
                 
@@ -669,26 +635,16 @@
                             value = value.value;
                         }
                         
-                        // Look for target metrics only
-                        if (typeof value === 'number') {
-                            const isTarget = targetMetrics.some(tm => 
-                                col.toLowerCase().includes(tm.toLowerCase()) ||
-                                tm.toLowerCase().includes(col.toLowerCase())
-                            );
-                            
-                            if (isTarget && !metrics.some(m => m.name === col)) {
-                                console.log(`✅ Found TARGET metric in underlying: ${col} = ${value}`);
-                                metrics.push({
-                                    name: col,
-                                    value: value
-                                });
-                            }
+                        // Include ALL numeric values - no filtering
+                        if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
+                            console.log(`✅ Found metric in underlying: ${col} = ${value}`);
+                            metrics.push({
+                                name: col,
+                                value: value
+                            });
                         }
                     }
                 });
-                
-                // Stop if we have enough metrics
-                if (metrics.length >= 6) break;
             }
             
             return {
