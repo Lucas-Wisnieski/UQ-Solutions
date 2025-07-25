@@ -343,14 +343,39 @@
                     
                     console.log(`Using worksheet: "${target.name}"`);
                     
-                    // Try summary data first
-                    target.getSummaryDataAsync()
+                    // Force refresh the worksheet data before extracting
+                    console.log('🔄 Refreshing worksheet data...');
+                    
+                    // Try to refresh the data first, then extract
+                    Promise.resolve()
+                        .then(function() {
+                            // Try to refresh if the method exists
+                            if (target.refreshDataAsync) {
+                                console.log('Attempting data refresh...');
+                                return target.refreshDataAsync();
+                            } else {
+                                console.log('Refresh not available, proceeding with current data...');
+                                return Promise.resolve();
+                            }
+                        })
+                        .catch(function(refreshError) {
+                            console.log('Refresh failed, proceeding with current data:', refreshError.message);
+                            return Promise.resolve(); // Continue even if refresh fails
+                        })
+                        .then(function() {
+                            // Small delay to ensure data is updated
+                            return new Promise(resolve => setTimeout(resolve, 500));
+                        })
+                        .then(function() {
+                            // Now try to get the updated summary data
+                            return target.getSummaryDataAsync();
+                        })
                         .then(function(summaryData) {
                             console.log(`Got ${summaryData.data.length} summary rows`);
                             
                             if (summaryData.data.length > 0) {
                                 const data = processSummaryData(summaryData);
-                                if (data.metrics.length >= 3) { // Lowered threshold - need at least 3 metrics
+                                if (data.metrics.length >= 3) {
                                     console.log('✅ Using summary data with', data.metrics.length, 'metrics');
                                     resolve(data);
                                     return;
@@ -520,12 +545,42 @@
             
             console.log(`Summary data processing complete: ${metrics.length} metrics found`);
             
+            // Extract current program and job from the first row of data
+            let currentProgram = '11.0701 | Computer Science | Bachelor\'s'; // default
+            let currentJob = 'Software Developers'; // default
+            
+            if (rows.length > 0) {
+                // Check first row for actual current selections
+                const firstRow = rows[0];
+                
+                // Extract CIP Code & Award Level
+                if (firstRow[0]) {
+                    const cipValue = (typeof firstRow[0] === 'object' && firstRow[0].value !== undefined) 
+                        ? firstRow[0].value : firstRow[0];
+                    if (cipValue && cipValue !== '%null%') {
+                        currentProgram = cipValue;
+                        console.log('📊 Current program from data:', currentProgram);
+                    }
+                }
+                
+                // Extract UQ Job
+                if (firstRow[1]) {
+                    const jobValue = (typeof firstRow[1] === 'object' && firstRow[1].value !== undefined) 
+                        ? firstRow[1].value : firstRow[1];
+                    if (jobValue && jobValue !== '%null%') {
+                        currentJob = jobValue;
+                        console.log('🎯 Current job from data:', currentJob);
+                    }
+                }
+            }
+            
             return {
-                program: '11.0701 | Computer Science | Bachelor\'s',
-                jobTarget: 'Software Developers',
+                program: currentProgram,
+                jobTarget: currentJob,
                 metrics: metrics,
                 dataSource: 'Summary Data (Tableau View)',
-                recordCount: rows.length
+                recordCount: rows.length,
+                timestamp: new Date().toLocaleString()
             };
         }
 
@@ -585,11 +640,12 @@
         }
 
         function callAPI(data) {
-            const prompt = `Analyze this Computer Science Bachelor's program data:
+            const prompt = `Analyze this program performance data extracted at ${data.timestamp}:
 
 PROGRAM: ${data.program}
 JOB TARGET: ${data.jobTarget}
 DATA SOURCE: ${data.dataSource}
+EXTRACTION TIME: ${data.timestamp}
 
 KEY METRICS:
 ${data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n')}
@@ -599,7 +655,7 @@ Provide a concise analysis with:
 2. Key strengths and areas for improvement
 3. Strategic recommendations
 
-Focus on actionable insights for academic administrators.`;
+Focus on actionable insights for academic administrators. Start with the program name and current timestamp to confirm this is fresh data.`;
 
             return fetch('https://uq-solutions.vercel.app/api/claude', {
                 method: 'POST',
