@@ -6,10 +6,10 @@
     <title>AI Program Summary</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
-            background: #f8f9fa;
+            background: white;
             min-height: 100vh;
         }
         
@@ -19,7 +19,8 @@
             background: white;
             border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
         }
         
         .header {
@@ -28,7 +29,7 @@
             align-items: center;
             margin-bottom: 24px;
             padding-bottom: 16px;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid #dee2e6;
         }
         
         .title {
@@ -39,19 +40,21 @@
         }
         
         .refresh-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #03304d;
             color: white;
             border: none;
             padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-family: 'Avenir', sans-serif;
             transition: all 0.3s ease;
         }
         
         .refresh-btn:hover {
+            background: #024a73;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(3, 48, 77, 0.4);
         }
         
         .loading {
@@ -63,6 +66,8 @@
             border-radius: 8px;
             color: #1976d2;
             font-weight: 500;
+            font-family: 'Avenir', sans-serif;
+            border: 1px solid #bbdefb;
         }
         
         .spinner {
@@ -80,8 +85,8 @@
         }
         
         .summary-text {
-            background: #ffffff;
-            border: 2px solid #e9ecef;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
             border-radius: 12px;
             padding: 24px;
             min-height: 200px;
@@ -89,6 +94,8 @@
             line-height: 1.6;
             color: #2c3e50;
             white-space: pre-wrap;
+            font-family: 'Avenir', sans-serif;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
         }
         
         .error {
@@ -98,6 +105,7 @@
             border-radius: 8px;
             border: 1px solid #ffcdd2;
             margin-top: 20px;
+            font-family: 'Avenir', sans-serif;
         }
     </style>
 </head>
@@ -106,7 +114,7 @@
         <div class="header">
             <h1 class="title">AI Program Summary</h1>
             <div>
-                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #32a900; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Avenir', sans-serif; font-weight: 500;">
                     Run Diagnostics
                 </button>
                 <button class="refresh-btn" id="refreshBtn">
@@ -351,11 +359,16 @@
                                 }
                             }
                             
-                            // Fallback to underlying data
+                            // Fallback to underlying data only if summary failed
                             console.log('Summary data insufficient, trying underlying data...');
                             return target.getUnderlyingDataAsync();
                         })
                         .then(function(underlyingData) {
+                            if (!underlyingData) {
+                                reject(new Error('No underlying data available'));
+                                return;
+                            }
+                            
                             console.log(`Got ${underlyingData.data.length} underlying rows`);
                             const data = processUnderlyingData(underlyingData);
                             
@@ -369,7 +382,7 @@
                         })
                         .catch(function(error) {
                             console.error('Data extraction error:', error);
-                            reject(error);
+                            reject(new Error('Data extraction failed: ' + error.message));
                         });
                     
                 } catch (error) {
@@ -429,11 +442,42 @@
                         
                         // If we have both name and numeric value, add it
                         if (measureName && typeof measureValue === 'number') {
-                            console.log(`Found metric from summary: ${measureName} = ${measureValue}`);
+                            // Clean up the measure name for better readability
+                            let cleanName = measureName;
+                            
+                            // Remove Tableau's internal field references
+                            if (typeof cleanName === 'string') {
+                                // Extract the actual measure name from Tableau's internal format
+                                const nameMatch = cleanName.match(/\[usr:([^\]]+)\]/);
+                                if (nameMatch) {
+                                    cleanName = nameMatch[1]
+                                        .replace(/_\d+:/g, '') // Remove ID numbers and colons
+                                        .replace(/qk\]?$/, '') // Remove 'qk' suffix
+                                        .replace(/\s+\(copy[^)]*\)/gi, '') // Remove "(copy)" variations
+                                        .replace(/[_]/g, ' ') // Replace underscores with spaces
+                                        .trim();
+                                }
+                                
+                                // If no match, try to clean the original name
+                                if (!nameMatch) {
+                                    cleanName = cleanName
+                                        .replace(/\[federated[^\]]+\]\./g, '') // Remove federated prefix
+                                        .replace(/\[usr:/g, '') // Remove usr: prefix
+                                        .replace(/\]/g, '') // Remove brackets
+                                        .replace(/_\d+:/g, '') // Remove ID numbers
+                                        .replace(/qk$/, '') // Remove qk suffix
+                                        .replace(/\s+\(copy[^)]*\)/gi, '') // Remove copy variations
+                                        .replace(/[_]/g, ' ') // Replace underscores with spaces
+                                        .trim();
+                                }
+                            }
+                            
+                            console.log(`Found metric from summary: ${cleanName} = ${measureValue}`);
                             
                             metrics.push({
-                                name: measureName,
-                                value: measureValue
+                                name: cleanName,
+                                value: measureValue,
+                                originalName: measureName // Keep original for debugging
                             });
                         }
                     }
@@ -563,14 +607,16 @@ Focus on actionable insights for academic administrators.`;
                 body: JSON.stringify({ prompt: prompt })
             })
             .then(function(response) {
+                console.log('API response status:', response.status);
                 if (!response.ok) throw new Error('API error: ' + response.status);
                 return response.json();
             })
             .then(function(result) {
-                if (result.success) {
+                console.log('API result:', result);
+                if (result && result.success) {
                     return result.content;
                 } else {
-                    throw new Error(result.error || 'API returned error');
+                    throw new Error(result?.error || 'API returned error');
                 }
             })
             .catch(function(error) {
