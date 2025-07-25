@@ -285,6 +285,12 @@
             extractData()
                 .then(function(data) {
                     console.log('✅ Data extracted:', data);
+                    
+                    // Only proceed if we have meaningful metrics
+                    if (!data.metrics || data.metrics.length === 0) {
+                        throw new Error('No meaningful metrics extracted from the data');
+                    }
+                    
                     return callAPI(data);
                 })
                 .then(function(summary) {
@@ -337,18 +343,26 @@
                             if (summaryData.data.length > 0) {
                                 const data = processSummaryData(summaryData);
                                 if (data.metrics.length > 0) {
+                                    console.log('✅ Using summary data with', data.metrics.length, 'metrics');
                                     resolve(data);
                                     return;
                                 }
                             }
                             
                             // Fallback to underlying data
-                            console.log('Trying underlying data...');
+                            console.log('Summary data insufficient, trying underlying data...');
                             return target.getUnderlyingDataAsync();
                         })
                         .then(function(underlyingData) {
                             console.log(`Got ${underlyingData.data.length} underlying rows`);
                             const data = processUnderlyingData(underlyingData);
+                            
+                            if (data.metrics.length === 0) {
+                                reject(new Error('No meaningful metrics found in underlying data'));
+                                return;
+                            }
+                            
+                            console.log('✅ Using underlying data with', data.metrics.length, 'metrics');
                             resolve(data);
                         })
                         .catch(function(error) {
@@ -506,29 +520,8 @@ Focus on actionable insights for academic administrators.`;
             })
             .catch(function(error) {
                 console.error('API error:', error);
-                return generateFallback(data);
+                throw new Error('Claude API failed: ' + error.message);
             });
-        }
-
-        function generateFallback(data) {
-            return `<strong>🤖 COMPUTER SCIENCE PROGRAM ANALYSIS</strong>
-
-<strong>📊 PROGRAM OVERVIEW</strong>
-Analysis of ${data.program} targeting ${data.jobTarget} positions based on ${data.recordCount} data points.
-
-<strong>📈 KEY METRICS</strong>
-${data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n')}
-
-<strong>💡 INITIAL ASSESSMENT</strong>
-Based on the extracted metrics, this program shows measurable performance across multiple dimensions including market growth, institutional positioning, and workforce alignment.
-
-<strong>🎯 RECOMMENDATIONS</strong>
-• Focus on areas with negative scores for improvement opportunities
-• Leverage positive metrics for competitive positioning
-• Align curriculum with current market demands
-• Monitor performance trends regularly
-
-<em>Data extracted from: ${data.dataSource}</em>`;
         }
 
         function showError(message) {
