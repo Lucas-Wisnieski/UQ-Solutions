@@ -675,7 +675,26 @@
         }
 
         function callAPI(data) {
-            const prompt = `Analyze this program performance data extracted at ${data.timestamp}:
+            // Build the final prompt
+            let prompt;
+            
+            if (customPrompt) {
+                // Use custom prompt and replace placeholders
+                console.log('🔍 Using custom prompt template');
+                
+                // Replace placeholders in the custom prompt
+                prompt = customPrompt
+                    .replace(/\{\{PROGRAM\}\}/g, data.program)
+                    .replace(/\{\{JOB_TARGET\}\}/g, data.jobTarget)
+                    .replace(/\{\{TIMESTAMP\}\}/g, data.timestamp)
+                    .replace(/\{\{DATA_SOURCE\}\}/g, data.dataSource)
+                    .replace(/\{\{METRICS\}\}/g, data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n'));
+                
+            } else {
+                // Fallback to built-in prompt
+                console.log('🔍 Using fallback built-in prompt');
+                
+                prompt = `Analyze this program performance data extracted at ${data.timestamp}:
 
 PROGRAM: ${data.program}
 JOB TARGET: ${data.jobTarget}
@@ -691,6 +710,34 @@ Provide a concise analysis with:
 3. Strategic recommendations
 
 Focus on actionable insights for academic administrators. Start with the program name and current timestamp to confirm this is fresh data.`;
+            }
+
+            // ===== COMPREHENSIVE PROMPT DEBUGGING =====
+            console.log('🔍 ================ FINAL PROMPT DEBUG START ================');
+            console.log('🔍 FINAL PROMPT DEBUG - Length:', prompt.length);
+            console.log('🔍 FINAL PROMPT DEBUG - First 500 chars:');
+            console.log(prompt.substring(0, 500));
+            console.log('🔍 FINAL PROMPT DEBUG - Last 200 chars:');
+            console.log('...' + prompt.substring(prompt.length - 200));
+            console.log('🔍 FINAL PROMPT DEBUG - Contains placeholders?');
+            console.log('- {{PROGRAM}}:', prompt.includes('{{PROGRAM}}'));
+            console.log('- {{JOB_TARGET}}:', prompt.includes('{{JOB_TARGET}}'));
+            console.log('- {{METRICS}}:', prompt.includes('{{METRICS}}'));
+            console.log('- {{TIMESTAMP}}:', prompt.includes('{{TIMESTAMP}}'));
+            console.log('- {{DATA_SOURCE}}:', prompt.includes('{{DATA_SOURCE}}'));
+            console.log('🔍 FINAL PROMPT DEBUG - Data values used:');
+            console.log('- Program:', data.program);
+            console.log('- Job Target:', data.jobTarget);
+            console.log('- Timestamp:', data.timestamp);
+            console.log('- Data Source:', data.dataSource);
+            console.log('- Metrics count:', data.metrics.length);
+            console.log('- Metrics preview:', data.metrics.slice(0, 3));
+            console.log('🔍 FINAL PROMPT DEBUG - Custom prompt info:');
+            console.log('- Custom prompt loaded:', !!customPrompt);
+            console.log('- Custom prompt length:', customPrompt ? customPrompt.length : 'N/A');
+            console.log('🔍 FINAL PROMPT DEBUG - Complete prompt:');
+            console.log(prompt);
+            console.log('🔍 ================ FINAL PROMPT DEBUG END ================');
 
             return fetch('https://uq-solutions.vercel.app/api/claude', {
                 method: 'POST',
