@@ -228,15 +228,21 @@
             
             let apiStatus = 'Not Available';
             let worksheetCount = 0;
+            let worksheetDetails = [];
             let domAccess = 'Unknown';
             let tablesFound = 0;
 
-            // Check API status
+            // Check API status and get detailed worksheet info
             if (typeof tableau !== 'undefined' && tableau.extensions) {
                 apiStatus = 'Available';
                 try {
                     const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
                     worksheetCount = worksheets.length;
+                    
+                    // Get detailed info about each worksheet
+                    worksheets.forEach((ws, index) => {
+                        worksheetDetails.push(`${index + 1}. "${ws.name}" (${ws.size ? ws.size.maxRows + ' max rows' : 'size unknown'})`);
+                    });
                 } catch (error) {
                     apiStatus = `Error: ${error.message}`;
                 }
@@ -264,6 +270,17 @@
 - Worksheets Available: ${worksheetCount}
 - Extension Initialized: ${tableau && tableau.extensions ? 'Yes' : 'No'}
 
+📋 AVAILABLE WORKSHEETS:
+${worksheetDetails.join('\n')}
+
+🎯 TARGET WORKSHEET:
+Looking for: "Claude Metrics Selected CIP&Award" or similar
+${worksheetDetails.length > 0 ? 
+    (worksheetDetails.some(ws => ws.toLowerCase().includes('claude') || ws.toLowerCase().includes('metrics')) ? 
+        '✅ Found matching worksheet' : 
+        '⚠️ No exact match found - will use best match') :
+    '❌ No worksheets available'}
+
 🌐 DOM DATA ACCESS:
 - Parent Window Access: ${window.parent !== window ? 'Available' : 'Blocked'}
 - DOM Access: ${domAccess}
@@ -275,7 +292,7 @@
 
 📋 RECOMMENDED APPROACH:
 ${apiStatus === 'Available' ? 
-    '✅ Use Tableau Extensions API for data access' : 
+    '✅ Use Tableau Extensions API with worksheet targeting' : 
     '🔄 Use enhanced DOM extraction as primary method'}
 
 🎯 STATUS: ${apiStatus === 'Available' || tablesFound > 0 ? 'Ready for data analysis' : 'Limited data access'}
@@ -334,10 +351,36 @@ ${apiStatus === 'Available' ?
                             return;
                         }
 
-                        console.log(`Found ${worksheets.length} worksheets, getting data from first worksheet...`);
+                        console.log(`Found ${worksheets.length} worksheets:`);
+                        worksheets.forEach((ws, index) => {
+                            console.log(`  ${index}: "${ws.name}"`);
+                        });
+
+                        // Try to find the worksheet with our target data first
+                        let targetWorksheet = null;
+                        
+                        // Look for the specific worksheet name you mentioned
+                        for (const ws of worksheets) {
+                            if (ws.name.toLowerCase().includes('claude') || 
+                                ws.name.toLowerCase().includes('metrics') ||
+                                ws.name.toLowerCase().includes('selected') ||
+                                ws.name.toLowerCase().includes('cip')) {
+                                targetWorksheet = ws;
+                                console.log(`🎯 Found target worksheet: "${ws.name}"`);
+                                break;
+                            }
+                        }
+                        
+                        // If no specific worksheet found, use the first one
+                        if (!targetWorksheet) {
+                            targetWorksheet = worksheets[0];
+                            console.log(`🔄 Using first worksheet: "${targetWorksheet.name}"`);
+                        }
+
+                        console.log(`Getting data from worksheet: "${targetWorksheet.name}"`);
 
                         // Use NEW API methods to avoid deprecation warning
-                        worksheets[0].getUnderlyingTablesAsync()
+                        targetWorksheet.getUnderlyingTablesAsync()
                             .then(function(tables) {
                                 if (tables.length === 0) {
                                     console.log('No tables found, trying DOM extraction...');
@@ -348,12 +391,12 @@ ${apiStatus === 'Available' ?
                                 console.log(`Found ${tables.length} tables, getting data from first table...`);
                                 
                                 // Get data from the first table using new API
-                                return worksheets[0].getUnderlyingTableDataAsync(tables[0].id);
+                                return targetWorksheet.getUnderlyingTableDataAsync(tables[0].id);
                             })
                             .then(function(dataTable) {
                                 if (dataTable && dataTable.data.length > 0) {
                                     console.log(`✅ Got ${dataTable.data.length} rows from new API`);
-                                    const processedData = processTableauAPIData(dataTable, worksheets[0].name);
+                                    const processedData = processTableauAPIData(dataTable, targetWorksheet.name);
                                     resolve(processedData);
                                 } else {
                                     console.log('No data in table, trying DOM extraction...');
@@ -365,10 +408,10 @@ ${apiStatus === 'Available' ?
                                 console.log('Falling back to old API method...');
                                 
                                 // Fallback to old method if new one fails
-                                worksheets[0].getUnderlyingDataAsync()
+                                targetWorksheet.getUnderlyingDataAsync()
                                     .then(function(dataTable) {
                                         if (dataTable && dataTable.data.length > 0) {
-                                            const processedData = processTableauAPIData(dataTable, worksheets[0].name);
+                                            const processedData = processTableauAPIData(dataTable, targetWorksheet.name);
                                             resolve(processedData);
                                         } else {
                                             tryDOMExtraction();
@@ -493,36 +536,58 @@ ${apiStatus === 'Available' ?
                 }
             }
             
-            console.log(`Processed ${allRowData.length} valid rows from ${maxRows} processed rows`);
+            // Debug: Show sample data from first few rows
+            console.log('Sample row data:', allRowData.slice(0, 3));
             
             // Extract unique numeric metrics from processed data
             const metricsSeen = new Set();
             const sampleSize = Math.min(allRowData.length, 50); // Limit to 50 rows for metrics
+            
+            console.log(`Searching for metrics in ${sampleSize} rows...`);
             
             for (let i = 0; i < sampleSize; i++) {
                 const row = allRowData[i];
                 Object.keys(row).forEach(function(key) {
                     const value = row[key];
                     
-                    // Look for numeric metrics - be more specific about score fields
+                    // Look for numeric metrics - specifically target score fields from your dashboard
                     if (typeof value === 'number' && !metricsSeen.has(key)) {
-                        // Skip obvious ID/code fields but include score fields
-                        if (!key.toLowerCase().includes('id') &&
-                            !key.toLowerCase().includes('blank') &&
-                            key !== 'Age' &&
-                            !key.toLowerCase().includes('segments') &&
-                            !key.toLowerCase().includes('chart') &&
-                            !key.toLowerCase().includes('range') &&
-                            !key.toLowerCase().includes('institutions') &&
-                            !key.toLowerCase().includes('conference') &&
-                            !key.toLowerCase().includes('groups') &&
-                            !key.toLowerCase().includes('ranking')) {
-                            
+                        // Include these specific fields we can see in your dashboard
+                        const isScoreField = key.toLowerCase().includes('score') ||
+                                           key.toLowerCase().includes('total') ||
+                                           key.toLowerCase().includes('market') ||
+                                           key.toLowerCase().includes('growth') ||
+                                           key.toLowerCase().includes('schools') ||
+                                           key.toLowerCase().includes('opportunity') ||
+                                           key.toLowerCase().includes('workforce') ||
+                                           key.toLowerCase().includes('earning') ||
+                                           key.toLowerCase().includes('demand') ||
+                                           key.toLowerCase().includes('outcomes') ||
+                                           key.toLowerCase().includes('s.u.g') ||
+                                           key.toLowerCase().includes('inst') ||
+                                           key.toLowerCase().includes('geog') ||
+                                           key.toLowerCase().includes('segment') ||
+                                           key.toLowerCase().includes('%');
+                        
+                        // Skip obvious non-metric fields
+                        const isNonMetric = key.toLowerCase().includes('id') ||
+                                          key.toLowerCase().includes('blank') ||
+                                          key === 'Age' ||
+                                          key.toLowerCase().includes('segments') ||
+                                          key.toLowerCase().includes('chart') ||
+                                          key.toLowerCase().includes('range') ||
+                                          key.toLowerCase().includes('institutions') ||
+                                          key.toLowerCase().includes('conference') ||
+                                          key.toLowerCase().includes('groups') ||
+                                          key.toLowerCase().includes('ranking');
+                        
+                        if (isScoreField || (!isNonMetric && (value > 0 || value < 0))) {
                             metrics.push({
                                 name: key,
                                 value: value
                             });
                             metricsSeen.add(key);
+                            console.log(`Found metric: ${key} = ${value}`);
                         }
                     }
                     
@@ -537,6 +602,7 @@ ${apiStatus === 'Available' ?
                                     value: numValue
                                 });
                                 metricsSeen.add(key);
+                                console.log(`Found string metric: ${key} = ${numValue} (from "${value}")`);
                             }
                         }
                     }
