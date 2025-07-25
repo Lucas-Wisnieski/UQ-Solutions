@@ -477,40 +477,10 @@
             console.log('Measure Values column index:', measureValuesIndex);
             console.log('Measure Names column index:', measureNamesIndex);
             
-            // Define the aggregated score metrics we want (matching your table columns)
-            const targetScoreMetrics = [
-                'Total Score', 'Market Growth Score', 'Schools Like Us Score', 'Opportunity Size Score',
-                'Workforce Demand Score', 'Earning Outcomes Score', 'S.U.G., Geog. Mkt.',
-                '% Insts Growing, Geog. Mkt.', 'S.U.G., Seg. Mkt.', '% Growing, Seg. Mkt.',
-                '# Insts. with Pgm., Seg. Mkt.', '% Insts. with Pgm., Seg. Mkt.',
-                '% Growing, Add\'l Ref. Mkt.', 'Market Concentration, Largest Two Programs, Geog. Mkt.',
-                'Expected Completions per Year', 'Median Compl\'s/Yr., Seg. Mkt.',
-                'Relative Interquartile Ratio', 'Program Size Consistency Index',
-                'ACS Salary, State', 'BLS Salary, State', '1st-Year Earnings, Geog. Mkt, Adjusted',
-                '1st-Year Earnings, Seg. Mkt., Adjusted', '% Online, Geog. Mkt.', '% Online, Seg. Mkt.',
-                'Job Postings Index, State', 'Jobs SUG, State', 'Workforce Demand:Supply Ratio, State',
-                'Ann. Unit Growth, Jobs, State', 'Ann. % Growth, Jobs, State'
-            ];
-            
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
-                console.log('✅ Found Measure Names/Values columns - extracting aggregated score metrics...');
+                console.log('✅ Found Measure Names/Values columns - extracting ALL measure data...');
                 
-                // First, let's see what measure names are actually available
-                const availableMeasureNames = new Set();
-                rows.forEach(function(row) {
-                    if (row[measureNamesIndex]) {
-                        const nameCell = row[measureNamesIndex];
-                        const measureName = (typeof nameCell === 'object' && nameCell.value !== undefined) 
-                            ? nameCell.value : nameCell;
-                        if (measureName) {
-                            availableMeasureNames.add(measureName);
-                        }
-                    }
-                });
-                
-                console.log('📋 Available measure names in data:', Array.from(availableMeasureNames));
-                
-                // Process each row to extract the aggregated score metrics
+                // Process each row to extract ALL measure name/value pairs
                 rows.forEach(function(row, rowIndex) {
                     let measureName = null;
                     let measureValue = null;
@@ -529,7 +499,7 @@
                             ? valueCell.value : valueCell;
                     }
                     
-                    // If we have both name and numeric value, include it (no filtering for now)
+                    // If we have both name and numeric value, include it
                     if (measureName && typeof measureValue === 'number') {
                         // Clean up the measure name for better readability
                         let cleanName = measureName;
@@ -561,25 +531,15 @@
                             }
                         }
                         
-                        // Include metric if it's not a duplicate and seems relevant
+                        // Include ALL measures - just avoid duplicates
                         if (!metrics.some(m => m.name === cleanName)) {
-                            // Filter out obviously irrelevant metrics
-                            const isRelevant = !cleanName.toLowerCase().includes('calculation') &&
-                                             !cleanName.toLowerCase().includes('job index selected institution state') &&
-                                             !cleanName.toLowerCase().includes('institution count secondary marketqk') &&
-                                             !cleanName.toLowerCase().includes('[sum:institution count');
+                            console.log(`✅ Found measure: ${cleanName} = ${measureValue}`);
                             
-                            if (isRelevant) {
-                                console.log(`✅ Found RELEVANT METRIC: ${cleanName} = ${measureValue}`);
-                                
-                                metrics.push({
-                                    name: cleanName,
-                                    value: measureValue,
-                                    originalName: measureName // Keep original for debugging
-                                });
-                            } else {
-                                console.log(`⚠️ Skipping irrelevant metric: ${cleanName}`);
-                            }
+                            metrics.push({
+                                name: cleanName,
+                                value: measureValue,
+                                originalName: measureName // Keep original for debugging
+                            });
                         }
                     }
                 });
@@ -669,22 +629,7 @@
             
             const metrics = [];
             
-            // Define the same aggregated score metrics 
-            const targetScoreMetrics = [
-                'Total Score', 'Market Growth Score', 'Schools Like Us Score', 'Opportunity Size Score',
-                'Workforce Demand Score', 'Earning Outcomes Score', 'S.U.G., Geog. Mkt.',
-                '% Insts Growing, Geog. Mkt.', 'S.U.G., Seg. Mkt.', '% Growing, Seg. Mkt.',
-                '# Insts. with Pgm., Seg. Mkt.', '% Insts. with Pgm., Seg. Mkt.',
-                '% Growing, Add\'l Ref. Mkt.', 'Market Concentration, Largest Two Programs, Geog. Mkt.',
-                'Expected Completions per Year', 'Median Compl\'s/Yr., Seg. Mkt.',
-                'Relative Interquartile Ratio', 'Program Size Consistency Index',
-                'ACS Salary, State', 'BLS Salary, State', '1st-Year Earnings, Geog. Mkt, Adjusted',
-                '1st-Year Earnings, Seg. Mkt., Adjusted', '% Online, Geog. Mkt.', '% Online, Seg. Mkt.',
-                'Job Postings Index, State', 'Jobs SUG, State', 'Workforce Demand:Supply Ratio, State',
-                'Ann. Unit Growth, Jobs, State', 'Ann. % Growth, Jobs, State'
-            ];
-            
-            // Process first few rows to extract target score metrics only
+            // Process first few rows to extract ALL numeric metrics
             for (let i = 0; i < Math.min(rows.length, 10); i++) {
                 const row = rows[i];
                 
@@ -697,21 +642,13 @@
                             value = value.value;
                         }
                         
-                        // Look for target score metrics only
-                        if (typeof value === 'number') {
-                            const isTarget = targetScoreMetrics.some(target => 
-                                col.toLowerCase().includes(target.toLowerCase()) ||
-                                target.toLowerCase().includes(col.toLowerCase()) ||
-                                col.toLowerCase().replace(/[^a-z0-9]/g, '').includes(target.toLowerCase().replace(/[^a-z0-9]/g, ''))
-                            );
-                            
-                            if (isTarget && !metrics.some(m => m.name === col)) {
-                                console.log(`✅ Found TARGET SCORE in underlying: ${col} = ${value}`);
-                                metrics.push({
-                                    name: col,
-                                    value: value
-                                });
-                            }
+                        // Include ALL numeric values
+                        if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
+                            console.log(`✅ Found metric in underlying: ${col} = ${value}`);
+                            metrics.push({
+                                name: col,
+                                value: value
+                            });
                         }
                     }
                 });
