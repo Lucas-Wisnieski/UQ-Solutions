@@ -146,8 +146,12 @@
             'https://lucas-wisnieski.github.io/UQ-Solutions/js/tableau.extensions.1.latest.min.js'
         ];
 
+        // Custom prompt URL
+        const CUSTOM_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/ai-analysis-prompt.txt';
+
         // Global state
         let isProcessing = false;
+        let customPrompt = null; // Cache for the custom prompt
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
@@ -158,13 +162,37 @@
                 document.getElementById('refreshBtn').addEventListener('click', generateSummary);
                 console.log('✅ Event listeners added');
                 
-                // Try to load Tableau API
-                loadTableauAPI();
+                // Load custom prompt first, then Tableau API
+                loadCustomPrompt();
             } catch (error) {
                 console.error('Setup error:', error);
                 showError('Extension setup failed: ' + error.message);
             }
         });
+
+        function loadCustomPrompt() {
+            console.log('🔍 Loading custom prompt from GitHub...');
+            
+            fetch(CUSTOM_PROMPT_URL)
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Prompt file not found: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(function(promptText) {
+                    customPrompt = promptText.trim();
+                    console.log('✅ Custom prompt loaded successfully');
+                    console.log('📄 Prompt length:', customPrompt.length, 'characters');
+                    
+                    // Now load Tableau API
+                    loadTableauAPI();
+                })
+                .catch(function(error) {
+                    console.error('❌ Failed to load custom prompt:', error);
+                    showError('Failed to load analysis prompt: ' + error.message + '\n\nPlease ensure the prompt file exists at:\n' + CUSTOM_PROMPT_URL);
+                });
+        }
 
         function loadTableauAPI() {
             console.log('🔍 Loading Tableau API...');
@@ -264,6 +292,7 @@
             }
             
             report += '\n🔧 PROXY: https://uq-solutions.vercel.app/api/claude ✅\n';
+            report += `\n📄 CUSTOM PROMPT: ${customPrompt ? '✅ Loaded (' + customPrompt.length + ' chars)' : '❌ Not loaded'}\n`;
             report += '\n🎯 STATUS: Ready for testing';
             
             document.getElementById('summaryText').textContent = report;
@@ -275,8 +304,14 @@
                 return;
             }
             
+            // Check if custom prompt is loaded
+            if (!customPrompt) {
+                showError('Custom prompt not loaded. Please refresh the page and try again.');
+                return;
+            }
+            
             isProcessing = true;
-            console.log('🚀 Starting summary generation...');
+            console.log('🚀 Starting summary generation with custom prompt...');
             
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
