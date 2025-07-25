@@ -477,10 +477,25 @@
             console.log('Measure Values column index:', measureValuesIndex);
             console.log('Measure Names column index:', measureNamesIndex);
             
+            // Define the aggregated score metrics we want (matching your table columns)
+            const targetScoreMetrics = [
+                'Total Score', 'Market Growth Score', 'Schools Like Us Score', 'Opportunity Size Score',
+                'Workforce Demand Score', 'Earning Outcomes Score', 'S.U.G., Geog. Mkt.',
+                '% Insts Growing, Geog. Mkt.', 'S.U.G., Seg. Mkt.', '% Growing, Seg. Mkt.',
+                '# Insts. with Pgm., Seg. Mkt.', '% Insts. with Pgm., Seg. Mkt.',
+                '% Growing, Add\'l Ref. Mkt.', 'Market Concentration, Largest Two Programs, Geog. Mkt.',
+                'Expected Completions per Year', 'Median Compl\'s/Yr., Seg. Mkt.',
+                'Relative Interquartile Ratio', 'Program Size Consistency Index',
+                'ACS Salary, State', 'BLS Salary, State', '1st-Year Earnings, Geog. Mkt, Adjusted',
+                '1st-Year Earnings, Seg. Mkt., Adjusted', '% Online, Geog. Mkt.', '% Online, Seg. Mkt.',
+                'Job Postings Index, State', 'Jobs SUG, State', 'Workforce Demand:Supply Ratio, State',
+                'Ann. Unit Growth, Jobs, State', 'Ann. % Growth, Jobs, State'
+            ];
+            
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
-                console.log('✅ Found Measure Names/Values columns - extracting ALL available metrics...');
+                console.log('✅ Found Measure Names/Values columns - extracting aggregated score metrics...');
                 
-                // Process each row to extract ALL measure name/value pairs
+                // Process each row to extract only the aggregated score metrics
                 rows.forEach(function(row, rowIndex) {
                     let measureName = null;
                     let measureValue = null;
@@ -499,7 +514,7 @@
                             ? valueCell.value : valueCell;
                     }
                     
-                    // If we have both name and numeric value, include it
+                    // If we have both name and numeric value, check if it's a target score metric
                     if (measureName && typeof measureValue === 'number') {
                         // Clean up the measure name for better readability
                         let cleanName = measureName;
@@ -531,9 +546,15 @@
                             }
                         }
                         
-                        // Include ALL metrics (no filtering) - avoid duplicates only
-                        if (!metrics.some(m => m.name === cleanName)) {
-                            console.log(`✅ Found metric: ${cleanName} = ${measureValue}`);
+                        // Check if this is one of our target aggregated score metrics
+                        const isTargetMetric = targetScoreMetrics.some(target => 
+                            cleanName.toLowerCase().includes(target.toLowerCase()) ||
+                            target.toLowerCase().includes(cleanName.toLowerCase()) ||
+                            cleanName.toLowerCase().replace(/[^a-z0-9]/g, '').includes(target.toLowerCase().replace(/[^a-z0-9]/g, ''))
+                        );
+                        
+                        if (isTargetMetric && !metrics.some(m => m.name === cleanName)) {
+                            console.log(`✅ Found TARGET SCORE: ${cleanName} = ${measureValue}`);
                             
                             metrics.push({
                                 name: cleanName,
@@ -546,7 +567,7 @@
             } else {
                 console.log('⚠️ Measure Names/Values columns not found, trying alternative approach...');
                 
-                // Fallback: look for ALL numeric columns directly
+                // Fallback: look for score columns directly
                 rows.forEach(function(row, rowIndex) {
                     if (rowIndex < 10) {
                         columns.forEach(function(col, colIndex) {
@@ -558,13 +579,20 @@
                                     value = value.value;
                                 }
                                 
-                                // Include ALL numeric values
-                                if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
-                                    console.log(`✅ Found direct metric: ${col} = ${value}`);
-                                    metrics.push({
-                                        name: col,
-                                        value: value
-                                    });
+                                // Check if it's a target score metric
+                                if (typeof value === 'number') {
+                                    const isTargetMetric = targetScoreMetrics.some(target => 
+                                        col.toLowerCase().includes(target.toLowerCase()) ||
+                                        target.toLowerCase().includes(col.toLowerCase())
+                                    );
+                                    
+                                    if (isTargetMetric && !metrics.some(m => m.name === col)) {
+                                        console.log(`✅ Found direct TARGET SCORE: ${col} = ${value}`);
+                                        metrics.push({
+                                            name: col,
+                                            value: value
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -622,7 +650,22 @@
             
             const metrics = [];
             
-            // Process first few rows to extract ALL available metrics
+            // Define the same aggregated score metrics 
+            const targetScoreMetrics = [
+                'Total Score', 'Market Growth Score', 'Schools Like Us Score', 'Opportunity Size Score',
+                'Workforce Demand Score', 'Earning Outcomes Score', 'S.U.G., Geog. Mkt.',
+                '% Insts Growing, Geog. Mkt.', 'S.U.G., Seg. Mkt.', '% Growing, Seg. Mkt.',
+                '# Insts. with Pgm., Seg. Mkt.', '% Insts. with Pgm., Seg. Mkt.',
+                '% Growing, Add\'l Ref. Mkt.', 'Market Concentration, Largest Two Programs, Geog. Mkt.',
+                'Expected Completions per Year', 'Median Compl\'s/Yr., Seg. Mkt.',
+                'Relative Interquartile Ratio', 'Program Size Consistency Index',
+                'ACS Salary, State', 'BLS Salary, State', '1st-Year Earnings, Geog. Mkt, Adjusted',
+                '1st-Year Earnings, Seg. Mkt., Adjusted', '% Online, Geog. Mkt.', '% Online, Seg. Mkt.',
+                'Job Postings Index, State', 'Jobs SUG, State', 'Workforce Demand:Supply Ratio, State',
+                'Ann. Unit Growth, Jobs, State', 'Ann. % Growth, Jobs, State'
+            ];
+            
+            // Process first few rows to extract target score metrics only
             for (let i = 0; i < Math.min(rows.length, 10); i++) {
                 const row = rows[i];
                 
@@ -635,13 +678,21 @@
                             value = value.value;
                         }
                         
-                        // Include ALL numeric values - no filtering
-                        if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
-                            console.log(`✅ Found metric in underlying: ${col} = ${value}`);
-                            metrics.push({
-                                name: col,
-                                value: value
-                            });
+                        // Look for target score metrics only
+                        if (typeof value === 'number') {
+                            const isTarget = targetScoreMetrics.some(target => 
+                                col.toLowerCase().includes(target.toLowerCase()) ||
+                                target.toLowerCase().includes(col.toLowerCase()) ||
+                                col.toLowerCase().replace(/[^a-z0-9]/g, '').includes(target.toLowerCase().replace(/[^a-z0-9]/g, ''))
+                            );
+                            
+                            if (isTarget && !metrics.some(m => m.name === col)) {
+                                console.log(`✅ Found TARGET SCORE in underlying: ${col} = ${value}`);
+                                metrics.push({
+                                    name: col,
+                                    value: value
+                                });
+                            }
                         }
                     }
                 });
@@ -694,32 +745,8 @@ Provide a concise analysis with:
 Focus on actionable insights for academic administrators. Start with the program name and current timestamp to confirm this is fresh data.`;
             }
 
-            // ===== COMPREHENSIVE PROMPT DEBUGGING =====
-            console.log('🔍 ================ FINAL PROMPT DEBUG START ================');
-            console.log('🔍 FINAL PROMPT DEBUG - Length:', prompt.length);
-            console.log('🔍 FINAL PROMPT DEBUG - First 500 chars:');
-            console.log(prompt.substring(0, 500));
-            console.log('🔍 FINAL PROMPT DEBUG - Last 200 chars:');
-            console.log('...' + prompt.substring(prompt.length - 200));
-            console.log('🔍 FINAL PROMPT DEBUG - Contains placeholders?');
-            console.log('- {{PROGRAM}}:', prompt.includes('{{PROGRAM}}'));
-            console.log('- {{JOB_TARGET}}:', prompt.includes('{{JOB_TARGET}}'));
-            console.log('- {{METRICS}}:', prompt.includes('{{METRICS}}'));
-            console.log('- {{TIMESTAMP}}:', prompt.includes('{{TIMESTAMP}}'));
-            console.log('- {{DATA_SOURCE}}:', prompt.includes('{{DATA_SOURCE}}'));
-            console.log('🔍 FINAL PROMPT DEBUG - Data values used:');
-            console.log('- Program:', data.program);
-            console.log('- Job Target:', data.jobTarget);
-            console.log('- Timestamp:', data.timestamp);
-            console.log('- Data Source:', data.dataSource);
-            console.log('- Metrics count:', data.metrics.length);
-            console.log('- Metrics preview:', data.metrics.slice(0, 3));
-            console.log('🔍 FINAL PROMPT DEBUG - Custom prompt info:');
-            console.log('- Custom prompt loaded:', !!customPrompt);
-            console.log('- Custom prompt length:', customPrompt ? customPrompt.length : 'N/A');
-            console.log('🔍 FINAL PROMPT DEBUG - Complete prompt:');
-            console.log(prompt);
-            console.log('🔍 ================ FINAL PROMPT DEBUG END ================');
+            // ===== SEND TO API =====
+            console.log('🚀 Sending prompt to Claude API...');
 
             return fetch('https://uq-solutions.vercel.app/api/claude', {
                 method: 'POST',
