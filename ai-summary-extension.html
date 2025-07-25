@@ -342,10 +342,12 @@
                             
                             if (summaryData.data.length > 0) {
                                 const data = processSummaryData(summaryData);
-                                if (data.metrics.length > 0) {
+                                if (data.metrics.length >= 3) { // Lowered threshold - need at least 3 metrics
                                     console.log('✅ Using summary data with', data.metrics.length, 'metrics');
                                     resolve(data);
                                     return;
+                                } else {
+                                    console.log(`⚠️ Summary data has only ${data.metrics.length} metrics, trying underlying data...`);
                                 }
                             }
                             
@@ -383,49 +385,102 @@
             console.log('Summary columns:', columns);
             console.log('Summary rows:', rows.length);
             
-            const metrics = [];
-            const dashboardMetrics = [
-                'Total Score', 'Market Growth Score', 'Schools Like Us Score',
-                'Opportunity Size Score', 'Workforce Demand Score', 'Earning Outcomes Score'
-            ];
+            // Debug: Show first few rows
+            console.log('First 3 rows:', rows.slice(0, 3));
             
-            // Process each row
-            for (let i = 0; i < Math.min(rows.length, 10); i++) {
-                const row = rows[i];
+            const metrics = [];
+            
+            // Look for the "Measure Values" column which contains the actual scores
+            const measureValuesIndex = columns.findIndex(col => 
+                col.toLowerCase().includes('measure values') || 
+                col.toLowerCase().includes('values')
+            );
+            
+            const measureNamesIndex = columns.findIndex(col => 
+                col.toLowerCase().includes('measure names') || 
+                col.toLowerCase().includes('names')
+            );
+            
+            console.log('Measure Values column index:', measureValuesIndex);
+            console.log('Measure Names column index:', measureNamesIndex);
+            
+            if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
+                console.log('✅ Found Measure Names/Values columns - extracting metrics...');
                 
-                columns.forEach(function(col, colIndex) {
-                    if (row[colIndex]) {
-                        let value = row[colIndex];
+                // Process each row to extract measure name/value pairs
+                rows.forEach(function(row, rowIndex) {
+                    if (rowIndex < 20) { // Process first 20 rows
+                        let measureName = null;
+                        let measureValue = null;
                         
-                        // Extract value from DataValue objects
-                        if (typeof value === 'object' && value.value !== undefined) {
-                            value = value.value;
+                        // Extract measure name
+                        if (row[measureNamesIndex]) {
+                            const nameCell = row[measureNamesIndex];
+                            measureName = (typeof nameCell === 'object' && nameCell.value !== undefined) 
+                                ? nameCell.value : nameCell;
                         }
                         
-                        // Check if it's a number and a relevant metric
-                        if (typeof value === 'number') {
-                            const isRelevant = dashboardMetrics.some(dm => 
-                                col.toLowerCase().includes(dm.toLowerCase())
-                            ) || col.toLowerCase().includes('score') ||
-                                col.toLowerCase().includes('growth') ||
-                                col.toLowerCase().includes('%');
+                        // Extract measure value
+                        if (row[measureValuesIndex]) {
+                            const valueCell = row[measureValuesIndex];
+                            measureValue = (typeof valueCell === 'object' && valueCell.value !== undefined) 
+                                ? valueCell.value : valueCell;
+                        }
+                        
+                        // If we have both name and numeric value, add it
+                        if (measureName && typeof measureValue === 'number') {
+                            console.log(`Found metric from summary: ${measureName} = ${measureValue}`);
                             
-                            if (isRelevant) {
-                                metrics.push({
-                                    name: col,
-                                    value: value
-                                });
-                            }
+                            metrics.push({
+                                name: measureName,
+                                value: measureValue
+                            });
                         }
+                    }
+                });
+            } else {
+                console.log('⚠️ Measure Names/Values columns not found, trying alternative approach...');
+                
+                // Fallback: look for numeric columns directly
+                rows.forEach(function(row, rowIndex) {
+                    if (rowIndex < 10) {
+                        columns.forEach(function(col, colIndex) {
+                            if (row[colIndex]) {
+                                let value = row[colIndex];
+                                
+                                // Extract value from DataValue objects
+                                if (typeof value === 'object' && value.value !== undefined) {
+                                    value = value.value;
+                                }
+                                
+                                // Check if it's a number and a relevant metric
+                                if (typeof value === 'number') {
+                                    const isRelevant = col.toLowerCase().includes('score') ||
+                                                     col.toLowerCase().includes('growth') ||
+                                                     col.toLowerCase().includes('%') ||
+                                                     col.toLowerCase().includes('total');
+                                    
+                                    if (isRelevant && !metrics.some(m => m.name === col)) {
+                                        console.log(`Found direct metric: ${col} = ${value}`);
+                                        metrics.push({
+                                            name: col,
+                                            value: value
+                                        });
+                                    }
+                                }
+                            }
+                        });
                     }
                 });
             }
             
+            console.log(`Summary data processing complete: ${metrics.length} metrics found`);
+            
             return {
                 program: '11.0701 | Computer Science | Bachelor\'s',
                 jobTarget: 'Software Developers',
-                metrics: metrics.slice(0, 12),
-                dataSource: 'Summary Data',
+                metrics: metrics,
+                dataSource: 'Summary Data (Tableau View)',
                 recordCount: rows.length
             };
         }
