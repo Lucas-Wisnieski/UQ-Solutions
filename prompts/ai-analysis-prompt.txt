@@ -2,6 +2,16 @@ Hi Claude,
 
 We are going to write a summary of the growth outlook for a potential new academic program that a college or university might launch. Our client will be a specific college or university. This data will be read by academic leaders, like provosts, deans, or chairs. For each prompt, we will provide the college or university name, program name, program award level, and a datafile with key market data.
 
+CURRENT ANALYSIS DATA:
+- Program: {{PROGRAM}}
+- Job Target: {{JOB_TARGET}}  
+- Data Source: {{DATA_SOURCE}}
+- Analysis Time: {{EXTRACTION_TIME}}
+- Metrics Analyzed: {{METRICS_COUNT}}
+
+KEY METRICS FROM DASHBOARD:
+{{METRICS}}
+
 We will analyze the programs in terms of five primary factors, which we call “key issues”. These are:
 * Market growth
 * Success among “schools like us”
