@@ -495,7 +495,22 @@
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
                 console.log('✅ Found Measure Names/Values columns - extracting aggregated score metrics...');
                 
-                // Process each row to extract only the aggregated score metrics
+                // First, let's see what measure names are actually available
+                const availableMeasureNames = new Set();
+                rows.forEach(function(row) {
+                    if (row[measureNamesIndex]) {
+                        const nameCell = row[measureNamesIndex];
+                        const measureName = (typeof nameCell === 'object' && nameCell.value !== undefined) 
+                            ? nameCell.value : nameCell;
+                        if (measureName) {
+                            availableMeasureNames.add(measureName);
+                        }
+                    }
+                });
+                
+                console.log('📋 Available measure names in data:', Array.from(availableMeasureNames));
+                
+                // Process each row to extract the aggregated score metrics
                 rows.forEach(function(row, rowIndex) {
                     let measureName = null;
                     let measureValue = null;
@@ -514,7 +529,7 @@
                             ? valueCell.value : valueCell;
                     }
                     
-                    // If we have both name and numeric value, check if it's a target score metric
+                    // If we have both name and numeric value, include it (no filtering for now)
                     if (measureName && typeof measureValue === 'number') {
                         // Clean up the measure name for better readability
                         let cleanName = measureName;
@@ -546,21 +561,25 @@
                             }
                         }
                         
-                        // Check if this is one of our target aggregated score metrics
-                        const isTargetMetric = targetScoreMetrics.some(target => 
-                            cleanName.toLowerCase().includes(target.toLowerCase()) ||
-                            target.toLowerCase().includes(cleanName.toLowerCase()) ||
-                            cleanName.toLowerCase().replace(/[^a-z0-9]/g, '').includes(target.toLowerCase().replace(/[^a-z0-9]/g, ''))
-                        );
-                        
-                        if (isTargetMetric && !metrics.some(m => m.name === cleanName)) {
-                            console.log(`✅ Found TARGET SCORE: ${cleanName} = ${measureValue}`);
+                        // Include metric if it's not a duplicate and seems relevant
+                        if (!metrics.some(m => m.name === cleanName)) {
+                            // Filter out obviously irrelevant metrics
+                            const isRelevant = !cleanName.toLowerCase().includes('calculation') &&
+                                             !cleanName.toLowerCase().includes('job index selected institution state') &&
+                                             !cleanName.toLowerCase().includes('institution count secondary marketqk') &&
+                                             !cleanName.toLowerCase().includes('[sum:institution count');
                             
-                            metrics.push({
-                                name: cleanName,
-                                value: measureValue,
-                                originalName: measureName // Keep original for debugging
-                            });
+                            if (isRelevant) {
+                                console.log(`✅ Found RELEVANT METRIC: ${cleanName} = ${measureValue}`);
+                                
+                                metrics.push({
+                                    name: cleanName,
+                                    value: measureValue,
+                                    originalName: measureName // Keep original for debugging
+                                });
+                            } else {
+                                console.log(`⚠️ Skipping irrelevant metric: ${cleanName}`);
+                            }
                         }
                     }
                 });
