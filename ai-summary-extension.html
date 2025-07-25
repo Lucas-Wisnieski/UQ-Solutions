@@ -145,7 +145,7 @@
         console.log('🚀 AI Summary Extension v2025.01.25 loaded');
         const EXTENSION_VERSION = 'v2025.01.25';
         
-        // GitHub Pages URLs for Tableau API (update with your actual username/repo)
+        // GitHub Pages URLs for Tableau API - YOUR SPECIFIC URLs
         const GITHUB_API_URLS = [
             'https://lucas-wisnieski.github.io/UQ-Solutions/js/tableau.extensions.1.latest.js',
             'https://lucas-wisnieski.github.io/UQ-Solutions/js/tableau.extensions.1.latest.min.js'
@@ -170,7 +170,7 @@
                 return;
             }
 
-            // Try loading from your GitHub Pages, then Tableau's GitHub, then fallback
+            // Try loading from GitHub Pages first, then fallback to original URLs
             const allUrls = [
                 ...GITHUB_API_URLS,
                 'https://raw.githubusercontent.com/tableau/extensions-api/master/lib/tableau.extensions.1.latest.js',
@@ -290,7 +290,7 @@ ${apiStatus === 'Available' ?
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
             
-            // Add timeout to prevent hanging
+            // Add timeout to prevent hanging - 30 seconds
             const timeoutPromise = new Promise(function(_, reject) {
                 setTimeout(function() {
                     reject(new Error('Data extraction timed out after 30 seconds'));
@@ -321,7 +321,7 @@ ${apiStatus === 'Available' ?
             return new Promise(function(resolve, reject) {
                 console.log('🎯 Attempting data extraction...');
 
-                // Method 1: Try Tableau Extensions API
+                // Method 1: Try Tableau Extensions API with NEW methods
                 if (typeof tableau !== 'undefined' && tableau.extensions) {
                     console.log('📊 Using Tableau Extensions API...');
                     
@@ -334,7 +334,9 @@ ${apiStatus === 'Available' ?
                             return;
                         }
 
-                        // Get data from first worksheet using the new API methods
+                        console.log(`Found ${worksheets.length} worksheets, getting data from first worksheet...`);
+
+                        // Use NEW API methods to avoid deprecation warning
                         worksheets[0].getUnderlyingTablesAsync()
                             .then(function(tables) {
                                 if (tables.length === 0) {
@@ -400,6 +402,141 @@ ${apiStatus === 'Available' ?
                     }
                 }
             });
+        }
+
+        function processTableauAPIData(dataTable, worksheetName) {
+            const columns = dataTable.columns.map(col => col.fieldName);
+            const rows = dataTable.data;
+            
+            console.log('Processing Tableau API data:');
+            console.log('- Columns:', columns);
+            console.log('- Row count:', rows.length);
+            console.log('- Sample first row:', rows[0]);
+            
+            let program = 'Unknown Program';
+            let jobTarget = 'Unknown Job';
+            const metrics = [];
+            const allRowData = [];
+            
+            // Process only first 100 rows to avoid timeout
+            const maxRows = Math.min(rows.length, 100);
+            console.log(`Processing first ${maxRows} rows out of ${rows.length} total`);
+            
+            for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
+                const row = rows[rowIndex];
+                const rowData = {};
+                let hasValidData = false;
+                
+                columns.forEach(function(col, colIndex) {
+                    let cellValue = null;
+                    
+                    // Handle different data formats
+                    if (row[colIndex]) {
+                        if (typeof row[colIndex] === 'object' && row[colIndex].value !== undefined) {
+                            cellValue = row[colIndex].value;
+                        } else {
+                            cellValue = row[colIndex];
+                        }
+                    }
+                    
+                    if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
+                        rowData[col] = cellValue;
+                        hasValidData = true;
+                    }
+                });
+                
+                if (hasValidData) {
+                    allRowData.push(rowData);
+                    
+                    // Extract program info from any row that has it
+                    if (rowData['CIP Code & Award Level'] && program === 'Unknown Program') {
+                        program = rowData['CIP Code & Award Level'];
+                    }
+                    if (rowData['UQ Job'] && jobTarget === 'Unknown Job') {
+                        jobTarget = rowData['UQ Job'];
+                    }
+                    if (rowData['Modified CIP'] && program === 'Unknown Program') {
+                        program = rowData['Modified CIP'];
+                    }
+                }
+            }
+            
+            console.log(`Processed ${allRowData.length} valid rows from ${maxRows} processed rows`);
+            
+            // Extract unique numeric metrics from processed data
+            const metricsSeen = new Set();
+            const sampleSize = Math.min(allRowData.length, 50); // Limit to 50 rows for metrics
+            
+            for (let i = 0; i < sampleSize; i++) {
+                const row = allRowData[i];
+                Object.keys(row).forEach(function(key) {
+                    const value = row[key];
+                    
+                    // Look for numeric metrics
+                    if (typeof value === 'number' && !metricsSeen.has(key)) {
+                        // Skip obvious ID/code fields
+                        if (!key.toLowerCase().includes('code') && 
+                            !key.toLowerCase().includes('id') &&
+                            !key.toLowerCase().includes('blank') &&
+                            key !== 'Age') {
+                            
+                            metrics.push({
+                                name: key,
+                                value: value
+                            });
+                            metricsSeen.add(key);
+                        }
+                    }
+                    
+                    // Look for percentage/score patterns in string values
+                    if (typeof value === 'string') {
+                        const numMatch = value.match(/(\d+\.?\d*)%?/);
+                        if (numMatch && !metricsSeen.has(key)) {
+                            const numValue = parseFloat(numMatch[1]);
+                            if (!isNaN(numValue) && numValue > 0) {
+                                metrics.push({
+                                    name: key,
+                                    value: numValue
+                                });
+                                metricsSeen.add(key);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // If no specific program found, try to extract from first meaningful text field
+            if (program === 'Unknown Program') {
+                for (const row of allRowData.slice(0, 10)) {
+                    for (const [key, value] of Object.entries(row)) {
+                        if (typeof value === 'string' && value.length > 5 && 
+                            (key.toLowerCase().includes('cip') || 
+                             key.toLowerCase().includes('program') ||
+                             key.toLowerCase().includes('award'))) {
+                            program = value;
+                            break;
+                        }
+                    }
+                    if (program !== 'Unknown Program') break;
+                }
+            }
+            
+            console.log('Final extraction results:');
+            console.log('- Program:', program);
+            console.log('- Job Target:', jobTarget);
+            console.log('- Metrics found:', metrics.length);
+            console.log('- Sample metrics:', metrics.slice(0, 5));
+            
+            return {
+                program: program,
+                jobTarget: jobTarget,
+                metrics: metrics,
+                dataSource: `Tableau Extensions API (${worksheetName})`,
+                recordCount: allRowData.length,
+                extractionMethod: 'Tableau Extensions API (New Methods)',
+                timestamp: new Date().toLocaleString(),
+                rawDataSample: allRowData.slice(0, 3) // Include sample for debugging
+            };
         }
 
         function extractDataFromDOM() {
@@ -561,140 +698,6 @@ ${apiStatus === 'Available' ?
             });
 
             return { metrics: metrics };
-        }
-
-        function processTableauAPIData(dataTable, worksheetName) {
-            const columns = dataTable.columns.map(col => col.fieldName);
-            const rows = dataTable.data;
-            
-            console.log('Processing Tableau API data:');
-            console.log('- Columns:', columns);
-            console.log('- Row count:', rows.length);
-            console.log('- Sample first row:', rows[0]);
-            
-            let program = 'Unknown Program';
-            let jobTarget = 'Unknown Job';
-            const metrics = [];
-            const allRowData = [];
-            
-            // Process each row and extract meaningful data
-            rows.forEach(function(row, rowIndex) {
-                const rowData = {};
-                let hasValidData = false;
-                
-                columns.forEach(function(col, colIndex) {
-                    let cellValue = null;
-                    
-                    // Handle different data formats
-                    if (row[colIndex]) {
-                        if (typeof row[colIndex] === 'object' && row[colIndex].value !== undefined) {
-                            cellValue = row[colIndex].value;
-                        } else {
-                            cellValue = row[colIndex];
-                        }
-                    }
-                    
-                    if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
-                        rowData[col] = cellValue;
-                        hasValidData = true;
-                    }
-                });
-                
-                if (hasValidData) {
-                    allRowData.push(rowData);
-                    
-                    // Extract program info from any row that has it
-                    if (rowData['CIP Code & Award Level'] && program === 'Unknown Program') {
-                        program = rowData['CIP Code & Award Level'];
-                    }
-                    if (rowData['UQ Job'] && jobTarget === 'Unknown Job') {
-                        jobTarget = rowData['UQ Job'];
-                    }
-                    if (rowData['Modified CIP'] && program === 'Unknown Program') {
-                        program = rowData['Modified CIP'];
-                    }
-                }
-                
-                // Limit processing to avoid timeout (process first 100 rows)
-                if (rowIndex >= 100) return;
-            });
-            
-            console.log(`Processed ${allRowData.length} valid rows from ${rows.length} total rows`);
-            
-            // Extract unique numeric metrics from processed data
-            const metricsSeen = new Set();
-            const sampleSize = Math.min(allRowData.length, 50); // Limit to 50 rows for metrics
-            
-            for (let i = 0; i < sampleSize; i++) {
-                const row = allRowData[i];
-                Object.keys(row).forEach(function(key) {
-                    const value = row[key];
-                    
-                    // Look for numeric metrics
-                    if (typeof value === 'number' && !metricsSeen.has(key)) {
-                        // Skip obvious ID/code fields
-                        if (!key.toLowerCase().includes('code') && 
-                            !key.toLowerCase().includes('id') &&
-                            !key.toLowerCase().includes('blank') &&
-                            key !== 'Age') {
-                            
-                            metrics.push({
-                                name: key,
-                                value: value
-                            });
-                            metricsSeen.add(key);
-                        }
-                    }
-                    
-                    // Look for percentage/score patterns in string values
-                    if (typeof value === 'string') {
-                        const numMatch = value.match(/(\d+\.?\d*)%?/);
-                        if (numMatch && !metricsSeen.has(key)) {
-                            const numValue = parseFloat(numMatch[1]);
-                            if (!isNaN(numValue) && numValue > 0) {
-                                metrics.push({
-                                    name: key,
-                                    value: numValue
-                                });
-                                metricsSeen.add(key);
-                            }
-                        }
-                    }
-                });
-            }
-            
-            // If no specific program found, try to extract from first meaningful text field
-            if (program === 'Unknown Program') {
-                for (const row of allRowData.slice(0, 10)) {
-                    for (const [key, value] of Object.entries(row)) {
-                        if (typeof value === 'string' && value.length > 5 && 
-                            (key.toLowerCase().includes('cip') || 
-                             key.toLowerCase().includes('program') ||
-                             key.toLowerCase().includes('award'))) {
-                            program = value;
-                            break;
-                        }
-                    }
-                    if (program !== 'Unknown Program') break;
-                }
-            }
-            
-            console.log('Final extraction results:');
-            console.log('- Program:', program);
-            console.log('- Job Target:', jobTarget);
-            console.log('- Metrics found:', metrics.length);
-            console.log('- Sample metrics:', metrics.slice(0, 5));
-            
-            return {
-                program: program,
-                jobTarget: jobTarget,
-                metrics: metrics,
-                dataSource: `Tableau Extensions API (${worksheetName})`,
-                recordCount: allRowData.length,
-                extractionMethod: 'Tableau Extensions API',
-                timestamp: new Date().toLocaleString(),
-                rawDataSample: allRowData.slice(0, 3) // Include sample for debugging
-            };
         }
 
         function callClaudeAPI(data) {
