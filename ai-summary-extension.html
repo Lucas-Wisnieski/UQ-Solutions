@@ -477,12 +477,22 @@
             console.log('Measure Values column index:', measureValuesIndex);
             console.log('Measure Names column index:', measureNamesIndex);
             
+            // Define the exact metrics we want to extract based on your table
+            const targetMetrics = [
+                'Market Growth Score',
+                'Schools Like Us Score', 
+                'Opportunity Size Score',
+                'Workforce Demand Score',
+                'Earnings Outcomes Score',
+                'Total Score'
+            ];
+            
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
-                console.log('✅ Found Measure Names/Values columns - extracting metrics...');
+                console.log('✅ Found Measure Names/Values columns - extracting specific target metrics...');
                 
                 // Process each row to extract measure name/value pairs
                 rows.forEach(function(row, rowIndex) {
-                    if (rowIndex < 20) { // Process first 20 rows
+                    if (rowIndex < 50) { // Process more rows to find all target metrics
                         let measureName = null;
                         let measureValue = null;
                         
@@ -500,7 +510,7 @@
                                 ? valueCell.value : valueCell;
                         }
                         
-                        // If we have both name and numeric value, add it
+                        // If we have both name and numeric value, check if it's a target metric
                         if (measureName && typeof measureValue === 'number') {
                             // Clean up the measure name for better readability
                             let cleanName = measureName;
@@ -532,20 +542,30 @@
                                 }
                             }
                             
-                            console.log(`Found metric from summary: ${cleanName} = ${measureValue}`);
+                            // Check if this is one of our target metrics
+                            const isTargetMetric = targetMetrics.some(target => 
+                                cleanName.toLowerCase().includes(target.toLowerCase()) ||
+                                target.toLowerCase().includes(cleanName.toLowerCase())
+                            );
                             
-                            metrics.push({
-                                name: cleanName,
-                                value: measureValue,
-                                originalName: measureName // Keep original for debugging
-                            });
+                            if (isTargetMetric && !metrics.some(m => m.name === cleanName)) {
+                                console.log(`✅ Found TARGET metric: ${cleanName} = ${measureValue}`);
+                                
+                                metrics.push({
+                                    name: cleanName,
+                                    value: measureValue,
+                                    originalName: measureName // Keep original for debugging
+                                });
+                            } else if (!isTargetMetric) {
+                                console.log(`⚠️ Skipping non-target metric: ${cleanName} = ${measureValue}`);
+                            }
                         }
                     }
                 });
             } else {
                 console.log('⚠️ Measure Names/Values columns not found, trying alternative approach...');
                 
-                // Fallback: look for numeric columns directly
+                // Fallback: look for score columns directly
                 rows.forEach(function(row, rowIndex) {
                     if (rowIndex < 10) {
                         columns.forEach(function(col, colIndex) {
@@ -557,15 +577,15 @@
                                     value = value.value;
                                 }
                                 
-                                // Check if it's a number and a relevant metric
+                                // Check if it's a number and one of our target metrics
                                 if (typeof value === 'number') {
-                                    const isRelevant = col.toLowerCase().includes('score') ||
-                                                     col.toLowerCase().includes('growth') ||
-                                                     col.toLowerCase().includes('%') ||
-                                                     col.toLowerCase().includes('total');
+                                    const isTargetMetric = targetMetrics.some(target => 
+                                        col.toLowerCase().includes(target.toLowerCase()) ||
+                                        target.toLowerCase().includes(col.toLowerCase())
+                                    );
                                     
-                                    if (isRelevant && !metrics.some(m => m.name === col)) {
-                                        console.log(`Found direct metric: ${col} = ${value}`);
+                                    if (isTargetMetric && !metrics.some(m => m.name === col)) {
+                                        console.log(`✅ Found direct TARGET metric: ${col} = ${value}`);
                                         metrics.push({
                                             name: col,
                                             value: value
@@ -628,12 +648,16 @@
             
             const metrics = [];
             const targetMetrics = [
-                'Market Growth Score', 'Schools Like Us Score', 'Earning Outcomes Score',
-                'Workforce Demand Score', 'Total Score', 'Opportunity Size Score'
+                'Market Growth Score',
+                'Schools Like Us Score', 
+                'Opportunity Size Score',
+                'Workforce Demand Score',
+                'Earnings Outcomes Score',
+                'Total Score'
             ];
             
             // Process only first few rows for speed
-            for (let i = 0; i < Math.min(rows.length, 5); i++) {
+            for (let i = 0; i < Math.min(rows.length, 10); i++) {
                 const row = rows[i];
                 
                 columns.forEach(function(col, colIndex) {
@@ -645,13 +669,15 @@
                             value = value.value;
                         }
                         
-                        // Look for target metrics
+                        // Look for target metrics only
                         if (typeof value === 'number') {
                             const isTarget = targetMetrics.some(tm => 
-                                col.toLowerCase().includes(tm.toLowerCase())
+                                col.toLowerCase().includes(tm.toLowerCase()) ||
+                                tm.toLowerCase().includes(col.toLowerCase())
                             );
                             
                             if (isTarget && !metrics.some(m => m.name === col)) {
+                                console.log(`✅ Found TARGET metric in underlying: ${col} = ${value}`);
                                 metrics.push({
                                     name: col,
                                     value: value
@@ -662,7 +688,7 @@
                 });
                 
                 // Stop if we have enough metrics
-                if (metrics.length >= 8) break;
+                if (metrics.length >= 6) break;
             }
             
             return {
