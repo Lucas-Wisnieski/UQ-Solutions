@@ -1,0 +1,456 @@
+Hi Claude, 
+
+We are going to write a summary of the growth outlook for a potential new academic program that a college or university might launch. Our client will be a specific college or university. This data will be read by academic leaders, like provosts, deans, or chairs. For each prompt, we will provide the college or university name, program name, program award level, and a datafile with key market data.
+
+We will analyze the programs in terms of five primary factors, which we call “key issues”. These are:
+* Market growth
+* Success among “schools like us”
+* Opportunity size
+* Workforce demand
+* Earnings outcomes
+
+For this prompt, we will produce our insights in bullet form, using three categories: Why we like it, Potential concerns, and Overall assessment. At the top, we will list the name of the program, and a subheading that gives a high-level summary of its market outlook. Thus, the overall format will be:
+
+**
+
+Program name, award level
+Subheading – a single-line summary of the overall assessment
+
+Why we like it
+* Positive attribute 1
+* Positive attribute 2
+* Positive attribute 3
+
+Potential concerns
+* Negative attribute 1
+* Negative attribute 2
+* Negative attribute 3
+
+Overall assessment
+* 3-4 sentences on its overall outlook
+
+**
+
+STYLE GUIDE:
+For numbers, please use the following guidelines:
+* Earnings and salary data: round to the nearest thousand, and express with K, as in $96K, not $95,868.
+* Percentages: round to the nearest percent, as in 12%, not 11.8%
+* SUG: please express with a single decimal, as in 1.8, not 1.76.
+
+For text:
+* Please use the voice of the included document, “UQ Foundations – New Programs Process, Part I – 6.22.25”
+* Please keep the sentences short, as if E.B. White were editing (i.e. from Strunk and White, The Elements of Style)
+* Please avoid general, vague statements like “strong market positioning” or “solid fundamentals.” Focus the comments on the specific criteria we are discussing.
+* When using specific sentences based on the prompt, vary them up slightly for a better reader experience.
+
+
+DATA ACCURACY
+
+Please ensure that every metric is correct, and from the correct row. Use only data in the table. No hallucinations please!
+
+Also, please make sure that the evaluative tone of the words matches the various scores (Market Growth, Schools Like Us, Opportunity Size, Workforce Demand, Earnings Outcomes). If the score is near the maximum, the words should indicate positive valuation. If it’s near the minimum, the words should indicate concerns. Details provided below. 
+
+
+ANALYSIS
+
+Here are the details for the analysis.
+
+
+PART ONE – WHY WE LIKE IT
+
+
+Under “Why we like it”, please write up to 5 bullets, using the following guidance. If any of the elements aren’t positive, skip the bullet. 
+
+
+BULLET 1: Market Growth
+
+Write one bullet that assesses “market growth,” using two variables: “SUG, Geographical Market” and “% Growing, Geographical Market”. SUG stands for Scaled Unit Growth, and is a measure of annual unit growth, normalized for market size. % Growing refers to the percentage of programs, that are growing in that market. The Geographical Market is defined for each institution based on analysis we have conducted already. For all of these, we are looking at completions, i.e. students graduating from or otherwise completing the academic program. 
+
+For SUG, 
+* SUG > 2 indicates exceptional growth
+* SUG between 1 and 2 indicates strong growth
+* SUG between 0.2 and 1 indicates moderate growth
+* SUG between 0 and 0.2 indicates barely growing (or growing, but very small)
+* SUG between -0.2 and 0 indicates slight decline
+* SUG below 0.2 indicates decline, and 
+* SUG < -1 indicates steep decline. 
+
+In terms of % growing, 
+* % Growing > 80% is exceptional
+* % Growing between 70 and 80% is strong
+* % Growing between 60 and 70% is good
+* % Growing between 50 and 60% is decent
+* % Growing between 40 and 50% is less than half (a negative indicator)
+* % Growing between 33 and 40% is significantly less than half (a strong negative indicator)
+* % Growing between 25 and 33% is less than a third (a very strong negative indicator)
+* % Growing < 25% is less than a quarter (an extremely negative indicator)
+
+The statement should read like the following; note that “market growth” is in bold. Also, please use the client’s institution name, not “Sample University”. You can use a commonly known short version of the name, i.e. Millikin rather than Millikin University, ASU rather than Arizona State.
+* Strong market growth, with SUG = 1.4 in Sample University’s geographical market and 68% of programs growing.
+* Exceptional market growth, with SUG = 2.6 in Sample University’s geographical market and 78% of institutions growing.
+* Moderate market growth, with SUG = 0.4 in Sample University’s geographical market and 54% of institutions growing.
+
+The evaluative words should match the “Market Growth” score, with 2 being the highest possible score.
+
+If market growth indicates are not positive, skip this bullet; we will discuss market growth in the “Potential concerns” category. If only one of the attributes is positive, discuss that one only; we will discuss the negative attribute separately.
+
+
+BULLET 2: Schools Like Us
+
+This bullet looks at how this program is performing among “schools like us.” We will look at four variables: SUG, Segment Market; % Institutions that Offer Program, Segment Market; % Growing, Segment Market, and % Growing, Additional Reference Market. Here, Segment Market refers to a group of about 100 similar institutions, or peer institutions, that we have identified in a prior analysis. Additional Reference Market is another market, often of specific competitors, also identified in a prior analysis. For this issue, “schools like us”, % Growing, Segment Market is the most important variable.
+
+Interpret SUG and % Growing using the same guidelines discussed in Bullet 1 above. However, SUG values tend to be a little more extreme in segment markets, so use this gauge for SUG, Segment Market.
+
+* SUG > 3 indicates exceptional growth
+* SUG between 2 and 3 indicates strong growth
+* SUG between 1 and 2 indicates good growth
+* SUG between 0.2 and 1 indicates moderate growth
+* SUG between 0 and 0.2 indicates barely growing (or growing, but very small)
+* SUG between -0.2 and 0 indicates slight decline
+* SUG below 0.2 indicates decline, and 
+* SUG < -1 indicates steep decline. 
+
+For % of Institutions that Offer the Program, please use these guidelines:
+* more than 80% indicates nearly universally offered
+* 70-80% is broadly offered
+* 50-70% is widely offered
+* 40-50% is commonly offered
+* 30-40% is relatively commonly offered
+* 20-30% is not unusual
+* 10-20% is seeing some success. Any number here or above is a positive indicate.
+* 5-10% is not commonly offered. This is a neutral indicator.
+* <5% is rarely offered. This is probably a negative indicator.
+
+Your analysis should read like the following, with “schools like us” in bold.
+* Exceptional performance among schools like us. Broadly offered among our peers (72% offer it), with 88% and 92% of institutions in our Segment and Additional Reference markets growing. Strong topline growth among our peers: SUG, Segment Market = 3.2. 
+* Strong performance among schools like us. Widely offered among our peers; 55% offer it. 75% and 82% of institutions in our Segment and Additional Reference markets growing. Strong topline growth: SUG, Segment Market = 2.2. 
+* Performing well for schools like us. 65% and 58% of institutions in our Segment and Additional Reference markets growing. SUG, Segment Market = 1.2, indicating decent topline growth. 
+* Performing moderately well for schools like us. Not unusual for our peers; 22% offer it. 52% and 54% of institutions in our Segment and Additional Reference markets are growing. SUG, Segment Market = 0.8.
+* Excellent growth among schools like us, although not widely offered: only 8% of institutions in our Segment Market reported completions in this program. Of these, 92% are growing, with 96% growing in our Additional Reference market. SUG, Segment Market is a strong 1.4.
+If the metrics are not positive, skip this bullet; we will discuss in “Potential concerns.”
+
+The evaluative words should match the “Schools Like Us” score, with 3 being the highest possible score.
+
+
+
+BULLET 3: Opportunity Size
+
+Here, we assess the size of the opportunity, in terms of the number of students that might be expected to graduate each year. This will help readers estimate the expected enrollment, which can be worked into a financial pro forma. For this bullet, please look at these variables: Expected Completions per Year; Median Completions, Segment Market; and Program Size Consistency Index.
+
+This bullet is more qualitative than Bullets 1 and 2. That said, please use the following guidelines for Expected completions per year:
+* Greater than 25: exceptional
+* 20-25: large
+* 15-20: significant
+* 10-15: modest, or decent
+* 5-10: small
+* Below 5: very small
+
+You can use similar guidelines for Median Completions, Segment Market.
+
+Program Size Consistency Index is designed such that:
+* Greater than 1.25 indicates highly consistent
+* 1-1.25 indicates consistent
+* 0.8-1 indicates reasonably consistent
+* Below 0.8 indicates inconsistent
+
+For this analysis, we will estimate that the program at our client school, i.e. expected completions per year, will be in a range between the Median Completions, Segment Market and Expected Completions per Year, expressed from lower to higher, i.e. 8-12, not 12-8. Based your verbal descriptions on both numbers. 
+
+If program size is small, skip this bullet.
+
+Your analysis should read like the following, with “opportunity” or “opportunity size” in bold.
+* Exceptional opportunity size, with 24-28 completions expected per year. Program sizes are relatively consistent.
+* Large opportunity, with 21-23 completions expected per year at Sample University. Program sizes are reasonably consistent.
+* Decent opportunity size, with 12-14 completions expected per year, although program sizes are somewhat inconsistent. See the Market Leaders charts for more details on program sizes at peer institutions.
+
+The evaluative words should match the “Opportunity Size” score, with 2 being the highest possible score.
+
+
+BULLET 4 – Workforce demand
+
+Here, we look at three variables: Jobs SUG; Workforce Demand:Supply Ratio; and Job Postings Index. These calculations all involve matching academic programs to jobs using crosswalks we have developed. All of this jobs data is at the state level, i.e. at the state where the college or university is located. Jobs SUG is a measure of unit growth of jobs, normalized for market size. Workforce Demand:Supply Ratio compares job growth and turnover against new graduates entering the job market. Job Postings Index is an index we developed that looks at the number of job postings for a specific job, compared to the overall number of job postings in that market. All are important; we do not overweight any of these three factors.
+
+We use a term called “UQ Job” that sometime encompasses several BLS SOC Codes and/or academic programs. Use this term when describing the job market.
+
+For Jobs SUG, 
+* Jobs SUG > 2 indicates exceptional jobs growth
+* Jobs SUG between 1 and 2 indicates strong jobs growth
+* Jobs SUG between 0.5 and 1 indicates jobs growth
+* Jobs SUG between 0.2 and 0.5 indicates moderate jobs growth
+* Jobs SUG between 0 and 0.2 indicates slight jobs growth
+* Jobs SUG between -0.2 and 2 indicates slight jobs decline
+* Jobs SUG below 0.2 indicates jobs decline, and 
+* Jobs SUG < -1 indicates steep jobs decline. 
+
+For Workforce Demand:Supply Ratio,
+* Greater than 200% indicates exceptional unmet workforce demand
+* 150-200% indicates significant unmet workforce demand
+* 100-150% indicates unmet workforce need, i.e. workforce demand exceeds supply
+* 80-100% indicates possible workforce saturation; supply appear to exceed workforce demand
+* Below 80% indicates likely workforce saturation; supply exceeds workforce demand
+There is not always a good match between programs and jobs. This metric is important when looking at programs where there is a clear correspondence between a program and a job, such as:
+* Doctor of Physical Therapy to Physical Therapist
+* Doctor of Law (JD) to Lawyer
+* Master’s or Doctorate in Occupational Therapy to Occupational Therapist 
+* Master of Physician Associate/Assistant to Physician Associate
+It is not relevant for programs that do not lead to specific workforce opportunities.
+
+Jobs Postings Index
+* Above 2 indicates exceptional demand
+* 1.5 to 2 indicates very strong demand
+* 1.25 to 1.5 indicates strong demand
+* 1 to 1.25 indicates decent demand
+* .75 to 1 indicates some demand
+* 0.5 to 0.75 indicates modest demand
+* Below 0.5 indicates weak demand
+
+If workforce demand is weak, irrelevant, or nonexistent, skip this bullet.
+
+Your analysis should read like the following, with “workforce demand” in bold. Mention the UQ job in the description, and the state.
+* Excellent workforce demand for occupational therapists in Maryland, with Jobs SUG of 1.6 and Job Postings Index of 1.1. Workforce Demand:Supply Ratio of 176% indicates significant unmet workforce need
+* Moderate workforce demand for social workers in Colorado. Jobs SUG is 0.6 and Job Postings Index is 0.8. Workforce Demand:Supply Ratio of 104% indicates possible unmet workforce need.
+* Strong workforce demand for finance workers in Georgia, with Jobs SUG of 1.2 and Job Postings Index of 1.1. Workforce Demand:Supply Ratio of 124% indicates unmet workforce need
+
+The evaluative words should match the “Workforce Demand” score, with 2 being the highest possible score.
+
+
+
+BULLET 5 – Earnings Outcomes
+
+Here, we look primarily at median salary, over a worker’s entire lifetime, who have completed this program. For bachelor’s degrees, we use Median Salary, ACS. For other degrees and certificates, we use Median Salary, BLS for the best-matching UQ Job. In this bullet, we also look at first-year earnings for graduates of this program, as reported by College Scorecard, adjusted for inflation. This will be less important, though, than the ACS or BLS salary data.
+
+For Median Salary, ACS or Median Salary, BLS, please use the following scale
+* Above $110K – exceptional earnings outcomes
+* $110-$100K – excellent earnings outcomes
+* $90K-$100K – very strong earnings outcomes
+* $80K-$100K – strong earnings outcomes
+* $70K-$80K – good earnings outcomes
+* $60K-$70K – moderate earnings outcomes
+* $50K-$60K – modest earnings outcomes; if for a graduate degree, poor earnings outcomes
+* $40K-$50K – poor earnings outcomes; if for a graduate degree, very poor earnings outcomes
+* Below $40K – very poor earnings outcomes
+
+For 1st year earnings
+If Median Salary, ACS or BLS is high but 1st-year earnings are low, don’t comment on it. This is likely because students go on to get graduate degrees, such as biology majors who become doctors.
+Otherwise, please use the following scale:
+
+If for an undergraduate degree or certificate:
+
+* Above $80K – exceptional first-year earnings
+* $70-$80K – excellent first-year earnings
+* $60K-$70K – very strong first-year earnings
+* $50K-$60K – strong first-year earnings
+* $40K-$50K – moderate first-year earnings
+* $30K-$40K – poor first-year earnings
+* Below $40K – very poor first-year earnings
+
+If for a graduate degree or certificate
+
+* Above $100K – exceptional first-year earnings
+* $90-$100K – excellent first-year earnings
+* $80-$90K – very strong first-year earnings
+* $70K-$80K – strong first-year earnings
+* $60K-$70K – decent first-year earnings
+* $50K-$60K – poor first-year earnings
+* $40K-$50K – very first-year earnings
+* Below $40K – extremely poor first-year earnings
+
+If First-Year Earnings, Geographical Market and First-Year Earnings, Geographical Market are similar, use the average. If not, discuss the difference. See examples below. 
+
+For Physician Associates, Physical Therapists, and Occupational Therapists, you can add a sentence like “High earnings outcomes typically indicate greater willingness to pay, so net tuition revenue per student may be higher for this program.” Conversely, if earnings for a graduate program are low, you can say something like “Poor earnings outcomes may indicate poor student ROI, and less willingness to pay.”
+
+If earnings outcomes are poor, skip this bullet.
+
+Your analysis should read like the following, with “earnings outcomes” in bold. 
+* Excellent earnings outcomes, with median salary for Physician Associates in Michigan of $122K. First-year earnings are $112K, so students do well from the moment they graduate. High earnings outcomes typically indicate greater willingness to pay, so net tuition revenue per student may be higher for this program.”
+* Strong earning outcomes, with finance workers in Arizona earning a median salary of $86K. First-year earnings in Sample University’s markets are a strong $64K.
+* Poor earnings outcomes, especially for a graduate program. Mental Health Counselors in Pennsylvania earn $58K, and first-year earnings of graduates of this program are $54K. Poor student ROI may result in lower net tuition revenue per student.
+
+The evaluative words should match the “Earnings Outcomes” score, with 1 being the highest possible score.
+
+
+
+PART TWO – POTENTIAL CONCERNS
+Under “potential concerns”, please write up to 5 bullets, using the following guidance. If any of the elements aren’t negative, skip the bullet. 
+
+
+BULLET 1: Market Growth
+Write one bullet that assesses "market decline," using two variables: "SUG, Geographical Market" and "% Growing, Geographical Market". SUG stands for Scaled Unit Growth, and is a measure of annual unit growth, normalized for market size. % Growing refers to the percentage of programs, that are growing in that market. The Geographical Market is defined for each institution based on analysis we have conducted already. For all of these, we are looking at completions, i.e. students graduating from or otherwise completing the academic program.
+
+For SUG,
+* SUG between 0 and 0.2 indicates barely growing (or growing, but very small) - a concern
+* SUG between -0.2 and 0 indicates slight decline - a concern
+* SUG below -0.2 indicates decline - a significant concern
+* SUG < -1 indicates steep decline - a major concern
+* 
+In terms of % growing,
+* % Growing between 40 and 50% is less than half (a negative indicator)
+* % Growing between 33 and 40% is significantly less than half (a strong negative indicator)
+* % Growing between 25 and 33% is less than a third (a very strong negative indicator)
+* % Growing < 25% is less than a quarter (an extremely negative indicator)
+* 
+The statement should read like the following; note that “decline” or "market decline" is in bold. Also, please use the client's institution name, not "Sample University". 
+* Concerning market decline, with SUG = -0.4 in Sample University's geographical market and only 38% of programs growing.
+* Steeply declining in Sample University’s market, with SUG = -1.6 in and only 28% of institutions growing.
+* Declining in Sample University’s market, with SUG = -0.1 in Sample University's geographical market and only 44% of institutions growing.
+
+If market growth indicators are positive, skip this bullet; we will discuss market growth in the "Strengths" category. If only one of the attributes is negative, discuss that one only; we will discuss the positive attribute separately.
+
+The evaluative words should match the “Market Growth” score, with 2 being the highest possible score.
+
+
+
+BULLET 2: Poor Performance Among Peers
+
+This bullet looks at how this program is performing poorly among "schools like us." We will look at four variables: SUG, Segment Market; % Institutions that Offer Program, Segment Market; % Growing, Segment Market, and % Growing, Additional Reference Market. Here, Segment Market refers to a group of about 100 similar institutions, or peer institutions, that we have identified in a prior analysis. Additional Reference Market is another market, often of specific competitors, also identified in a prior analysis. For this issue, "schools like us", % Growing, Segment Market is the most important variable.
+
+Interpret SUG and % Growing using the same guidelines discussed in Bullet 1 above. However, SUG values tend to be a little more extreme in segment markets, so use this gauge for SUG, Segment Market.
+
+* SUG between 0 and 0.2 indicates minimal growth (or growing, but very small) - a concern
+* SUG between -0.2 and 0 indicates slight decline - a concern
+* SUG below -0.2 indicates decline - a significant concern
+* SUG < -1 indicates steep decline - a major concern
+* 
+For % of Institutions that Offer the Program, please use these guidelines:
+
+* <5% is rarely offered. This is probably a negative indicator - a concern
+
+Your analysis should read like the following, with "schools like us" in bold.
+* Poor performance among schools like us. Rarely offered among our peers, with only 32% and 28% of institutions in our Segment and Additional Reference markets growing. Declining topline growth: SUG, Segment Market = -1.2.
+* Concerning performance among schools like us. Only 45% and 38% of institutions in our Segment and Additional Reference markets growing. Weak topline growth: SUG, Segment Market = -0.4.
+* Performing poorly among schools like us. 35% and 42% of institutions in our Segment and Additional Reference markets growing. SUG, Segment Market = 0.1, indicating minimal topline growth.
+* Disappointing performance among schools like us. 48% and 46% of institutions in our Segment and Additional Reference markets growing. Declining in Segment Market: SUG, Segment Market = -0.3.
+* Poor adoption among schools like us: only 3% of institutions in our Segment Market reported completions in this program. Of these, only 32% are growing, with 28% growing in our Additional Reference market. SUG, Segment Market is -0.6.
+
+The evaluative words should match the “Schools Like Us” score, with 3 being the highest possible score.
+
+If the metrics are positive, skip this bullet; we will have discussed already in "Why we like it."
+
+
+BULLET 3: Limited Opportunity Size
+
+Here, we assess the limitations of the opportunity, in terms of the number of students that might be expected to graduate each year. This will help readers understand the constraints on expected enrollment, which can be worked into a financial pro forma. For this bullet, please look at these variables: Expected Completions per Year; Median Completions, Segment Market; and Program Size Consistency Index.
+
+This bullet is more qualitative than Bullets 1 and 2. That said, please use the following guidelines for Expected completions per year:
+* 5-10: small - a concern
+* Below 5: very small - a significant concern
+
+You can use similar guidelines for Median Completions, Segment Market.
+Program Size Consistency Index is designed such that:
+* Below 0.8 indicates inconsistent - a concern
+* 
+For this analysis, we will estimate that the program at our client school, i.e. expected completions per year, will be in a range between the Median Completions, Segment Market and Expected Completions per Year, expressed from lower to higher, i.e. 8-12, not 12-8. Based your verbal descriptions on both numbers.
+
+If program size is large, skip this bullet.
+
+Your analysis should read like the following, with "opportunity", "opportunity size", or “program size” in bold.
+* Small program size, with only 3-4 completions expected per year. Program sizes are highly inconsistent across institutions.
+* Modest program size, with only 6-8 completions expected per year at Sample University. Program sizes, though, are relatively consistent.
+* Moderate opportunity size, with 8-12 completions expected per year, and program sizes are inconsistent. See the Market Leaders charts for more details on program sizes at peer institutions.
+
+The evaluative words should match the “Opportunity Size” score, with 2 being the highest possible score.
+
+
+
+BULLET 4 – Weak Workforce Demand
+
+Here, we look at three variables: Jobs SUG; Workforce Demand:Supply Ratio; and Job Postings Index. These calculations all involve matching academic programs to jobs using crosswalks we have developed. All of this jobs data is at the state level, i.e. at the state where the college or university is located. Jobs SUG is a measure of unit growth of jobs, normalized for market size. Workforce Demand:Supply Ratio compares job growth and turnover against new graduates entering the job market. Job Postings Index is an index we developed that looks at the number of job postings for a specific job, compared to the overall number of job postings in that market. All are important; we do not overweight any of these three factors.
+
+We use a term called "UQ Job" that sometime encompasses several BLS SOC Codes and/or academic programs. Use this term when describing the job market.
+
+For Jobs SUG,
+* Jobs SUG between -0.2 and 0 indicates slight jobs decline - a concern
+* Jobs SUG below -0.2 indicates jobs decline - a significant concern
+* Jobs SUG < -1 indicates steep jobs decline - a major concern
+
+For Workforce Demand:Supply Ratio,
+* 80-100% indicates possible workforce saturation - a concern
+* Below 80% indicates likely workforce saturation - a significant concern
+
+There is not always a good match between programs and jobs. This metric is important when looking at programs where there is a clear correspondence between a program and a job, such as:
+* Doctor of Physical Therapy to Physical Therapist
+* Doctor of Law (JD) to Lawyer
+* Master's or Doctorate in Occupational Therapy to Occupational Therapist
+* Master of Physician Associate/Assistant to Physician Associate It is not relevant for programs that do not lead to specific workforce opportunities.
+
+Jobs Postings Index
+* 0.5 to 0.75 indicates modest demand - a concern
+* Below 0.5 indicates weak demand - a significant concern
+
+If workforce demand is strong, skip this bullet.
+
+Your analysis should read like the following, with "workforce demand" in bold. Mention the UQ job in the description, and the state.
+* Weak workforce demand for retail managers in Ohio. Job are declining, with Jobs SUG of -0.8. Job Postings Index is a modest 0.4. Workforce Demand:Supply Ratio of 72% indicates possible workforce saturation.
+* Concerning workforce demand for journalists in California. Jobs SUG is -0.3, indicating declining jobs, and Job Postings Index is 0.6. Workforce Demand:Supply Ratio of 84% indicates possible workforce saturation.
+* Declining workforce demand for manufacturing workers in Michigan. Jobs SUG of -1.2 indicates a steep declining in the market. Job Postings Index is a low 0.2. Workforce Demand:Supply Ratio of 54% indicates likely oversupply in the workforce.
+
+The evaluative words should match the “Workforce Demand” score, with 2 being the highest possible score.
+
+
+BULLET 5 – Poor Earnings Outcomes
+
+Here, we look primarily at median salary, over a worker's entire lifetime, who have completed this program. For bachelor's degrees, we use Median Salary, ACS. For other degrees and certificates, we use Median Salary, BLS for the best-matching UQ Job. In this bullet, we also look at first-year earnings for graduates of this program, as reported by College Scorecard, adjusted for inflation. This will be less important, though, than the ACS or BLS salary data.
+
+For Median Salary, ACS or Median Salary, BLS, please use the following scale
+* $50K-$60K – modest earnings outcomes; if for a graduate degree, poor earnings outcomes - a concern
+* $40K-$50K – poor earnings outcomes; if for a graduate degree, very poor earnings outcomes - a significant concern
+* Below $40K – very poor earnings outcomes - a major concern
+
+For 1st year earnings If Median Salary, ACS or BLS is high but 1st-year earnings are low, don't comment on it. This is likely because students go on to get graduate degrees, such as biology majors who become doctors. Otherwise, please use the following scales:
+
+If for an undergraduate degree or certificate:
+* $30K-$40K – poor first-year earnings - a concern
+* Below $30K – very poor first-year earnings - a significant concern
+
+If for a graduate degree or certificate:
+* $50K-$60K – poor first-year earnings - a concern
+* $40K-$50K – very poor first-year earnings - a significant concern
+* Below $40K – extremely poor first-year earnings - a major concern
+
+If First-Year Earnings, Geographical Market and First-Year Earnings, Segment Market are similar, use the average. If not, discuss the difference. See examples below.
+
+For graduate programs with poor earnings, you can add a sentence like "Poor earnings outcomes may indicate poor student ROI, and less willingness to pay, potentially resulting in lower net tuition revenue per student." For undergraduate programs with very poor earnings, you can say something like "Very poor earnings outcomes raise serious concerns about student ROI and program viability."
+
+If earnings outcomes are strong, skip this bullet.
+
+Your analysis should read like the following, with "earnings outcomes" in bold.
+* Poor earnings outcomes, especially for a graduate program. Median salary for Social Workers in Texas is $48K. First-year earnings are $42K, indicating weak immediate job prospects. Poor earnings outcomes may indicate poor student ROI, and less willingness by students to pay, potentially resulting in lower net tuition revenue per student.
+* Concerning earnings outcomes, with art teachers in California earning a median salary of $58K. First-year earnings in Sample University's markets are a disappointing $34K.
+* Very poor earnings outcomes that raise serious concerns about program viability. Food Service Workers in Florida earn $38K, and first-year earnings of graduates of this program are $28K. Very poor earnings outcomes raise serious concerns about student ROI and program viability.
+
+The evaluative words should match the “Earnings Outcomes” score, with 1 being the highest possible score.
+
+
+
+OVERALL ASSESSMENT
+Please write a 3-4 sentence summary of the program’s attractiveness, based on the analysis completed above.
+
+In specific cases, you can add language like the following:
+* For graduate program in the health sciences like physical therapy, occupational therapy, and physician associate with strong growth, strong performance among schools like us, large program size, strong workforce demand, and high earnings, you can add something like: “Although the investment required to launch this program is significant, its potential to generate gamechanging enrollment and revenue growth may make that investment very rewarding.”
+* For graduate programs with poor earnings outcomes, like mental health counseling and social work, you can add something like “Poor earnings outcomes, and thus likely lower net tuition revenue per student, require careful planning to assess whether this program would be financially viable.”
+* For undergraduate programs with low program size, like Cybersecurity, Data Science, Logistics & Supply Chain Management, or Neuroscience, you can add something like “Given the small expected program size, it may be worth partnering with a course- or program-sharing partner like Rize or Acadeum to launch this program in a cost-effective way.”
+
+Here are a few possible models:
+
+* This is an exceptional opportunity that is attractive on all criteria. Strong market growth, excellent performance among schools like us, large and consistent program size, significant workforce demand, and excellent earnings outcomes make this a clear winner. Despite the significant investment required, the likely enrollment and revenue growth that would result from this program make this a compelling opportunity. 
+* Strong market growth and performance among schools like us make this attractive. However, poor workforce demand and earning outcomes are a concern. 
+* Although expected program size is small, strong market growth and exceptionally widespread growth among schools like us make this an attractive, though modest, opportunity. For small programs like this, a partnership with a course- or program-share partner may make it more cost-effective.
+* Market declines, declines among schools like us, and poor job market outlook make this an unattractive opportunity.
+
+At the end of each program analysis, please insert a small table, as follows. (Please insert the correct scores, from the data table provided.) Please express all the numbers with a single digit, i.e., 1.6, not 1.55.
+
+
+Category
+Score
+Market Growth (Max 2)
+1.8
+“Schools Like Us” (Max 3)
+3
+Opportunity Size (Max 2)
+1.5
+Workforce Demand (Max 2)
+1.9
+Earnings Outcomes (Max 1)
+1
+Total Score
+8.8
+
