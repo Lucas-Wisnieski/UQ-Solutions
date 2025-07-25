@@ -458,8 +458,17 @@
             console.log('Summary columns:', columns);
             console.log('Summary rows:', rows.length);
             
-            // Debug: Show first few rows
-            console.log('First 3 rows:', rows.slice(0, 3));
+            // DEBUG: Show first 10 rows completely to understand the structure
+            console.log('🔍 DEBUG: First 10 rows complete structure:');
+            for (let i = 0; i < Math.min(rows.length, 10); i++) {
+                const row = rows[i];
+                console.log(`Row ${i}:`, {
+                    cipCode: row[0],
+                    uqJob: row[1], 
+                    measureName: row[2],
+                    measureValue: row[3]
+                });
+            }
             
             const metrics = [];
             
