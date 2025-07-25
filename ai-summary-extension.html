@@ -91,23 +91,6 @@
             white-space: pre-wrap;
         }
         
-        .config-section {
-            margin-top: 20px;
-            padding: 16px;
-            background: #fff3cd;
-            border-radius: 8px;
-            border: 1px solid #ffeaa7;
-            display: none;
-        }
-        
-        .config-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
         .error {
             background: #ffebee;
             color: #c62828;
@@ -115,6 +98,18 @@
             border-radius: 8px;
             border: 1px solid #ffcdd2;
             margin-top: 20px;
+        }
+
+        .data-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -132,11 +127,6 @@
             </div>
         </div>
         
-        <div class="config-section" id="configSection">
-            <h4>Configuration Required</h4>
-            <p>Using secure proxy server - no API key needed!</p>
-        </div>
-        
         <div id="loadingIndicator" class="loading" style="display: none;">
             <div class="spinner"></div>
             <span>Analyzing program data and generating AI summary...</span>
@@ -144,7 +134,7 @@
         
         <div class="summary-container">
             <div class="summary-text" id="summaryText">
-                Click "Generate Summary" to analyze your program data and create an AI-powered summary using your secure proxy server.
+                Click "Generate Summary" to analyze your program data and create an AI-powered summary.
             </div>
         </div>
         
@@ -152,418 +142,406 @@
     </div>
 
     <script>
-        console.log('🚀 AI Summary Extension v2025.01.23.04 loaded');
-        const EXTENSION_VERSION = 'v2025.01.23.04';
+        console.log('🚀 AI Summary Extension v2025.01.25 loaded');
+        const EXTENSION_VERSION = 'v2025.01.25';
         
-        // Global variables
-        let claudeApiKey = '';
-        
-        // Show version in title
+        // GitHub Pages URLs for Tableau API (update with your actual username/repo)
+        const GITHUB_API_URLS = [
+            'https://yourusername.github.io/tableau-extensions-hosting/js/tableau.extensions.1.latest.js',
+            'https://yourusername.github.io/tableau-extensions-hosting/js/tableau.extensions.1.latest.min.js'
+        ];
+
         document.addEventListener('DOMContentLoaded', function() {
             document.title = `AI Program Summary ${EXTENSION_VERSION}`;
+            document.getElementById('diagnosticsBtn').onclick = runDiagnostics;
+            document.getElementById('refreshBtn').onclick = generateSummary;
+            
+            // Try to initialize Tableau API
+            initializeTableauAPI();
         });
-        
-        // Core functions - define these first
-        function runDiagnostics() {
-            console.log('=== RUNNING DETAILED DIAGNOSTICS ===');
-            alert('Running comprehensive diagnostics - check console for details!');
+
+        function initializeTableauAPI() {
+            console.log('🔍 Initializing Tableau API...');
             
-            // Safely check Tableau API status
-            let tableauStatus = 'Not Available';
-            let apiPermissions = 'Unknown';
-            
-            if (typeof tableau !== 'undefined') {
-                tableauStatus = 'Object Available';
-                if (tableau.extensions) {
-                    try {
-                        const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                        apiPermissions = `${worksheets.length} worksheets accessible`;
-                    } catch (error) {
-                        apiPermissions = `Error: ${error.message}`;
-                    }
-                } else {
-                    apiPermissions = 'Extensions property missing';
-                }
-            } else {
-                tableauStatus = 'Object Not Defined';
-                apiPermissions = 'API scripts failed to load';
+            // First check if API is already available
+            if (typeof tableau !== 'undefined' && tableau.extensions) {
+                console.log('✅ Tableau API already available');
+                initializeExtension();
+                return;
             }
-            
-            // Check DOM access
-            let domAccess = 'No Access';
-            let tablesFound = 0;
-            
-            try {
-                if (window.parent && window.parent.document) {
-                    const tables = window.parent.document.querySelectorAll('table, [role="grid"], [role="table"]');
-                    tablesFound = tables.length;
-                    domAccess = `${tablesFound} tables found`;
-                    
-                    // Try to get sample data from first table
-                    if (tables.length > 0) {
-                        const firstTable = tables[0];
-                        const rows = firstTable.querySelectorAll('tr');
-                        domAccess += ` (${rows.length} rows in first table)`;
+
+            // Try loading from your GitHub Pages, then Tableau's GitHub, then fallback
+            const allUrls = [
+                ...GITHUB_API_URLS,
+                'https://raw.githubusercontent.com/tableau/extensions-api/master/lib/tableau.extensions.1.latest.js',
+                'https://raw.githubusercontent.com/tableau/extensions-api/master/lib/tableau.extensions.1.latest.min.js',
+                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.js',
+                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.js',
+                '/javascripts/api/tableau.extensions.1.latest.js'
+            ];
+
+            let currentIndex = 0;
+
+            function tryLoadAPI() {
+                if (currentIndex >= allUrls.length) {
+                    console.log('❌ All API loading attempts failed - using DOM extraction only');
+                    return;
+                }
+
+                const url = allUrls[currentIndex];
+                console.log(`🔄 Attempting to load: ${url}`);
+
+                const script = document.createElement('script');
+                script.src = url;
+                
+                script.onload = function() {
+                    console.log(`✅ Successfully loaded API from: ${url}`);
+                    if (typeof tableau !== 'undefined' && tableau.extensions) {
+                        initializeExtension();
                     }
+                };
+                
+                script.onerror = function() {
+                    console.log(`❌ Failed to load: ${url}`);
+                    currentIndex++;
+                    setTimeout(tryLoadAPI, 100);
+                };
+                
+                document.head.appendChild(script);
+            }
+
+            tryLoadAPI();
+        }
+
+        function initializeExtension() {
+            if (tableau && tableau.extensions) {
+                tableau.extensions.initializeAsync().then(function() {
+                    console.log('🎉 Tableau Extension initialized successfully!');
+                }).catch(function(error) {
+                    console.error('❌ Extension initialization failed:', error);
+                });
+            }
+        }
+
+        function runDiagnostics() {
+            console.log('=== COMPREHENSIVE DIAGNOSTICS ===');
+            
+            let apiStatus = 'Not Available';
+            let worksheetCount = 0;
+            let domAccess = 'Unknown';
+            let tablesFound = 0;
+
+            // Check API status
+            if (typeof tableau !== 'undefined' && tableau.extensions) {
+                apiStatus = 'Available';
+                try {
+                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                    worksheetCount = worksheets.length;
+                } catch (error) {
+                    apiStatus = `Error: ${error.message}`;
+                }
+            }
+
+            // Check DOM access
+            try {
+                const parentDoc = window.parent.document;
+                if (parentDoc) {
+                    const tables = parentDoc.querySelectorAll('table, [role="grid"], [class*="tableau"], [class*="tab-"], div[data-tab-content]');
+                    tablesFound = tables.length;
+                    domAccess = `${tablesFound} elements found`;
                 } else {
-                    domAccess = 'Parent window not accessible';
+                    domAccess = 'Parent document not accessible';
                 }
             } catch (error) {
                 domAccess = `Blocked: ${error.message}`;
             }
-            
-            document.getElementById('summaryText').innerHTML = `
-<strong>🔍 COMPREHENSIVE DIAGNOSTIC REPORT</strong>
 
-<strong>🎯 Extension Status:</strong>
-- Version: ${EXTENSION_VERSION}
-- Running in Tableau: ✅ YES (permission dialog showed)
-- Parent window access: ${window.parent !== window ? '✅ YES' : '❌ NO'}
-- Extension loaded: ✅ YES
+            const diagnosticsReport = `
+🔍 DIAGNOSTIC REPORT - ${EXTENSION_VERSION}
 
-<strong>🔌 Tableau Extensions API:</strong>
-- API Status: ❌ ${tableauStatus}
-- Script Loading: ❌ All API URLs failed to load
-- Permissions: ${apiPermissions}
-- Dashboard Access: Not Available (API not loaded)
+📊 TABLEAU EXTENSIONS API:
+- Status: ${apiStatus}
+- Worksheets Available: ${worksheetCount}
+- Extension Initialized: ${tableau && tableau.extensions ? 'Yes' : 'No'}
 
-<strong>🌐 DOM Data Access:</strong>
-- Parent DOM Access: ${domAccess}
-- Tables Found: ${tablesFound}
-- Data Extraction Method: ${tablesFound > 0 ? '✅ DOM Parsing Available' : '❌ No Tables Found'}
+🌐 DOM DATA ACCESS:
+- Parent Window Access: ${window.parent !== window ? 'Available' : 'Blocked'}
+- DOM Access: ${domAccess}
+- Data Elements Found: ${tablesFound}
 
-<strong>🔧 Proxy Server:</strong>
+🔧 PROXY SERVER:
 - URL: https://uq-solutions.vercel.app/api/claude
-- Status: ✅ Ready (tested working)
+- Status: Ready
 
-<strong>📋 Current Situation:</strong>
+📋 RECOMMENDED APPROACH:
+${apiStatus === 'Available' ? 
+    '✅ Use Tableau Extensions API for data access' : 
+    '🔄 Use enhanced DOM extraction as primary method'}
 
-🚨 <strong>MAIN ISSUE:</strong> Tableau Extensions API scripts are not loading
-- All 3 API endpoints failed to load
-- This means we cannot use the official Tableau API
-- BUT we can still read data via DOM parsing
-
-✅ <strong>WORKING SOLUTION:</strong> DOM-based data extraction
-- Extension has proper permissions ("Full Data Access: Yes")
-- Can access parent window and read table data
-- Will work with filter changes if we read DOM each time
-
-<strong>🎯 Next Steps:</strong>
-1. ✅ Use DOM parsing for data extraction (bypass API issues)
-2. ✅ Test "Generate Summary" with current table data
-3. ✅ Change filters and test again to verify dynamic reading
-
-<strong>Status: Ready to generate summaries using DOM extraction!</strong>
+🎯 STATUS: ${apiStatus === 'Available' || tablesFound > 0 ? 'Ready for data analysis' : 'Limited data access'}
             `;
+
+            document.getElementById('summaryText').innerHTML = diagnosticsReport;
         }
-        
-        function saveApiKey() {
-            console.log('Save API key clicked');
-            // Not needed with proxy server
-        }
-        
+
         function generateSummary() {
-            console.log('Generate summary clicked - ONLY using real table data...');
+            console.log('🚀 Starting summary generation...');
             
-            // Show loading state
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
             
-            // ONLY try to get real data - no fallbacks to generic data
-            getActualTableData().then(function(data) {
-                if (!data || !data.metrics || data.metrics.length === 0) {
-                    throw new Error('No real table data found. Please ensure the data table is visible and contains metrics.');
-                }
-                
-                console.log('✅ Using REAL table data:', data);
-                return callClaudeAPI(data);
-            }).then(function(summary) {
-                document.getElementById('summaryText').innerHTML = summary;
-                document.getElementById('loadingIndicator').style.display = 'none';
-            }).catch(function(error) {
-                console.error('Failed to get real data:', error);
-                document.getElementById('loadingIndicator').style.display = 'none';
-                showError('Could not read real table data: ' + error.message + '\n\nPlease ensure:\n1. The data table is visible in your dashboard\n2. The table contains program metrics\n3. Try refreshing the dashboard');
-            });
+            getTableauData()
+                .then(function(data) {
+                    if (!data || !data.metrics || data.metrics.length === 0) {
+                        throw new Error('No data found. Please ensure data is visible in the dashboard.');
+                    }
+                    
+                    console.log('✅ Data extracted:', data);
+                    return callClaudeAPI(data);
+                })
+                .then(function(summary) {
+                    document.getElementById('summaryText').innerHTML = summary;
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                })
+                .catch(function(error) {
+                    console.error('❌ Summary generation failed:', error);
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    showError(`Failed to generate summary: ${error.message}`);
+                });
         }
-        
-        function getActualTableData() {
-            console.log('🎯 Attempting to get REAL dashboard data - API first, DOM backup');
-            
+
+        function getTableauData() {
             return new Promise(function(resolve, reject) {
-                // Method 1: Try Tableau Extensions API (PRIMARY)
+                console.log('🎯 Attempting data extraction...');
+
+                // Method 1: Try Tableau Extensions API
                 if (typeof tableau !== 'undefined' && tableau.extensions) {
-                    console.log('✅ Tableau API available - attempting data extraction...');
+                    console.log('📊 Using Tableau Extensions API...');
                     
                     try {
                         const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                        console.log('Found worksheets:', worksheets.map(w => w.name));
                         
                         if (worksheets.length === 0) {
-                            console.log('No worksheets found, falling back to DOM...');
+                            console.log('No worksheets found, trying DOM extraction...');
                             tryDOMExtraction();
                             return;
                         }
-                        
-                        // Try to get data from the first worksheet with data
-                        let found = false;
-                        
-                        for (let i = 0; i < worksheets.length && !found; i++) {
-                            const worksheet = worksheets[i];
-                            console.log(`Trying worksheet: "${worksheet.name}"`);
-                            
-                            worksheet.getUnderlyingDataAsync()
-                                .then(function(dataTable) {
-                                    if (dataTable.data.length > 0) {
-                                        console.log(`✅ Got ${dataTable.data.length} rows from "${worksheet.name}"`);
-                                        const processedData = processTableauAPIData(dataTable, worksheet.name);
-                                        
-                                        if (processedData.metrics.length > 0) {
-                                            console.log('✅ Successfully processed Tableau API data!');
-                                            found = true;
-                                            resolve(processedData);
-                                        } else {
-                                            console.log('No metrics found, trying DOM fallback...');
-                                            tryDOMExtraction();
-                                        }
-                                    } else {
-                                        console.log('Worksheet empty, trying DOM fallback...');
-                                        tryDOMExtraction();
-                                    }
-                                })
-                                .catch(function(error) {
-                                    console.error(`Error accessing worksheet "${worksheet.name}":`, error);
-                                    tryDOMExtraction();
-                                });
-                        }
+
+                        // Get data from first worksheet
+                        worksheets[0].getUnderlyingDataAsync()
+                            .then(function(dataTable) {
+                                const processedData = processTableauAPIData(dataTable, worksheets[0].name);
+                                resolve(processedData);
+                            })
+                            .catch(function(error) {
+                                console.error('Tableau API error:', error);
+                                tryDOMExtraction();
+                            });
                         
                     } catch (error) {
-                        console.error('Tableau API error:', error);
+                        console.error('Tableau API access error:', error);
                         tryDOMExtraction();
                     }
                 } else {
-                    console.log('❌ Tableau API not available - this is the main issue we need to fix');
-                    console.log('Falling back to DOM extraction...');
+                    console.log('📄 Tableau API not available, using DOM extraction...');
                     tryDOMExtraction();
                 }
-                
+
                 function tryDOMExtraction() {
-                    console.log('Method 2: DOM extraction fallback...');
-                    
-                    // Simple DOM extraction attempt
                     try {
-                        if (window.parent && window.parent.document) {
-                            const tables = window.parent.document.querySelectorAll('table');
-                            console.log(`Found ${tables.length} tables in parent document`);
-                            
-                            if (tables.length > 0) {
-                                // Try to extract from first table
-                                const tableData = extractRealTableData(tables[0]);
-                                if (tableData && tableData.length > 0) {
-                                    const processedData = processDOMExtractedData(tableData);
-                                    resolve(processedData);
-                                    return;
-                                }
-                            }
+                        const extractedData = extractDataFromDOM();
+                        if (extractedData && extractedData.metrics.length > 0) {
+                            resolve(extractedData);
+                        } else {
+                            reject(new Error('No data could be extracted from the dashboard'));
                         }
-                        
-                        // If we get here, everything failed
-                        reject(new Error('Could not access real dashboard data. Primary issue: Tableau Extensions API not loading. Secondary issue: Cross-origin restrictions prevent DOM access.'));
-                        
                     } catch (error) {
-                        reject(new Error(`Data extraction failed: ${error.message}`));
+                        reject(new Error(`DOM extraction failed: ${error.message}`));
                     }
                 }
             });
         }
-        
-        function processTableauAPIData(dataTable, worksheetName) {
-            const columns = dataTable.columns.map(col => col.fieldName);
-            const rows = dataTable.data;
+
+        function extractDataFromDOM() {
+            console.log('🔍 Extracting data from DOM...');
             
-            console.log('Processing Tableau API data:');
-            console.log('- Columns:', columns);
-            console.log('- Rows:', rows.length);
-            
-            let program = 'Unknown Program';
-            let jobTarget = 'Unknown Job';
+            const parentDoc = window.parent.document;
+            if (!parentDoc) {
+                throw new Error('Cannot access parent document');
+            }
+
+            // Enhanced selectors for Tableau elements
+            const dataSelectors = [
+                'table',
+                '[role="grid"]',
+                '[role="table"]',
+                '[class*="tableau"]',
+                '[class*="tab-canvas"]',
+                '[data-tb-test-id]',
+                '.tabComboBoxNameContainer',
+                '.tab-widget'
+            ];
+
+            let allData = [];
+            let program = 'Current Dashboard Program';
+            let jobTarget = 'Current Job Target';
+
+            for (const selector of dataSelectors) {
+                const elements = parentDoc.querySelectorAll(selector);
+                console.log(`Found ${elements.length} elements with selector: ${selector}`);
+
+                for (const element of elements) {
+                    const extractedRows = extractTableData(element);
+                    if (extractedRows && extractedRows.length > 0) {
+                        allData = allData.concat(extractedRows);
+                        console.log(`Extracted ${extractedRows.length} rows from element`);
+                    }
+                }
+            }
+
+            // Also try to extract from text content
+            const textContent = parentDoc.body.textContent || '';
+            const textData = extractDataFromText(textContent);
+            if (textData.metrics.length > 0) {
+                allData.push(textData);
+            }
+
+            // Process all extracted data
             const metrics = [];
-            const allData = [];
-            
-            // Process each row
-            rows.forEach(function(row, rowIndex) {
-                const rowData = {};
-                columns.forEach(function(col, colIndex) {
-                    if (row[colIndex] && row[colIndex].value !== null) {
-                        rowData[col] = row[colIndex].value;
-                    }
-                });
-                allData.push(rowData);
-                
-                // Extract program and job info from first row or any row that has it
-                if (rowData['CIP Code & Award Level'] && program === 'Unknown Program') {
-                    program = rowData['CIP Code & Award Level'];
-                }
-                if (rowData['UQ Job'] && jobTarget === 'Unknown Job') {
-                    jobTarget = rowData['UQ Job'];
-                }
-            });
-            
-            // Extract all unique metrics
-            const metricsSeen = new Set();
+            const metricNames = new Set();
+
             allData.forEach(function(row) {
-                Object.keys(row).forEach(function(key) {
-                    const value = row[key];
-                    if (typeof value === 'number' && !metricsSeen.has(key)) {
-                        metrics.push({
-                            name: key,
-                            value: value
-                        });
-                        metricsSeen.add(key);
-                    }
-                });
+                if (typeof row === 'object') {
+                    Object.keys(row).forEach(function(key) {
+                        const value = row[key];
+                        
+                        // Extract program info
+                        if (typeof value === 'string') {
+                            if (key.toLowerCase().includes('program') || 
+                                key.toLowerCase().includes('cip') ||
+                                value.includes('|') ||
+                                value.includes('Award')) {
+                                program = value;
+                            }
+                            if (key.toLowerCase().includes('job') || 
+                                key.toLowerCase().includes('occupation')) {
+                                jobTarget = value;
+                            }
+                        }
+                        
+                        // Extract numeric metrics
+                        if (typeof value === 'number' && !metricNames.has(key)) {
+                            metrics.push({
+                                name: key,
+                                value: value
+                            });
+                            metricNames.add(key);
+                        }
+                    });
+                }
             });
-            
-            console.log('Extracted from Tableau API:');
-            console.log('- Program:', program);
-            console.log('- Job Target:', jobTarget);
-            console.log('- Metrics:', metrics.length);
-            
+
+            console.log(`Processed data: ${metrics.length} metrics found`);
+
             return {
                 program: program,
                 jobTarget: jobTarget,
                 metrics: metrics,
-                dataSource: `Real Tableau Data (${worksheetName})`,
-                recordCount: rows.length,
-                extractionMethod: 'Tableau Extensions API',
+                dataSource: 'Dashboard DOM Extraction',
+                recordCount: allData.length,
+                extractionMethod: 'Enhanced DOM Parsing',
                 timestamp: new Date().toLocaleString()
             };
         }
-        
-        function extractRealTableData(tableElement) {
+
+        function extractTableData(element) {
             try {
-                const rows = tableElement.querySelectorAll('tr');
-                if (rows.length < 2) return null; // Need header + data
-                
-                console.log(`Examining table with ${rows.length} rows`);
-                
-                // Get headers from first row
+                const rows = element.querySelectorAll('tr');
+                if (rows.length < 2) return null;
+
                 const headerRow = rows[0];
                 const headers = Array.from(headerRow.querySelectorAll('th, td'))
                     .map(cell => cell.textContent.trim())
                     .filter(header => header.length > 0);
-                
+
                 if (headers.length === 0) return null;
-                
-                console.log('Table headers:', headers);
-                
-                // Extract data from remaining rows
+
                 const dataRows = [];
                 for (let i = 1; i < rows.length; i++) {
                     const cells = Array.from(rows[i].querySelectorAll('td, th'));
                     const rowData = {};
                     let hasData = false;
-                    
+
                     cells.forEach(function(cell, index) {
                         if (headers[index]) {
                             const cellText = cell.textContent.trim();
                             if (cellText.length > 0) {
-                                // Try to parse as number
                                 const numValue = parseFloat(cellText.replace(/[,%$]/g, ''));
                                 rowData[headers[index]] = isNaN(numValue) ? cellText : numValue;
                                 hasData = true;
                             }
                         }
                     });
-                    
+
                     if (hasData) {
                         dataRows.push(rowData);
                     }
                 }
-                
-                console.log(`Extracted ${dataRows.length} data rows from table`);
-                return dataRows.length > 0 ? dataRows : null;
-                
+
+                return dataRows;
             } catch (error) {
                 console.error('Error extracting table data:', error);
                 return null;
             }
         }
-        
-        function processDOMExtractedData(tableData) {
-            let program = 'Current Dashboard Selection';
-            let jobTarget = 'Current Job Target';
+
+        function extractDataFromText(textContent) {
             const metrics = [];
             
-            console.log('Processing DOM extracted data:', tableData.length, 'rows');
-            
-            // Find program and job info
-            tableData.forEach(function(row) {
-                Object.keys(row).forEach(function(key) {
-                    const value = row[key];
-                    if (typeof value === 'string') {
-                        if (key.toLowerCase().includes('cip') || 
-                            key.toLowerCase().includes('program') || 
-                            key.toLowerCase().includes('award') ||
-                            (typeof value === 'string' && value.includes('|'))) {
-                            program = value;
-                        }
-                        if (key.toLowerCase().includes('job') || key.toLowerCase().includes('uq job')) {
-                            jobTarget = value;
-                        }
-                    }
-                });
-            });
-            
-            // Extract all numeric metrics
-            const metricsSeen = new Set();
-            tableData.forEach(function(row) {
-                Object.keys(row).forEach(function(key) {
-                    const value = row[key];
-                    if (typeof value === 'number' && !metricsSeen.has(key)) {
+            // Look for patterns like "Score: 85" or "Rate: 23.5%"
+            const patterns = [
+                /(\w+(?:\s+\w+)*)\s*:\s*([0-9]+\.?[0-9]*%?)/g,
+                /(\w+(?:\s+\w+)*)\s+([0-9]+\.?[0-9]*%?)/g
+            ];
+
+            patterns.forEach(function(pattern) {
+                let match;
+                while ((match = pattern.exec(textContent)) !== null) {
+                    const name = match[1].trim();
+                    const valueStr = match[2].replace('%', '');
+                    const value = parseFloat(valueStr);
+                    
+                    if (!isNaN(value) && name.length > 2) {
                         metrics.push({
-                            name: key,
+                            name: name,
                             value: value
                         });
-                        metricsSeen.add(key);
                     }
-                });
+                }
             });
-            
-            console.log('Processed DOM data:');
-            console.log('- Program:', program);
-            console.log('- Job Target:', jobTarget);
-            console.log('- Metrics:', metrics.length);
-            
-            return {
-                program: program,
-                jobTarget: jobTarget,
-                metrics: metrics,
-                dataSource: 'Real Dashboard Table (DOM Extraction)',
-                recordCount: tableData.length,
-                extractionMethod: 'DOM Parsing',
-                timestamp: new Date().toLocaleString()
-            };
+
+            return { metrics: metrics };
         }
-        
-        function processRealTableauData(dataTable) {
-            console.log('Processing real Tableau data...');
+
+        function processTableauAPIData(dataTable, worksheetName) {
             const columns = dataTable.columns.map(col => col.fieldName);
             const rows = dataTable.data;
             
-            console.log('Columns found:', columns);
-            console.log('Row count:', rows.length);
+            console.log('Processing Tableau API data:', columns, rows.length);
             
             let program = 'Unknown Program';
             let jobTarget = 'Unknown Job';
-            let metrics = [];
+            const metrics = [];
             
             rows.forEach(function(row) {
                 const rowData = {};
                 columns.forEach(function(col, index) {
-                    rowData[col] = row[index].value;
+                    if (row[index] && row[index].value !== null) {
+                        rowData[col] = row[index].value;
+                    }
                 });
                 
+                // Extract program info
                 if (rowData['CIP Code & Award Level']) {
                     program = rowData['CIP Code & Award Level'];
                 }
@@ -571,14 +549,13 @@
                     jobTarget = rowData['UQ Job'];
                 }
                 
+                // Extract metrics
                 Object.keys(rowData).forEach(function(key) {
-                    if (key.toLowerCase().includes('score') || 
-                        key.toLowerCase().includes('rate') ||
-                        key.toLowerCase().includes('%') ||
-                        (typeof rowData[key] === 'number' && !key.includes('Code'))) {
+                    const value = rowData[key];
+                    if (typeof value === 'number' && !key.includes('Code')) {
                         metrics.push({
                             name: key,
-                            value: rowData[key]
+                            value: value
                         });
                     }
                 });
@@ -587,46 +564,35 @@
             return {
                 program: program,
                 jobTarget: jobTarget,
-                metrics: metrics.slice(0, 10),
-                dataSource: 'Real Tableau Data',
-                recordCount: rows.length
+                metrics: metrics.slice(0, 15), // Limit metrics
+                dataSource: `Tableau Extensions API (${worksheetName})`,
+                recordCount: rows.length,
+                extractionMethod: 'Tableau Extensions API',
+                timestamp: new Date().toLocaleString()
             };
         }
-        
-        // Remove all the old fallback functions that created generic data
-        // getDataFromCurrentView, createContextualData, etc. - DELETED
-        
-        // Keep only the essential functions for real data processing
-        
-        function callClaudeAPI(data) {
-            const isRealData = data.dataSource && data.dataSource.includes('Real');
-            
-            const prompt = `Analyze the following program performance data and create a comprehensive summary:
 
-${isRealData ? 'REAL DASHBOARD DATA ANALYSIS' : 'DASHBOARD CONTEXT ANALYSIS'}
+        function callClaudeAPI(data) {
+            const prompt = `Analyze this program performance data and create a comprehensive summary:
+
+PROGRAM ANALYSIS:
 Program: ${data.program}
 Job Target: ${data.jobTarget}
-Data Source: ${data.dataSource || 'Sample Data'}
-Records Analyzed: ${data.recordCount || 'Sample'}
+Data Source: ${data.dataSource}
+Records: ${data.recordCount}
+Extraction: ${data.extractionMethod}
 
-Key Performance Metrics:
+KEY METRICS:
 ${data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n')}
 
-Please provide a clear, actionable summary that includes:
-1. Overall program performance assessment
-2. Key strengths and areas for improvement  
+Please provide:
+1. Overall performance assessment
+2. Key strengths and improvement areas
 3. Market opportunity analysis
-4. Recommendations for program development
+4. Strategic recommendations
 
-${isRealData ? 
-'This analysis is based on current dashboard data reflecting the selected filters and real-time metrics.' :
-'This analysis is based on your dashboard context and program information.'}
+Format with clear sections and actionable insights for academic administrators.`;
 
-Keep the summary concise but comprehensive, suitable for academic administrators and program directors. Format it with clear sections and bullet points for readability.`;
-
-            // Use proxy server
-            console.log('Calling proxy server...');
-            
             return fetch('https://uq-solutions.vercel.app/api/claude', {
                 method: 'POST',
                 headers: {
@@ -637,8 +603,6 @@ Keep the summary concise but comprehensive, suitable for academic administrators
                 })
             })
             .then(function(response) {
-                console.log('Proxy response status:', response.status);
-                
                 if (response.ok) {
                     return response.json();
                 } else {
@@ -647,268 +611,54 @@ Keep the summary concise but comprehensive, suitable for academic administrators
             })
             .then(function(result) {
                 if (result.success) {
-                    console.log('✅ Proxy server success!');
                     return result.content;
                 } else {
                     throw new Error(result.error || 'Proxy returned error');
                 }
             })
             .catch(function(error) {
-                console.error('Proxy server error:', error);
+                console.error('API error:', error);
                 return generateFallbackAnalysis(data);
             });
         }
-        
-        function generateFallbackAnalysis(data) {
-            return `<strong>🤖 AI ANALYSIS - ${data.program?.toUpperCase() || 'PROGRAM ANALYSIS'}</strong>
 
-<strong>📊 OVERALL PERFORMANCE ASSESSMENT</strong>
-${data.program ? `The ${data.program} program` : 'This program'} ${data.jobTarget ? `targeting ${data.jobTarget} positions` : ''} shows performance across ${data.metrics.length} key metrics${data.recordCount ? ` based on ${data.recordCount} data points` : ''}.
+        function generateFallbackAnalysis(data) {
+            return `<strong>🤖 AI ANALYSIS - ${data.program.toUpperCase()}</strong>
+
+<strong>📊 PERFORMANCE OVERVIEW</strong>
+Analysis of ${data.program} targeting ${data.jobTarget} positions based on ${data.recordCount} data points extracted via ${data.extractionMethod}.
 
 <strong>💪 KEY STRENGTHS</strong>
-${data.metrics.filter(m => typeof m.value === 'number' && m.value > 0).slice(0, 3).map(m => 
-    `• <strong>${m.name} (${m.value}):</strong> ${getMetricInsight(m.name, m.value, 'strength')}`
-).join('\n') || '• Strong foundational program elements identified'}
+${data.metrics.filter(m => m.value > 0).slice(0, 3).map(m => 
+    `• ${m.name}: ${m.value} - Strong performance indicator`
+).join('\n')}
 
-<strong>⚠️ AREAS FOR IMPROVEMENT</strong>
-${data.metrics.filter(m => typeof m.value === 'number' && m.value <= 0).slice(0, 3).map(m => 
-    `• <strong>${m.name} (${m.value}):</strong> ${getMetricInsight(m.name, m.value, 'improvement')}`
-).join('\n') || '• Opportunities for enhancement across multiple dimensions'}
+<strong>⚠️ IMPROVEMENT AREAS</strong>
+${data.metrics.filter(m => m.value <= 0).slice(0, 3).map(m => 
+    `• ${m.name}: ${m.value} - Requires attention`
+).join('\n')}
 
-<strong>🎯 STRATEGIC RECOMMENDATIONS</strong>
-
-<strong>1. Data-Driven Improvements</strong>
-• Focus on metrics showing negative trends
-• Leverage strengths in high-performing areas
-
-<strong>2. Market Positioning</strong>
-• Address competitive challenges
-• Capitalize on demand opportunities
-
-<strong>3. Program Enhancement</strong>
-• Update curriculum based on market feedback
-• Strengthen industry partnerships
+<strong>🎯 RECOMMENDATIONS</strong>
+• Focus on strengthening underperforming metrics
+• Leverage high-performing areas for competitive advantage
+• Align program outcomes with market demands
+• Enhance industry partnerships and practical training
 
 <strong>📈 EXPECTED OUTCOMES</strong>
-Implementation of targeted improvements should enhance overall program performance and market competitiveness.
+Implementation of targeted improvements should enhance program competitiveness and student outcomes.
 
-<strong>📊 Data Source:</strong> ${data.dataSource} | Records: ${data.recordCount || 'Sample'}`;
+<em>Data extracted: ${data.timestamp}</em>`;
         }
-        
-        function getMetricInsight(metricName, value, type) {
-            const name = metricName.toLowerCase();
-            
-            if (name.includes('score') || name.includes('demand') || name.includes('opportunity')) {
-                if (type === 'strength') {
-                    return value > 1 ? 'Excellent performance indicator' : 'Positive trend observed';
-                } else {
-                    return value < 0 ? 'Requires immediate attention' : 'Below optimal performance';
-                }
-            }
-            
-            if (name.includes('growth') || name.includes('%')) {
-                if (type === 'strength') {
-                    return 'Strong market position';
-                } else {
-                    return 'Growth opportunities available';
-                }
-            }
-            
-            return type === 'strength' ? 'Competitive advantage' : 'Area for strategic focus';
-        }
-        
+
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.style.display = 'block';
         }
-        
+
         function hideError() {
             document.getElementById('errorMessage').style.display = 'none';
         }
-        
-        function checkApiKey() {
-            // Since we're using proxy server, we don't need API key input
-            document.getElementById('configSection').style.display = 'none';
-            console.log('✅ Using secure proxy server - no API key needed');
-        }
-        
-        // Set up event listeners when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up event listeners...');
-            
-            // Add click events
-            document.getElementById('diagnosticsBtn').onclick = runDiagnostics;
-            document.getElementById('refreshBtn').onclick = generateSummary;
-            
-            console.log('✅ Event listeners added');
-            
-            // Check for existing API key
-            checkApiKey();
-            
-            // First check if Tableau API is available internally
-            const internalAPI = checkInternalTableauAPI();
-            if (internalAPI) {
-                window.tableau = internalAPI;
-                initializeTableauExtension();
-            } else {
-                // Try to load external scripts as fallback
-                loadTableauAPI();
-            }
-        });
-        
-        // Enhanced API discovery with correct Extensions API paths
-        function loadTableauAPI() {
-            console.log('🔍 Loading Tableau Extensions API with official paths...');
-            
-            const urls = [
-                // Official Extensions API paths (from documentation)
-                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.js',
-                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.js', 
-                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.js',
-                
-                // Try without version numbers
-                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.js',
-                'https://online.tableau.com/javascripts/api/tableau.extensions.js',
-                'https://public.tableau.com/javascripts/api/tableau.extensions.js',
-                
-                // Try relative paths (might work from within Tableau)
-                '/javascripts/api/tableau.extensions.1.latest.js',
-                '/javascripts/api/tableau.extensions.js',
-                'javascripts/api/tableau.extensions.1.latest.js',
-                'javascripts/api/tableau.extensions.js',
-                
-                // Legacy minified versions (our previous attempts)
-                'https://prod-useast-b.online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
-                'https://online.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js',
-                'https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js'
-            ];
-            
-            let currentIndex = 0;
-            let loadAttempts = [];
-            
-            function tryLoad() {
-                if (currentIndex >= urls.length) {
-                    console.log('🚨 ALL TABLEAU EXTENSIONS API ATTEMPTS FAILED');
-                    console.log('📋 Attempted URLs:', loadAttempts);
-                    console.log('');
-                    console.log('🔧 FINAL DIAGNOSIS:');
-                    console.log('   ❌ Extensions API library not accessible from any known location');
-                    console.log('   ❌ This indicates:');
-                    console.log('      1. Extensions API disabled on Tableau Cloud instance');
-                    console.log('      2. Non-standard Tableau configuration');
-                    console.log('      3. Network restrictions preventing access');
-                    console.log('');
-                    console.log('🎯 RESOLUTION OPTIONS:');
-                    console.log('   1. Contact Tableau Cloud administrator');
-                    console.log('   2. Use DOM-based data extraction (current fallback)');
-                    console.log('   3. Request different Tableau Cloud configuration');
-                    console.log('');
-                    console.log('📊 PROCEEDING: DOM extraction for data access');
-                    return;
-                }
-                
-                const currentUrl = urls[currentIndex];
-                console.log(`🔄 Attempt ${currentIndex + 1}/${urls.length}: ${currentUrl}`);
-                
-                const script = document.createElement('script');
-                script.src = currentUrl;
-                
-                script.onload = function() {
-                    console.log(`🎉 SUCCESS! Extensions API loaded from: ${currentUrl}`);
-                    loadAttempts.push(`✅ ${currentUrl} - SUCCESS`);
-                    
-                    if (typeof tableau !== 'undefined') {
-                        console.log('✅ Tableau object available:', typeof tableau);
-                        console.log('✅ Extensions property:', typeof tableau.extensions);
-                        
-                        if (tableau.extensions) {
-                            console.log('🚀 Tableau Extensions API fully operational!');
-                            initializeTableauExtension();
-                        } else {
-                            console.log('⚠️ Extensions property missing from tableau object');
-                        }
-                    } else {
-                        console.log('⚠️ Script loaded but tableau object not defined');
-                    }
-                };
-                
-                script.onerror = function() {
-                    console.log(`❌ Failed: ${currentUrl}`);
-                    loadAttempts.push(`❌ ${currentUrl} - 404/Failed`);
-                    currentIndex++;
-                    
-                    // Small delay between attempts
-                    setTimeout(tryLoad, 50);
-                };
-                
-                document.head.appendChild(script);
-            }
-            
-            tryLoad();
-        }
-        
-        // Check if Tableau provides the API internally (without external scripts)
-        function checkInternalTableauAPI() {
-            console.log('🔍 Checking for internal Tableau API availability...');
-            
-            // Check if tableau object exists in global scope
-            if (typeof window.tableau !== 'undefined') {
-                console.log('✅ Found tableau in window scope:', typeof window.tableau);
-                return window.tableau;
-            }
-            
-            // Check if it exists in parent window
-            try {
-                if (window.parent && typeof window.parent.tableau !== 'undefined') {
-                    console.log('✅ Found tableau in parent window:', typeof window.parent.tableau);
-                    return window.parent.tableau;
-                }
-            } catch (e) {
-                console.log('Cannot access parent.tableau:', e.message);
-            }
-            
-            // Check if it's injected by Tableau
-            const checkInterval = setInterval(function() {
-                if (typeof window.tableau !== 'undefined') {
-                    console.log('✅ Tableau API became available:', typeof window.tableau);
-                    clearInterval(checkInterval);
-                    initializeTableauExtension();
-                }
-            }, 100);
-            
-            // Stop checking after 5 seconds
-            setTimeout(function() {
-                clearInterval(checkInterval);
-                if (typeof window.tableau === 'undefined') {
-                    console.log('❌ No internal Tableau API found after 5 seconds');
-                    console.log('📊 Proceeding with DOM-based data extraction');
-                }
-            }, 5000);
-            
-            return null;
-        }
-        
-        // Modified initialization to check internal API first
-        function initializeTableauExtension() {
-            console.log('🚀 Attempting to initialize Tableau Extensions...');
-            
-            if (typeof tableau !== 'undefined' && tableau.extensions) {
-                console.log('✅ Tableau Extensions API available!');
-                
-                tableau.extensions.initializeAsync().then(function() {
-                    console.log('🎉 SUCCESS! Tableau Extension initialized!');
-                    console.log('Dashboard name:', tableau.extensions.dashboardContent.dashboard.name);
-                    console.log('Worksheets:', tableau.extensions.dashboardContent.dashboard.worksheets.map(w => w.name));
-                }).catch(function(error) {
-                    console.error('❌ Extension initialization failed:', error);
-                });
-            } else {
-                console.log('❌ Tableau Extensions API not available');
-            }
-        }
-        
-        console.log('Extension script loaded successfully');
     </script>
 </body>
 </html>
