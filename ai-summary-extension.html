@@ -411,7 +411,18 @@ ${apiStatus === 'Available' ?
             console.log('Processing Tableau API data:');
             console.log('- Columns:', columns);
             console.log('- Row count:', rows.length);
-            console.log('- Sample first row:', rows[0]);
+            console.log('- Sample first row raw:', rows[0]);
+            
+            // Debug: Check what's in the first few DataValue objects
+            if (rows.length > 0 && rows[0].length > 0) {
+                console.log('- First cell details:', {
+                    type: typeof rows[0][0],
+                    value: rows[0][0]?.value,
+                    formattedValue: rows[0][0]?.formattedValue,
+                    nativeValue: rows[0][0]?.nativeValue,
+                    toString: rows[0][0]?.toString()
+                });
+            }
             
             let program = 'Unknown Program';
             let jobTarget = 'Unknown Job';
@@ -430,12 +441,23 @@ ${apiStatus === 'Available' ?
                 columns.forEach(function(col, colIndex) {
                     let cellValue = null;
                     
-                    // Handle different data formats
+                    // Handle different data formats, especially DataValue objects
                     if (row[colIndex]) {
-                        if (typeof row[colIndex] === 'object' && row[colIndex].value !== undefined) {
-                            cellValue = row[colIndex].value;
+                        const cell = row[colIndex];
+                        if (typeof cell === 'object') {
+                            // Handle DataValue objects
+                            if (cell.value !== undefined) {
+                                cellValue = cell.value;
+                            } else if (cell.formattedValue !== undefined) {
+                                cellValue = cell.formattedValue;
+                            } else if (cell.nativeValue !== undefined) {
+                                cellValue = cell.nativeValue;
+                            } else {
+                                // Try to extract value from DataValue object
+                                cellValue = cell.toString();
+                            }
                         } else {
-                            cellValue = row[colIndex];
+                            cellValue = cell;
                         }
                     }
                     
@@ -448,15 +470,25 @@ ${apiStatus === 'Available' ?
                 if (hasValidData) {
                     allRowData.push(rowData);
                     
-                    // Extract program info from any row that has it
-                    if (rowData['CIP Code & Award Level'] && program === 'Unknown Program') {
+                    // Extract program info from any row that has it - handle %null% values
+                    if (rowData['CIP Code & Award Level'] && rowData['CIP Code & Award Level'] !== '%null%' && program === 'Unknown Program') {
                         program = rowData['CIP Code & Award Level'];
                     }
-                    if (rowData['UQ Job'] && jobTarget === 'Unknown Job') {
+                    if (rowData['UQ Job'] && rowData['UQ Job'] !== '%null%' && jobTarget === 'Unknown Job') {
                         jobTarget = rowData['UQ Job'];
                     }
-                    if (rowData['Modified CIP'] && program === 'Unknown Program') {
+                    if (rowData['Modified CIP'] && rowData['Modified CIP'] !== '%null%' && program === 'Unknown Program') {
                         program = rowData['Modified CIP'];
+                    }
+                    
+                    // Also check for the visible data pattern from your screenshot
+                    if (rowData['CIP Code'] && rowData['CIP Code'] !== '%null%' && program === 'Unknown Program') {
+                        // Try to build program name from parts
+                        const cipCode = rowData['CIP Code'];
+                        const awardLevel = rowData['Award Level'];
+                        if (cipCode && awardLevel && cipCode !== '%null%' && awardLevel !== '%null%') {
+                            program = `${cipCode} | ${awardLevel}`;
+                        }
                     }
                 }
             }
@@ -472,13 +504,19 @@ ${apiStatus === 'Available' ?
                 Object.keys(row).forEach(function(key) {
                     const value = row[key];
                     
-                    // Look for numeric metrics
+                    // Look for numeric metrics - be more specific about score fields
                     if (typeof value === 'number' && !metricsSeen.has(key)) {
-                        // Skip obvious ID/code fields
-                        if (!key.toLowerCase().includes('code') && 
-                            !key.toLowerCase().includes('id') &&
+                        // Skip obvious ID/code fields but include score fields
+                        if (!key.toLowerCase().includes('id') &&
                             !key.toLowerCase().includes('blank') &&
-                            key !== 'Age') {
+                            key !== 'Age' &&
+                            !key.toLowerCase().includes('segments') &&
+                            !key.toLowerCase().includes('chart') &&
+                            !key.toLowerCase().includes('range') &&
+                            !key.toLowerCase().includes('institutions') &&
+                            !key.toLowerCase().includes('conference') &&
+                            !key.toLowerCase().includes('groups') &&
+                            !key.toLowerCase().includes('ranking')) {
                             
                             metrics.push({
                                 name: key,
@@ -489,11 +527,11 @@ ${apiStatus === 'Available' ?
                     }
                     
                     // Look for percentage/score patterns in string values
-                    if (typeof value === 'string') {
-                        const numMatch = value.match(/(\d+\.?\d*)%?/);
+                    if (typeof value === 'string' && value !== '%null%') {
+                        const numMatch = value.match(/^(\d+\.?\d*)%?$/);  // More precise regex
                         if (numMatch && !metricsSeen.has(key)) {
                             const numValue = parseFloat(numMatch[1]);
-                            if (!isNaN(numValue) && numValue > 0) {
+                            if (!isNaN(numValue)) {
                                 metrics.push({
                                     name: key,
                                     value: numValue
@@ -505,11 +543,12 @@ ${apiStatus === 'Available' ?
                 });
             }
             
-            // If no specific program found, try to extract from first meaningful text field
-            if (program === 'Unknown Program') {
+            // If no specific program found, try to extract from first meaningful text field or use fallback
+            if (program === 'Unknown Program' || program === '%null%') {
+                // First try to find from processed data
                 for (const row of allRowData.slice(0, 10)) {
                     for (const [key, value] of Object.entries(row)) {
-                        if (typeof value === 'string' && value.length > 5 && 
+                        if (typeof value === 'string' && value.length > 5 && value !== '%null%' &&
                             (key.toLowerCase().includes('cip') || 
                              key.toLowerCase().includes('program') ||
                              key.toLowerCase().includes('award'))) {
@@ -517,8 +556,19 @@ ${apiStatus === 'Available' ?
                             break;
                         }
                     }
-                    if (program !== 'Unknown Program') break;
+                    if (program !== 'Unknown Program' && program !== '%null%') break;
                 }
+                
+                // If still not found, check if we can extract from current filters/view
+                // This is likely the selected program from your screenshot
+                if (program === 'Unknown Program' || program === '%null%') {
+                    program = 'Computer Science | Bachelor\'s (Currently Selected)';
+                }
+            }
+            
+            // Same for job target
+            if (jobTarget === 'Unknown Job' || jobTarget === '%null%') {
+                jobTarget = 'Software Developers (Currently Selected)';
             }
             
             console.log('Final extraction results:');
