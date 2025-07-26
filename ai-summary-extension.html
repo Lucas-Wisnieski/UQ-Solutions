@@ -118,6 +118,34 @@
             margin-bottom: 8px;
         }
         
+        /* Score table styling */
+        .summary-text table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 600px;
+        }
+        
+        .summary-text th,
+        .summary-text td {
+            border: 1px solid #333;
+            padding: 8px 16px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        
+        .summary-text th {
+            background-color: #333;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .summary-text td {
+            font-size: 14px;
+            color: #333;
+        }
+        
         .error {
             background: #ffebee;
             color: #c62828;
@@ -314,6 +342,29 @@
                         .replace(/\*\*(.*?)\*\*/g, '<h2>$1</h2>') // Convert **text** to <h2>text</h2>
                         .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert *text* to <em>text</em>
                         .replace(/\n/g, '<br>'); // Convert line breaks to <br>
+                    
+                    // Convert the score table section to HTML table
+                    htmlSummary = htmlSummary.replace(
+                        /Category \| Score<br>---\|---<br>([\s\S]*?)Total Score \| ([\d.]+)/,
+                        function(match, tableRows, totalScore) {
+                            let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
+                            
+                            // Process each row
+                            const rows = tableRows.split('<br>').filter(row => row.trim() && row.includes('|'));
+                            rows.forEach(row => {
+                                const [category, score] = row.split('|').map(s => s.trim());
+                                if (category && score) {
+                                    tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
+                                }
+                            });
+                            
+                            // Add total score row
+                            tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${totalScore}</strong></td></tr>`;
+                            tableHTML += '</tbody></table>';
+                            
+                            return tableHTML;
+                        }
+                    );
                     
                     document.getElementById('summaryText').innerHTML = htmlSummary;
                 })
