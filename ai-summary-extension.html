@@ -8,7 +8,7 @@
         body {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background: white;
             min-height: 100vh;
         }
@@ -17,23 +17,20 @@
             max-width: 800px;
             margin: 0 auto;
             background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #e9ecef;
+            padding: 12px;
         }
         
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #dee2e6;
         }
         
         .title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: #2c3e50;
             margin: 0;
@@ -43,8 +40,8 @@
             background: #03304d;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
             font-family: 'Avenir', sans-serif;
@@ -53,26 +50,26 @@
         
         .refresh-btn:hover {
             background: #024a73;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(3, 48, 77, 0.4);
+            transform: translateY(-1px);
         }
         
         .loading {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 20px;
+            padding: 16px;
             background: #e3f2fd;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #1976d2;
             font-weight: 500;
             font-family: 'Avenir', sans-serif;
             border: 1px solid #bbdefb;
+            margin-bottom: 16px;
         }
         
         .spinner {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border: 2px solid #e3f2fd;
             border-top: 2px solid #1976d2;
             border-radius: 50%;
@@ -85,26 +82,49 @@
         }
         
         .summary-text {
-            background: #f8f9fa;
-            border: 2px solid #dee2e6;
-            border-radius: 12px;
-            padding: 24px;
+            background: white;
+            padding: 0;
             min-height: 200px;
-            font-size: 16px;
-            line-height: 1.6;
+            font-size: 14px;
+            line-height: 1.5;
             color: #2c3e50;
             white-space: pre-wrap;
             font-family: 'Avenir', sans-serif;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        /* Style the AI-generated content headings */
+        .summary-text h1,
+        .summary-text h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #03304D;
+            margin: 20px 0 12px 0;
+            line-height: 1.2;
+        }
+        
+        .summary-text h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #03304D;
+            margin: 16px 0 8px 0;
+            line-height: 1.2;
+        }
+        
+        /* Program name styling */
+        .summary-text p:first-of-type {
+            font-size: 24px;
+            font-weight: 700;
+            color: #03304D;
+            margin-bottom: 8px;
         }
         
         .error {
             background: #ffebee;
             color: #c62828;
-            padding: 16px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 6px;
             border: 1px solid #ffcdd2;
-            margin-top: 20px;
+            margin-top: 16px;
             font-family: 'Avenir', sans-serif;
         }
     </style>
@@ -113,14 +133,9 @@
     <div class="container">
         <div class="header">
             <h1 class="title">AI Program Summary</h1>
-            <div>
-                <button id="diagnosticsBtn" style="margin-right: 10px; padding: 8px 16px; background: #32a900; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Avenir', sans-serif; font-weight: 500;">
-                    Run Diagnostics
-                </button>
-                <button class="refresh-btn" id="refreshBtn">
-                    Generate Summary
-                </button>
-            </div>
+            <button class="refresh-btn" id="refreshBtn">
+                Generate Summary
+            </button>
         </div>
         
         <div id="loadingIndicator" class="loading" style="display: none;">
@@ -158,7 +173,6 @@
             console.log('DOM loaded, setting up...');
             
             try {
-                document.getElementById('diagnosticsBtn').addEventListener('click', runDiagnostics);
                 document.getElementById('refreshBtn').addEventListener('click', generateSummary);
                 console.log('✅ Event listeners added');
                 
@@ -254,49 +268,7 @@
             }
         }
 
-        function runDiagnostics() {
-            if (isProcessing) return;
-            
-            console.log('=== DIAGNOSTICS ===');
-            
-            let report = '🔍 DIAGNOSTIC REPORT\n\n';
-            
-            // Check API
-            if (typeof tableau !== 'undefined' && tableau.extensions) {
-                report += '📊 TABLEAU API: ✅ Available\n';
-                
-                try {
-                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                    report += `📋 WORKSHEETS: ${worksheets.length} found\n`;
-                    
-                    worksheets.forEach((ws, i) => {
-                        report += `  ${i + 1}. "${ws.name}"\n`;
-                    });
-                    
-                    const target = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') || 
-                        ws.name.toLowerCase().includes('metrics')
-                    );
-                    
-                    if (target) {
-                        report += `\n🎯 TARGET: "${target.name}" ✅\n`;
-                    } else {
-                        report += '\n⚠️ No target worksheet found\n';
-                    }
-                    
-                } catch (error) {
-                    report += `📊 API ERROR: ${error.message}\n`;
-                }
-            } else {
-                report += '📊 TABLEAU API: ❌ Not Available\n';
-            }
-            
-            report += '\n🔧 PROXY: https://uq-solutions.vercel.app/api/claude ✅\n';
-            report += `\n📄 CUSTOM PROMPT: ${customPrompt ? '✅ Loaded (' + customPrompt.length + ' chars)' : '❌ Not loaded'}\n`;
-            report += '\n🎯 STATUS: Ready for testing';
-            
-            document.getElementById('summaryText').textContent = report;
-        }
+        // Remove the runDiagnostics function since we removed the button
 
         function generateSummary() {
             if (isProcessing) {
