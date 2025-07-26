@@ -309,7 +309,13 @@
                     return callAPI(data);
                 })
                 .then(function(summary) {
-                    document.getElementById('summaryText').innerHTML = summary;
+                    // Convert markdown-style formatting to HTML
+                    let htmlSummary = summary
+                        .replace(/\*\*(.*?)\*\*/g, '<h2>$1</h2>') // Convert **text** to <h2>text</h2>
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert *text* to <em>text</em>
+                        .replace(/\n/g, '<br>'); // Convert line breaks to <br>
+                    
+                    document.getElementById('summaryText').innerHTML = htmlSummary;
                 })
                 .catch(function(error) {
                     console.error('❌ Failed:', error);
