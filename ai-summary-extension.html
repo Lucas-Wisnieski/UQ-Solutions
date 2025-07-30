@@ -12,6 +12,147 @@
             background: white;
             min-height: 100vh;
         }
+
+        function updateButtonText() {
+            if (typeof tableau === 'undefined' || !tableau.extensions) {
+                return;
+            }
+
+            try {
+                const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                const hasInstitutionTables = worksheets.some(ws => 
+                    ws.name.toLowerCase().includes('claude') && 
+                    ws.name.toLowerCase().includes('institution')
+                );
+                
+                const button = document.getElementById('refreshBtn');
+                if (hasInstitutionTables) {
+                    button.textContent = 'Generate Institution Analysis';
+                    console.log('🏛️ Button updated for Institution Analysis');
+                } else {
+                    button.textContent = 'Generate Program Summary';
+                    console.log('📊 Button updated for Program Summary');
+                }
+            } catch (error) {
+                console.log('Could not update button text:', error.message);
+            }
+        }
+
+        function extractInstitutionData(worksheets) {
+            return new Promise(function(resolve, reject) {
+                try {
+                    // Find the institution worksheets
+                    let secondaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('secondary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+                    
+                    let tertiaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('tertiary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+
+                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
+                        reject(new Error('No institution worksheets found'));
+                        return;
+                    }
+
+                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
+                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
+
+                    // Extract institution names from both tables
+                    Promise.all([
+                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
+                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
+                    ])
+                    .then(function([secondaryData, tertiaryData]) {
+                        let secondaryInstitutions = [];
+                        let tertiaryInstitutions = [];
+                        
+                        if (secondaryData) {
+                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
+                            secondaryInstitutions = extractInstitutionNames(secondaryData);
+                        }
+                        
+                        if (tertiaryData) {
+                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
+                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
+                        }
+
+                        // Get program info from first available worksheet
+                        const firstRow = (secondaryData || tertiaryData).data[0];
+                        let currentProgram = 'Program Analysis';
+                        let currentJob = 'Various Careers';
+
+                        if (firstRow && firstRow.length > 0) {
+                            // Try to extract program info if available in the data
+                            // This might need adjustment based on your actual data structure
+                        }
+
+                        resolve({
+                            program: currentProgram,
+                            jobTarget: currentJob,
+                            secondaryInstitutions: secondaryInstitutions,
+                            tertiaryInstitutions: tertiaryInstitutions,
+                            dataSource: 'Institution Data (Tableau View)',
+                            timestamp: new Date().toLocaleString()
+                        });
+                    })
+                    .catch(function(error) {
+                        console.error('Institution data extraction error:', error);
+                        reject(new Error('Institution data extraction failed: ' + error.message));
+                    });
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+            const columns = dataTable.columns.map(col => col.fieldName);
+            const rows = dataTable.data;
+            
+            console.log('Institution table columns:', columns);
+            
+            // Look for the Institution column (likely first column)
+            const institutionColumnIndex = columns.findIndex(col => 
+                col.toLowerCase().includes('institution') || 
+                columns.indexOf(col) === 0 // Fallback to first column
+            );
+            
+            if (institutionColumnIndex === -1) {
+                console.log('⚠️ No institution column found');
+                return [];
+            }
+            
+            console.log(`Found institution column at index ${institutionColumnIndex}: "${columns[institutionColumnIndex]}"`);
+            
+            const institutions = [];
+            
+            rows.forEach(function(row, index) {
+                if (row[institutionColumnIndex]) {
+                    let institutionName = row[institutionColumnIndex];
+                    
+                    // Extract value from DataValue objects
+                    if (typeof institutionName === 'object' && institutionName._formattedValue) {
+                        institutionName = institutionName._formattedValue;
+                    } else if (typeof institutionName === 'object' && institutionName._value) {
+                        institutionName = institutionName._value;
+                    } else if (typeof institutionName === 'object' && institutionName.value !== undefined) {
+                        institutionName = institutionName.value;
+                    }
+                    
+                    if (institutionName && typeof institutionName === 'string') {
+                        institutions.push(institutionName.trim());
+                        console.log(`Found institution ${index + 1}: ${institutionName}`);
+                    }
+                }
+            });
+            
+            console.log(`Extracted ${institutions.length} institutions`);
+            return institutions;
+        }
         
         .container {
             max-width: 800px;
@@ -183,18 +324,25 @@
     <script>
         console.log('🚀 AI Summary Extension v2025.01.25.3 loaded');
         
+        // API URLs
+        const CLAUDE_API_URL = 'https://uq-solutions.vercel.app/api/claude';
+        const GEMINI_API_URL = 'https://uq-solutions-gemini.vercel.app/api/gemini'; // Your actual Gemini endpoint
+        
         // GitHub Pages URLs for Tableau API
         const GITHUB_API_URLS = [
             'https://lucas-wisnieski.github.io/UQ-Solutions/js/tableau.extensions.1.latest.js',
             'https://lucas-wisnieski.github.io/UQ-Solutions/js/tableau.extensions.1.latest.min.js'
         ];
 
-        // Custom prompt URL
-        const CUSTOM_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/ai-analysis-prompt.txt';
+        // Prompt URLs
+        const CLAUDE_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/ai-analysis-prompt.txt';
+        const GEMINI_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/institution-analysis-prompt.txt';
 
         // Global state
         let isProcessing = false;
-        let customPrompt = null; // Cache for the custom prompt
+        let claudePrompt = null; // Cache for Claude prompt
+        let geminiPrompt = null; // Cache for Gemini prompt
+        let detectedMode = null; // 'metrics' or 'institutions'
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
@@ -204,36 +352,34 @@
                 document.getElementById('refreshBtn').addEventListener('click', generateSummary);
                 console.log('✅ Event listeners added');
                 
-                // Load custom prompt first, then Tableau API
-                loadCustomPrompt();
+                // Load prompts first, then Tableau API
+                loadPrompts();
             } catch (error) {
                 console.error('Setup error:', error);
                 showError('Extension setup failed: ' + error.message);
             }
         });
 
-        function loadCustomPrompt() {
-            console.log('🔍 Loading custom prompt from GitHub...');
+        function loadPrompts() {
+            console.log('🔍 Loading prompts from GitHub...');
             
-            fetch(CUSTOM_PROMPT_URL)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('Prompt file not found: ' + response.status);
-                    }
-                    return response.text();
-                })
-                .then(function(promptText) {
-                    customPrompt = promptText.trim();
-                    console.log('✅ Custom prompt loaded successfully');
-                    console.log('📄 Prompt length:', customPrompt.length, 'characters');
-                    
-                    // Now load Tableau API
-                    loadTableauAPI();
-                })
-                .catch(function(error) {
-                    console.error('❌ Failed to load custom prompt:', error);
-                    showError('Failed to load analysis prompt: ' + error.message + '\n\nPlease ensure the prompt file exists at:\n' + CUSTOM_PROMPT_URL);
-                });
+            Promise.all([
+                fetch(CLAUDE_PROMPT_URL).then(r => r.text()),
+                fetch(GEMINI_PROMPT_URL).then(r => r.text())
+            ])
+            .then(function([claudeText, geminiText]) {
+                claudePrompt = claudeText.trim();
+                geminiPrompt = geminiText.trim();
+                console.log('✅ Claude prompt loaded:', claudePrompt.length, 'characters');
+                console.log('✅ Gemini prompt loaded:', geminiPrompt.length, 'characters');
+                
+                // Now load Tableau API
+                loadTableauAPI();
+            })
+            .catch(function(error) {
+                console.error('❌ Failed to load prompts:', error);
+                showError('Failed to load analysis prompts: ' + error.message);
+            });
         }
 
         function loadTableauAPI() {
@@ -289,6 +435,7 @@
                 tableau.extensions.initializeAsync()
                     .then(function() {
                         console.log('🎉 Extension initialized!');
+                        updateButtonText(); // Update button based on detected dashboard
                     })
                     .catch(function(error) {
                         console.error('❌ Init failed:', error);
@@ -304,14 +451,14 @@
                 return;
             }
             
-            // Check if custom prompt is loaded
-            if (!customPrompt) {
-                showError('Custom prompt not loaded. Please refresh the page and try again.');
+            // Check if prompts are loaded
+            if (!claudePrompt || !geminiPrompt) {
+                showError('Prompts not loaded. Please refresh the page and try again.');
                 return;
             }
             
             isProcessing = true;
-            console.log('🚀 Starting summary generation with custom prompt...');
+            console.log('🚀 Starting summary generation...');
             
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
@@ -325,14 +472,10 @@
                 }
             }, 45000);
             
-            extractData()
+            detectDashboardType()
                 .then(function(data) {
                     console.log('✅ Data extracted:', data);
-                    
-                    // Only proceed if we have meaningful metrics
-                    if (!data.metrics || data.metrics.length === 0) {
-                        throw new Error('No meaningful metrics extracted from the data');
-                    }
+                    console.log('🎯 Detected mode:', detectedMode);
                     
                     return callAPI(data);
                 })
@@ -343,28 +486,30 @@
                         .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert *text* to <em>text</em>
                         .replace(/\n/g, '<br>'); // Convert line breaks to <br>
                     
-                    // Convert the score table section to HTML table
-                    htmlSummary = htmlSummary.replace(
-                        /Category \| Score<br>---\|---<br>([\s\S]*?)Total Score \| ([\d.]+)/,
-                        function(match, tableRows, totalScore) {
-                            let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
-                            
-                            // Process each row
-                            const rows = tableRows.split('<br>').filter(row => row.trim() && row.includes('|'));
-                            rows.forEach(row => {
-                                const [category, score] = row.split('|').map(s => s.trim());
-                                if (category && score) {
-                                    tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
-                                }
-                            });
-                            
-                            // Add total score row
-                            tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${totalScore}</strong></td></tr>`;
-                            tableHTML += '</tbody></table>';
-                            
-                            return tableHTML;
-                        }
-                    );
+                    // Convert the score table section to HTML table (only for metrics mode)
+                    if (detectedMode === 'metrics') {
+                        htmlSummary = htmlSummary.replace(
+                            /Category \| Score<br>---\|---<br>([\s\S]*?)Total Score \| ([\d.]+)/,
+                            function(match, tableRows, totalScore) {
+                                let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
+                                
+                                // Process each row
+                                const rows = tableRows.split('<br>').filter(row => row.trim() && row.includes('|'));
+                                rows.forEach(row => {
+                                    const [category, score] = row.split('|').map(s => s.trim());
+                                    if (category && score) {
+                                        tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
+                                    }
+                                });
+                                
+                                // Add total score row
+                                tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${totalScore}</strong></td></tr>`;
+                                tableHTML += '</tbody></table>';
+                                
+                                return tableHTML;
+                            }
+                        );
+                    }
                     
                     document.getElementById('summaryText').innerHTML = htmlSummary;
                 })
@@ -376,6 +521,52 @@
                     isProcessing = false;
                     document.getElementById('loadingIndicator').style.display = 'none';
                 });
+        }
+
+        function detectDashboardType() {
+            return new Promise(function(resolve, reject) {
+                // Check API availability
+                if (typeof tableau === 'undefined' || !tableau.extensions) {
+                    reject(new Error('Tableau API not available'));
+                    return;
+                }
+
+                try {
+                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                    console.log(`Found ${worksheets.length} worksheets`);
+                    
+                    // Log all worksheet names for debugging
+                    worksheets.forEach((ws, i) => {
+                        console.log(`Worksheet ${i + 1}: "${ws.name}"`);
+                    });
+                    
+                    // Detect dashboard type based on available worksheets
+                    const hasInstitutionTables = worksheets.some(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('institution')
+                    );
+                    
+                    const hasMetricsTables = worksheets.some(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('metrics')
+                    );
+                    
+                    if (hasInstitutionTables) {
+                        detectedMode = 'institutions';
+                        console.log('🏛️ Detected: Institution Analysis Dashboard');
+                        extractInstitutionData(worksheets).then(resolve).catch(reject);
+                    } else if (hasMetricsTables) {
+                        detectedMode = 'metrics';
+                        console.log('📊 Detected: Program Metrics Dashboard');
+                        extractData().then(resolve).catch(reject);
+                    } else {
+                        reject(new Error('No recognized Claude worksheets found. Looking for worksheets containing "claude" with either "institution" or "metrics"'));
+                    }
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            });
         }
 
         function extractData() {
@@ -390,10 +581,22 @@
                     const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
                     console.log(`Found ${worksheets.length} worksheets`);
                     
-                    // Find target worksheet
+                    // Find target worksheet for main metrics
                     let target = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') || 
-                        ws.name.toLowerCase().includes('metrics')
+                        ws.name.toLowerCase().includes('claude') && ws.name.toLowerCase().includes('metrics')
+                    );
+                    
+                    // Find the institution worksheets
+                    let secondaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('secondary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+                    
+                    let tertiaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('tertiary') &&
+                        ws.name.toLowerCase().includes('institution')
                     );
                     
                     if (!target && worksheets.length > 0) {
@@ -405,42 +608,45 @@
                         return;
                     }
                     
-                    console.log(`Using worksheet: "${target.name}"`);
+                    console.log(`Using main worksheet: "${target.name}"`);
+                    if (secondaryInstitutionsWs) console.log(`Found secondary institutions: "${secondaryInstitutionsWs.name}"`);
+                    if (tertiaryInstitutionsWs) console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs.name}"`);
                     
-                    // Force refresh the worksheet data before extracting
-                    console.log('🔄 Refreshing worksheet data...');
-                    
-                    // Try to refresh the data first, then extract
-                    Promise.resolve()
-                        .then(function() {
-                            // Try to refresh if the method exists
-                            if (target.refreshDataAsync) {
-                                console.log('Attempting data refresh...');
-                                return target.refreshDataAsync();
-                            } else {
-                                console.log('Refresh not available, proceeding with current data...');
-                                return Promise.resolve();
-                            }
-                        })
-                        .catch(function(refreshError) {
-                            console.log('Refresh failed, proceeding with current data:', refreshError.message);
-                            return Promise.resolve(); // Continue even if refresh fails
-                        })
-                        .then(function() {
-                            // Small delay to ensure data is updated
-                            return new Promise(resolve => setTimeout(resolve, 500));
-                        })
-                        .then(function() {
-                            // Now try to get the updated summary data
-                            return target.getSummaryDataAsync();
-                        })
-                        .then(function(summaryData) {
+                    // Extract institution names first
+                    Promise.all([
+                        // Get main metrics data
+                        target.getSummaryDataAsync(),
+                        // Get secondary institutions (if available)
+                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
+                        // Get tertiary institutions (if available)
+                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
+                    ])
+                        .then(function([summaryData, secondaryData, tertiaryData]) {
                             console.log(`Got ${summaryData.data.length} summary rows`);
+                            
+                            // Extract institutions from secondary and tertiary data
+                            let secondaryInstitutions = [];
+                            let tertiaryInstitutions = [];
+                            
+                            if (secondaryData) {
+                                console.log(`Got ${secondaryData.data.length} secondary institution rows`);
+                                secondaryInstitutions = extractInstitutionNames(secondaryData);
+                            }
+                            
+                            if (tertiaryData) {
+                                console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
+                                tertiaryInstitutions = extractInstitutionNames(tertiaryData);
+                            }
                             
                             if (summaryData.data.length > 0) {
                                 const data = processSummaryData(summaryData);
                                 if (data.metrics.length >= 3) {
                                     console.log('✅ Using summary data with', data.metrics.length, 'metrics');
+                                    
+                                    // Add institution data to the result
+                                    data.secondaryInstitutions = secondaryInstitutions;
+                                    data.tertiaryInstitutions = tertiaryInstitutions;
+                                    
                                     resolve(data);
                                     return;
                                 } else {
@@ -676,47 +882,57 @@
         }
 
         function callAPI(data) {
-            // Build the final prompt
-            let prompt;
+            let prompt, apiUrl;
             
-            if (customPrompt) {
-                // Use custom prompt and replace placeholders
-                console.log('🔍 Using custom prompt template');
+            // Choose API and prompt based on detected mode
+            if (detectedMode === 'institutions') {
+                console.log('🔍 Using Gemini for institution analysis');
                 
-                // Replace placeholders in the custom prompt
-                prompt = customPrompt
+                // Build institution list for Gemini prompt
+                let institutionList = [];
+                if (data.secondaryInstitutions) {
+                    institutionList = institutionList.concat(data.secondaryInstitutions);
+                }
+                if (data.tertiaryInstitutions) {
+                    institutionList = institutionList.concat(data.tertiaryInstitutions);
+                }
+                
+                // Remove duplicates and limit to reasonable number
+                institutionList = [...new Set(institutionList)].slice(0, 20);
+                
+                prompt = geminiPrompt
+                    .replace(/\[Program\]/g, data.program)
+                    .replace(/\[List of institutions\]/g, institutionList.join(', '));
+                
+                apiUrl = GEMINI_API_URL;
+                
+            } else {
+                console.log('🔍 Using Claude for metrics analysis');
+                
+                // Build institution text for Claude prompt (if available)
+                let institutionText = '';
+                if (data.secondaryInstitutions && data.secondaryInstitutions.length > 0) {
+                    institutionText += `\n\nTOP INSTITUTIONS (SECONDARY MARKET):\n${data.secondaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
+                }
+                if (data.tertiaryInstitutions && data.tertiaryInstitutions.length > 0) {
+                    institutionText += `\n\nTOP INSTITUTIONS (TERTIARY MARKET):\n${data.tertiaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
+                }
+                
+                prompt = claudePrompt
                     .replace(/\{\{PROGRAM\}\}/g, data.program)
                     .replace(/\{\{JOB_TARGET\}\}/g, data.jobTarget)
                     .replace(/\{\{TIMESTAMP\}\}/g, data.timestamp)
                     .replace(/\{\{DATA_SOURCE\}\}/g, data.dataSource)
-                    .replace(/\{\{METRICS\}\}/g, data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n'));
+                    .replace(/\{\{METRICS\}\}/g, data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n'))
+                    .replace(/\{\{INSTITUTIONS\}\}/g, institutionText);
                 
-            } else {
-                // Fallback to built-in prompt
-                console.log('🔍 Using fallback built-in prompt');
-                
-                prompt = `Analyze this program performance data extracted at ${data.timestamp}:
-
-PROGRAM: ${data.program}
-JOB TARGET: ${data.jobTarget}
-DATA SOURCE: ${data.dataSource}
-EXTRACTION TIME: ${data.timestamp}
-
-KEY METRICS:
-${data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n')}
-
-Provide a concise analysis with:
-1. Overall performance assessment
-2. Key strengths and areas for improvement
-3. Strategic recommendations
-
-Focus on actionable insights for academic administrators. Start with the program name and current timestamp to confirm this is fresh data.`;
+                apiUrl = CLAUDE_API_URL;
             }
 
             // ===== SEND TO API =====
-            console.log('🚀 Sending prompt to Claude API...');
+            console.log('🚀 Sending prompt to', detectedMode === 'institutions' ? 'Gemini' : 'Claude', 'API...');
 
-            return fetch('https://uq-solutions.vercel.app/api/claude', {
+            return fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: prompt })
