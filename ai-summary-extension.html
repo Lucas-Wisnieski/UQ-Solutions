@@ -13,30 +13,7 @@
             min-height: 100vh;
         }
 
-        function updateButtonText() {
-            if (typeof tableau === 'undefined' || !tableau.extensions) {
-                return;
-            }
-
-            try {
-                const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                const hasInstitutionTables = worksheets.some(ws => 
-                    ws.name.toLowerCase().includes('claude') && 
-                    ws.name.toLowerCase().includes('institution')
-                );
-                
-                const button = document.getElementById('refreshBtn');
-                if (hasInstitutionTables) {
-                    button.textContent = 'Generate Institution Analysis';
-                    console.log('🏛️ Button updated for Institution Analysis');
-                } else {
-                    button.textContent = 'Generate Program Summary';
-                    console.log('📊 Button updated for Program Summary');
-                }
-            } catch (error) {
-                console.log('Could not update button text:', error.message);
-            }
-        }
+        // Remove the duplicate updateButtonText function since we moved it above
 
         function extractInstitutionData(worksheets) {
             return new Promise(function(resolve, reject) {
@@ -440,6 +417,31 @@
                     .catch(function(error) {
                         console.error('❌ Init failed:', error);
                     });
+            }
+        }
+
+        function updateButtonText() {
+            if (typeof tableau === 'undefined' || !tableau.extensions) {
+                return;
+            }
+
+            try {
+                const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                const hasInstitutionTables = worksheets.some(ws => 
+                    ws.name.toLowerCase().includes('claude') && 
+                    ws.name.toLowerCase().includes('institution')
+                );
+                
+                const button = document.getElementById('refreshBtn');
+                if (hasInstitutionTables) {
+                    button.textContent = 'Generate Institution Analysis';
+                    console.log('🏛️ Button updated for Institution Analysis');
+                } else {
+                    button.textContent = 'Generate Program Summary';
+                    console.log('📊 Button updated for Program Summary');
+                }
+            } catch (error) {
+                console.log('Could not update button text:', error.message);
             }
         }
 
