@@ -160,6 +160,79 @@
                 }
             });
         }
+
+        function extractInstitutionData(worksheets) {
+            return new Promise(function(resolve, reject) {
+                try {
+                    // Find the institution worksheets
+                    let secondaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('secondary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+                    
+                    let tertiaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('tertiary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+
+                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
+                        reject(new Error('No institution worksheets found'));
+                        return;
+                    }
+
+                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
+                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
+
+                    // Extract institution names from both tables
+                    Promise.all([
+                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
+                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
+                    ])
+                    .then(function([secondaryData, tertiaryData]) {
+                        let secondaryInstitutions = [];
+                        let tertiaryInstitutions = [];
+                        
+                        if (secondaryData) {
+                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
+                            secondaryInstitutions = extractInstitutionNames(secondaryData);
+                        }
+                        
+                        if (tertiaryData) {
+                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
+                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
+                        }
+
+                        // Get program info from first available worksheet
+                        const firstRow = (secondaryData || tertiaryData)?.data[0];
+                        let currentProgram = 'Program Analysis';
+                        let currentJob = 'Various Careers';
+
+                        if (firstRow && firstRow.length > 0) {
+                            // Try to extract program info if available in the data
+                            // This might need adjustment based on your actual data structure
+                        }
+
+                        resolve({
+                            program: currentProgram,
+                            jobTarget: currentJob,
+                            secondaryInstitutions: secondaryInstitutions,
+                            tertiaryInstitutions: tertiaryInstitutions,
+                            dataSource: 'Institution Data (Tableau View)',
+                            timestamp: new Date().toLocaleString()
+                        });
+                    })
+                    .catch(function(error) {
+                        console.error('Institution data extraction error:', error);
+                        reject(new Error('Institution data extraction failed: ' + error.message));
+                    });
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
             const columns = dataTable.columns.map(col => col.fieldName);
             const rows = dataTable.data;
             
