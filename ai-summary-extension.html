@@ -12,270 +12,6 @@
             background: white;
             min-height: 100vh;
         }
-
-        // Remove the duplicate updateButtonText function since we moved it above
-
-        function extractInstitutionData(worksheets) {
-            return new Promise(function(resolve, reject) {
-                try {
-                    // Find the institution worksheets
-                    let secondaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('secondary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-                    
-                    let tertiaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('tertiary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-
-                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
-                        reject(new Error('No institution worksheets found'));
-                        return;
-                    }
-
-                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
-                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
-
-                    // Extract institution names from both tables
-                    Promise.all([
-                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
-                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
-                    ])
-                    .then(function([secondaryData, tertiaryData]) {
-                        let secondaryInstitutions = [];
-                        let tertiaryInstitutions = [];
-                        
-                        if (secondaryData) {
-                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
-                            secondaryInstitutions = extractInstitutionNames(secondaryData);
-                        }
-                        
-                        if (tertiaryData) {
-                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
-                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
-                        }
-
-                        // Get program info from first available worksheet
-                        const firstRow = (secondaryData || tertiaryData).data[0];
-                        let currentProgram = 'Program Analysis';
-                        let currentJob = 'Various Careers';
-
-                        if (firstRow && firstRow.length > 0) {
-                            // Try to extract program info if available in the data
-                            // This might need adjustment based on your actual data structure
-                        }
-
-                        resolve({
-                            program: currentProgram,
-                            jobTarget: currentJob,
-                            secondaryInstitutions: secondaryInstitutions,
-                            tertiaryInstitutions: tertiaryInstitutions,
-                            dataSource: 'Institution Data (Tableau View)',
-                            timestamp: new Date().toLocaleString()
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error('Institution data extraction error:', error);
-                        reject(new Error('Institution data extraction failed: ' + error.message));
-                    });
-
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-
-        function extractInstitutionData(worksheets) {
-            return new Promise(function(resolve, reject) {
-                try {
-                    // Find the institution worksheets
-                    let secondaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('secondary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-                    
-                    let tertiaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('tertiary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-
-                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
-                        reject(new Error('No institution worksheets found'));
-                        return;
-                    }
-
-                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
-                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
-
-                    // Extract institution names from both tables
-                    Promise.all([
-                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
-                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
-                    ])
-                    .then(function([secondaryData, tertiaryData]) {
-                        let secondaryInstitutions = [];
-                        let tertiaryInstitutions = [];
-                        
-                        if (secondaryData) {
-                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
-                            secondaryInstitutions = extractInstitutionNames(secondaryData);
-                        }
-                        
-                        if (tertiaryData) {
-                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
-                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
-                        }
-
-                        // Get program info from first available worksheet
-                        const firstRow = (secondaryData || tertiaryData)?.data[0];
-                        let currentProgram = 'Program Analysis';
-                        let currentJob = 'Various Careers';
-
-                        if (firstRow && firstRow.length > 0) {
-                            // Try to extract program info if available in the data
-                            // This might need adjustment based on your actual data structure
-                        }
-
-                        resolve({
-                            program: currentProgram,
-                            jobTarget: currentJob,
-                            secondaryInstitutions: secondaryInstitutions,
-                            tertiaryInstitutions: tertiaryInstitutions,
-                            dataSource: 'Institution Data (Tableau View)',
-                            timestamp: new Date().toLocaleString()
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error('Institution data extraction error:', error);
-                        reject(new Error('Institution data extraction failed: ' + error.message));
-                    });
-
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-
-        function extractInstitutionData(worksheets) {
-            return new Promise(function(resolve, reject) {
-                try {
-                    // Find the institution worksheets
-                    let secondaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('secondary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-                    
-                    let tertiaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('tertiary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-
-                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
-                        reject(new Error('No institution worksheets found'));
-                        return;
-                    }
-
-                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
-                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
-
-                    // Extract institution names from both tables
-                    Promise.all([
-                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
-                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
-                    ])
-                    .then(function([secondaryData, tertiaryData]) {
-                        let secondaryInstitutions = [];
-                        let tertiaryInstitutions = [];
-                        
-                        if (secondaryData) {
-                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
-                            secondaryInstitutions = extractInstitutionNames(secondaryData);
-                        }
-                        
-                        if (tertiaryData) {
-                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
-                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
-                        }
-
-                        // Get program info from first available worksheet
-                        const firstRow = (secondaryData || tertiaryData)?.data[0];
-                        let currentProgram = 'Program Analysis';
-                        let currentJob = 'Various Careers';
-
-                        if (firstRow && firstRow.length > 0) {
-                            // Try to extract program info if available in the data
-                            // This might need adjustment based on your actual data structure
-                        }
-
-                        resolve({
-                            program: currentProgram,
-                            jobTarget: currentJob,
-                            secondaryInstitutions: secondaryInstitutions,
-                            tertiaryInstitutions: tertiaryInstitutions,
-                            dataSource: 'Institution Data (Tableau View)',
-                            timestamp: new Date().toLocaleString()
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error('Institution data extraction error:', error);
-                        reject(new Error('Institution data extraction failed: ' + error.message));
-                    });
-
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-            const columns = dataTable.columns.map(col => col.fieldName);
-            const rows = dataTable.data;
-            
-            console.log('Institution table columns:', columns);
-            
-            // Look for the Institution column (likely first column)
-            const institutionColumnIndex = columns.findIndex(col => 
-                col.toLowerCase().includes('institution') || 
-                columns.indexOf(col) === 0 // Fallback to first column
-            );
-            
-            if (institutionColumnIndex === -1) {
-                console.log('⚠️ No institution column found');
-                return [];
-            }
-            
-            console.log(`Found institution column at index ${institutionColumnIndex}: "${columns[institutionColumnIndex]}"`);
-            
-            const institutions = [];
-            
-            rows.forEach(function(row, index) {
-                if (row[institutionColumnIndex]) {
-                    let institutionName = row[institutionColumnIndex];
-                    
-                    // Extract value from DataValue objects
-                    if (typeof institutionName === 'object' && institutionName._formattedValue) {
-                        institutionName = institutionName._formattedValue;
-                    } else if (typeof institutionName === 'object' && institutionName._value) {
-                        institutionName = institutionName._value;
-                    } else if (typeof institutionName === 'object' && institutionName.value !== undefined) {
-                        institutionName = institutionName.value;
-                    }
-                    
-                    if (institutionName && typeof institutionName === 'string') {
-                        institutions.push(institutionName.trim());
-                        console.log(`Found institution ${index + 1}: ${institutionName}`);
-                    }
-                }
-            });
-            
-            console.log(`Extracted ${institutions.length} institutions`);
-            return institutions;
-        }
         
         .container {
             max-width: 800px;
@@ -445,11 +181,11 @@
     </div>
 
     <script>
-        console.log('🚀 AI Summary Extension v2025.01.25.3 loaded');
+        console.log('🚀 AI Summary Extension v2025.01.25.4 loaded');
         
         // API URLs
         const CLAUDE_API_URL = 'https://uq-solutions.vercel.app/api/claude';
-        const GEMINI_API_URL = 'https://uq-solutions-gemini.vercel.app/api/gemini'; // Your actual Gemini endpoint
+        const GEMINI_API_URL = 'https://uq-solutions-gemini.vercel.app/api/gemini';
         
         // GitHub Pages URLs for Tableau API
         const GITHUB_API_URLS = [
@@ -463,9 +199,9 @@
 
         // Global state
         let isProcessing = false;
-        let claudePrompt = null; // Cache for Claude prompt
-        let geminiPrompt = null; // Cache for Gemini prompt
-        let detectedMode = null; // 'metrics' or 'institutions'
+        let claudePrompt = null;
+        let geminiPrompt = null;
+        let detectedMode = null;
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
@@ -475,7 +211,6 @@
                 document.getElementById('refreshBtn').addEventListener('click', generateSummary);
                 console.log('✅ Event listeners added');
                 
-                // Load prompts first, then Tableau API
                 loadPrompts();
             } catch (error) {
                 console.error('Setup error:', error);
@@ -496,7 +231,6 @@
                 console.log('✅ Claude prompt loaded:', claudePrompt.length, 'characters');
                 console.log('✅ Gemini prompt loaded:', geminiPrompt.length, 'characters');
                 
-                // Now load Tableau API
                 loadTableauAPI();
             })
             .catch(function(error) {
@@ -508,7 +242,6 @@
         function loadTableauAPI() {
             console.log('🔍 Loading Tableau API...');
             
-            // Check if already available
             if (typeof tableau !== 'undefined' && tableau.extensions) {
                 console.log('✅ Tableau API already available');
                 initializeExtension();
@@ -558,7 +291,7 @@
                 tableau.extensions.initializeAsync()
                     .then(function() {
                         console.log('🎉 Extension initialized!');
-                        updateButtonText(); // Update button based on detected dashboard
+                        updateButtonText();
                     })
                     .catch(function(error) {
                         console.error('❌ Init failed:', error);
@@ -591,15 +324,12 @@
             }
         }
 
-        // Remove the runDiagnostics function since we removed the button
-
         function generateSummary() {
             if (isProcessing) {
                 console.log('Already processing...');
                 return;
             }
             
-            // Check if prompts are loaded
             if (!claudePrompt || !geminiPrompt) {
                 showError('Prompts not loaded. Please refresh the page and try again.');
                 return;
@@ -611,7 +341,6 @@
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
             
-            // Simple timeout
             setTimeout(function() {
                 if (isProcessing) {
                     isProcessing = false;
@@ -628,20 +357,17 @@
                     return callAPI(data);
                 })
                 .then(function(summary) {
-                    // Convert markdown-style formatting to HTML
                     let htmlSummary = summary
-                        .replace(/\*\*(.*?)\*\*/g, '<h2>$1</h2>') // Convert **text** to <h2>text</h2>
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert *text* to <em>text</em>
-                        .replace(/\n/g, '<br>'); // Convert line breaks to <br>
+                        .replace(/\*\*(.*?)\*\*/g, '<h2>$1</h2>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>');
                     
-                    // Convert the score table section to HTML table (only for metrics mode)
                     if (detectedMode === 'metrics') {
                         htmlSummary = htmlSummary.replace(
                             /Category \| Score<br>---\|---<br>([\s\S]*?)Total Score \| ([\d.]+)/,
                             function(match, tableRows, totalScore) {
                                 let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
                                 
-                                // Process each row
                                 const rows = tableRows.split('<br>').filter(row => row.trim() && row.includes('|'));
                                 rows.forEach(row => {
                                     const [category, score] = row.split('|').map(s => s.trim());
@@ -650,7 +376,6 @@
                                     }
                                 });
                                 
-                                // Add total score row
                                 tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${totalScore}</strong></td></tr>`;
                                 tableHTML += '</tbody></table>';
                                 
@@ -673,7 +398,6 @@
 
         function detectDashboardType() {
             return new Promise(function(resolve, reject) {
-                // Check API availability
                 if (typeof tableau === 'undefined' || !tableau.extensions) {
                     reject(new Error('Tableau API not available'));
                     return;
@@ -683,12 +407,10 @@
                     const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
                     console.log(`Found ${worksheets.length} worksheets`);
                     
-                    // Log all worksheet names for debugging
                     worksheets.forEach((ws, i) => {
                         console.log(`Worksheet ${i + 1}: "${ws.name}"`);
                     });
                     
-                    // Detect dashboard type based on available worksheets
                     const hasInstitutionTables = worksheets.some(ws => 
                         ws.name.toLowerCase().includes('claude') && 
                         ws.name.toLowerCase().includes('institution')
@@ -708,7 +430,7 @@
                         console.log('📊 Detected: Program Metrics Dashboard');
                         extractData().then(resolve).catch(reject);
                     } else {
-                        reject(new Error('No recognized Claude worksheets found. Looking for worksheets containing "claude" with either "institution" or "metrics"'));
+                        reject(new Error('No recognized Claude worksheets found'));
                     }
                     
                 } catch (error) {
@@ -717,9 +439,112 @@
             });
         }
 
+        function extractInstitutionData(worksheets) {
+            return new Promise(function(resolve, reject) {
+                try {
+                    let secondaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('secondary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+                    
+                    let tertiaryInstitutionsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('tertiary') &&
+                        ws.name.toLowerCase().includes('institution')
+                    );
+
+                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
+                        reject(new Error('No institution worksheets found'));
+                        return;
+                    }
+
+                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
+                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
+
+                    Promise.all([
+                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
+                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
+                    ])
+                    .then(function([secondaryData, tertiaryData]) {
+                        let secondaryInstitutions = [];
+                        let tertiaryInstitutions = [];
+                        
+                        if (secondaryData) {
+                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
+                            secondaryInstitutions = extractInstitutionNames(secondaryData);
+                        }
+                        
+                        if (tertiaryData) {
+                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
+                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
+                        }
+
+                        resolve({
+                            program: 'Program Analysis',
+                            jobTarget: 'Various Careers',
+                            secondaryInstitutions: secondaryInstitutions,
+                            tertiaryInstitutions: tertiaryInstitutions,
+                            dataSource: 'Institution Data (Tableau View)',
+                            timestamp: new Date().toLocaleString()
+                        });
+                    })
+                    .catch(function(error) {
+                        console.error('Institution data extraction error:', error);
+                        reject(new Error('Institution data extraction failed: ' + error.message));
+                    });
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        function extractInstitutionNames(dataTable) {
+            const columns = dataTable.columns.map(col => col.fieldName);
+            const rows = dataTable.data;
+            
+            console.log('Institution table columns:', columns);
+            
+            const institutionColumnIndex = columns.findIndex(col => 
+                col.toLowerCase().includes('institution') || 
+                columns.indexOf(col) === 0
+            );
+            
+            if (institutionColumnIndex === -1) {
+                console.log('⚠️ No institution column found');
+                return [];
+            }
+            
+            console.log(`Found institution column at index ${institutionColumnIndex}: "${columns[institutionColumnIndex]}"`);
+            
+            const institutions = [];
+            
+            rows.forEach(function(row, index) {
+                if (row[institutionColumnIndex]) {
+                    let institutionName = row[institutionColumnIndex];
+                    
+                    if (typeof institutionName === 'object' && institutionName._formattedValue) {
+                        institutionName = institutionName._formattedValue;
+                    } else if (typeof institutionName === 'object' && institutionName._value) {
+                        institutionName = institutionName._value;
+                    } else if (typeof institutionName === 'object' && institutionName.value !== undefined) {
+                        institutionName = institutionName.value;
+                    }
+                    
+                    if (institutionName && typeof institutionName === 'string') {
+                        institutions.push(institutionName.trim());
+                        console.log(`Found institution ${index + 1}: ${institutionName}`);
+                    }
+                }
+            });
+            
+            console.log(`Extracted ${institutions.length} institutions`);
+            return institutions;
+        }
+
         function extractData() {
             return new Promise(function(resolve, reject) {
-                // Check API availability
                 if (typeof tableau === 'undefined' || !tableau.extensions) {
                     reject(new Error('Tableau API not available'));
                     return;
@@ -729,12 +554,10 @@
                     const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
                     console.log(`Found ${worksheets.length} worksheets`);
                     
-                    // Find target worksheet for main metrics
                     let target = worksheets.find(ws => 
                         ws.name.toLowerCase().includes('claude') && ws.name.toLowerCase().includes('metrics')
                     );
                     
-                    // Find the institution worksheets
                     let secondaryInstitutionsWs = worksheets.find(ws => 
                         ws.name.toLowerCase().includes('claude') && 
                         ws.name.toLowerCase().includes('secondary') &&
@@ -760,19 +583,14 @@
                     if (secondaryInstitutionsWs) console.log(`Found secondary institutions: "${secondaryInstitutionsWs.name}"`);
                     if (tertiaryInstitutionsWs) console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs.name}"`);
                     
-                    // Extract institution names first
                     Promise.all([
-                        // Get main metrics data
                         target.getSummaryDataAsync(),
-                        // Get secondary institutions (if available)
                         secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
-                        // Get tertiary institutions (if available)
                         tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
                     ])
                         .then(function([summaryData, secondaryData, tertiaryData]) {
                             console.log(`Got ${summaryData.data.length} summary rows`);
                             
-                            // Extract institutions from secondary and tertiary data
                             let secondaryInstitutions = [];
                             let tertiaryInstitutions = [];
                             
@@ -791,7 +609,6 @@
                                 if (data.metrics.length >= 3) {
                                     console.log('✅ Using summary data with', data.metrics.length, 'metrics');
                                     
-                                    // Add institution data to the result
                                     data.secondaryInstitutions = secondaryInstitutions;
                                     data.tertiaryInstitutions = tertiaryInstitutions;
                                     
@@ -802,7 +619,6 @@
                                 }
                             }
                             
-                            // Fallback to underlying data only if summary failed
                             console.log('Summary data insufficient, trying underlying data...');
                             return target.getUnderlyingDataAsync();
                         })
@@ -841,7 +657,6 @@
             console.log('Summary columns:', columns);
             console.log('Summary rows:', rows.length);
             
-            // DEBUG: Show first 10 rows completely to understand the structure
             console.log('🔍 DEBUG: First 10 rows complete structure:');
             for (let i = 0; i < Math.min(rows.length, 10); i++) {
                 const row = rows[i];
@@ -855,7 +670,6 @@
             
             const metrics = [];
             
-            // Look for the "Measure Values" column which contains the actual scores
             const measureValuesIndex = columns.findIndex(col => 
                 col.toLowerCase().includes('measure values') || 
                 col.toLowerCase().includes('values')
@@ -872,39 +686,32 @@
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
                 console.log('✅ Found Measure Names/Values columns - extracting ALL measure data...');
                 
-                // Process each row to extract ALL measure name/value pairs
                 rows.forEach(function(row, rowIndex) {
                     let measureName = null;
                     let measureValue = null;
                     
-                    // Extract measure name using the formatted value (clean name)
                     if (row[measureNamesIndex]) {
                         const nameCell = row[measureNamesIndex];
-                        // Use _formattedValue for clean names, fallback to _value
                         measureName = nameCell._formattedValue || nameCell.value || 
                                     (typeof nameCell === 'object' && nameCell.value !== undefined ? nameCell.value : nameCell);
                     }
                     
-                    // Extract measure value
                     if (row[measureValuesIndex]) {
                         const valueCell = row[measureValuesIndex];
                         measureValue = valueCell._value || valueCell.value || 
                                      (typeof valueCell === 'object' && valueCell.value !== undefined ? valueCell.value : valueCell);
                     }
                     
-                    // If we have both name and numeric value, include it
                     if (measureName && typeof measureValue === 'number') {
-                        // Use the clean formatted name directly (no need for complex cleaning)
                         const cleanName = measureName.trim();
                         
-                        // Include ALL measures - just avoid duplicates
                         if (!metrics.some(m => m.name === cleanName)) {
                             console.log(`✅ Found measure: ${cleanName} = ${measureValue}`);
                             
                             metrics.push({
                                 name: cleanName,
                                 value: measureValue,
-                                originalName: measureName // Keep original for debugging
+                                originalName: measureName
                             });
                         }
                     }
@@ -912,32 +719,22 @@
             } else {
                 console.log('⚠️ Measure Names/Values columns not found, trying alternative approach...');
                 
-                // Fallback: look for score columns directly
                 rows.forEach(function(row, rowIndex) {
                     if (rowIndex < 10) {
                         columns.forEach(function(col, colIndex) {
                             if (row[colIndex]) {
                                 let value = row[colIndex];
                                 
-                                // Extract value from DataValue objects
                                 if (typeof value === 'object' && value.value !== undefined) {
                                     value = value.value;
                                 }
                                 
-                                // Check if it's a target score metric
-                                if (typeof value === 'number') {
-                                    const isTargetMetric = targetScoreMetrics.some(target => 
-                                        col.toLowerCase().includes(target.toLowerCase()) ||
-                                        target.toLowerCase().includes(col.toLowerCase())
-                                    );
-                                    
-                                    if (isTargetMetric && !metrics.some(m => m.name === col)) {
-                                        console.log(`✅ Found direct TARGET SCORE: ${col} = ${value}`);
-                                        metrics.push({
-                                            name: col,
-                                            value: value
-                                        });
-                                    }
+                                if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
+                                    console.log(`✅ Found direct measure: ${col} = ${value}`);
+                                    metrics.push({
+                                        name: col,
+                                        value: value
+                                    });
                                 }
                             }
                         });
@@ -947,15 +744,12 @@
             
             console.log(`Summary data processing complete: ${metrics.length} metrics found`);
             
-            // Extract current program and job from the first row of data
-            let currentProgram = '11.0701 | Computer Science | Bachelor\'s'; // default
-            let currentJob = 'Software Developers'; // default
+            let currentProgram = '11.0701 | Computer Science | Bachelor\'s';
+            let currentJob = 'Software Developers';
             
             if (rows.length > 0) {
-                // Check first row for actual current selections
                 const firstRow = rows[0];
                 
-                // Extract CIP Code & Award Level
                 if (firstRow[0]) {
                     const cipValue = (typeof firstRow[0] === 'object' && firstRow[0].value !== undefined) 
                         ? firstRow[0].value : firstRow[0];
@@ -965,7 +759,6 @@
                     }
                 }
                 
-                // Extract UQ Job
                 if (firstRow[1]) {
                     const jobValue = (typeof firstRow[1] === 'object' && firstRow[1].value !== undefined) 
                         ? firstRow[1].value : firstRow[1];
@@ -995,7 +788,6 @@
             
             const metrics = [];
             
-            // Process first few rows to extract ALL numeric metrics
             for (let i = 0; i < Math.min(rows.length, 10); i++) {
                 const row = rows[i];
                 
@@ -1003,12 +795,10 @@
                     if (row[colIndex]) {
                         let value = row[colIndex];
                         
-                        // Extract from DataValue
                         if (typeof value === 'object' && value.value !== undefined) {
                             value = value.value;
                         }
                         
-                        // Include ALL numeric values
                         if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
                             console.log(`✅ Found metric in underlying: ${col} = ${value}`);
                             metrics.push({
@@ -1032,11 +822,9 @@
         function callAPI(data) {
             let prompt, apiUrl;
             
-            // Choose API and prompt based on detected mode
             if (detectedMode === 'institutions') {
                 console.log('🔍 Using Gemini for institution analysis');
                 
-                // Build institution list for Gemini prompt
                 let institutionList = [];
                 if (data.secondaryInstitutions) {
                     institutionList = institutionList.concat(data.secondaryInstitutions);
@@ -1045,7 +833,6 @@
                     institutionList = institutionList.concat(data.tertiaryInstitutions);
                 }
                 
-                // Remove duplicates and limit to reasonable number
                 institutionList = [...new Set(institutionList)].slice(0, 20);
                 
                 prompt = geminiPrompt
@@ -1057,7 +844,6 @@
             } else {
                 console.log('🔍 Using Claude for metrics analysis');
                 
-                // Build institution text for Claude prompt (if available)
                 let institutionText = '';
                 if (data.secondaryInstitutions && data.secondaryInstitutions.length > 0) {
                     institutionText += `\n\nTOP INSTITUTIONS (SECONDARY MARKET):\n${data.secondaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
@@ -1077,7 +863,6 @@
                 apiUrl = CLAUDE_API_URL;
             }
 
-            // ===== SEND TO API =====
             console.log('🚀 Sending prompt to', detectedMode === 'institutions' ? 'Gemini' : 'Claude', 'API...');
 
             return fetch(apiUrl, {
@@ -1100,7 +885,7 @@
             })
             .catch(function(error) {
                 console.error('API error:', error);
-                throw new Error('Claude API failed: ' + error.message);
+                throw new Error('API failed: ' + error.message);
             });
         }
 
