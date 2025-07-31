@@ -506,17 +506,30 @@
             
             console.log('Institution table columns:', columns);
             
+            // Look specifically for the "Institution" column
             const institutionColumnIndex = columns.findIndex(col => 
-                col.toLowerCase().includes('institution') || 
-                columns.indexOf(col) === 0
+                col.toLowerCase() === 'institution'
             );
             
+            // If not found, try alternative names
             if (institutionColumnIndex === -1) {
-                console.log('⚠️ No institution column found');
-                return [];
+                const fallbackIndex = columns.findIndex(col => 
+                    col.toLowerCase().includes('institution') ||
+                    col.toLowerCase().includes('school') ||
+                    col.toLowerCase().includes('university') ||
+                    col.toLowerCase().includes('college')
+                );
+                
+                if (fallbackIndex === -1) {
+                    console.log('⚠️ No institution column found');
+                    return [];
+                }
+                
+                console.log(`Found institution column at index ${fallbackIndex}: "${columns[fallbackIndex]}"`);
+                const institutionColumnIndex = fallbackIndex;
+            } else {
+                console.log(`Found institution column at index ${institutionColumnIndex}: "${columns[institutionColumnIndex]}"`);
             }
-            
-            console.log(`Found institution column at index ${institutionColumnIndex}: "${columns[institutionColumnIndex]}"`);
             
             const institutions = [];
             
@@ -532,14 +545,18 @@
                         institutionName = institutionName.value;
                     }
                     
-                    if (institutionName && typeof institutionName === 'string') {
-                        institutions.push(institutionName.trim());
-                        console.log(`Found institution ${index + 1}: ${institutionName}`);
+                    if (institutionName && typeof institutionName === 'string' && institutionName.trim() !== '') {
+                        const cleanName = institutionName.trim();
+                        // Only add if it's not a duplicate and looks like an institution name
+                        if (!institutions.includes(cleanName) && !cleanName.includes('|')) {
+                            institutions.push(cleanName);
+                            console.log(`Found institution ${institutions.length}: ${cleanName}`);
+                        }
                     }
                 }
             });
             
-            console.log(`Extracted ${institutions.length} institutions`);
+            console.log(`Extracted ${institutions.length} unique institutions`);
             return institutions;
         }
 
