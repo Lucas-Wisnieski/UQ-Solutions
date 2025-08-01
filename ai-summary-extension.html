@@ -376,6 +376,22 @@
                         htmlSummary = htmlSummary.replace(/(<br>)\s*\d+\.\s*/g, '$1');
                         // Remove numbers at the very beginning
                         htmlSummary = htmlSummary.replace(/^\s*\d+\.\s*/, '');
+                        
+                        // Remove asterisks used as bullet points
+                        htmlSummary = htmlSummary.replace(/(<br>|^)\s*\*\s*/g, '$1');
+                        htmlSummary = htmlSummary.replace(/^\s*\*\s*/, '');
+                        
+                        // Limit to 5 innovations by finding content after "Five" and truncating
+                        const fiveInnovationsMatch = htmlSummary.match(/(.*Five.*?Innovations.*?:.*?)(<h2>.*){5}/i);
+                        if (fiveInnovationsMatch) {
+                            // Keep everything up to the 5th innovation section
+                            htmlSummary = fiveInnovationsMatch[1] + fiveInnovationsMatch[2];
+                            
+                            // Add a conclusion if it was cut off
+                            if (!htmlSummary.includes('Student Cost') && !htmlSummary.includes('Summary')) {
+                                htmlSummary += '<br><br><h2>Summary</h2>These five institutions demonstrate diverse approaches to program innovation, focusing on technology integration, employer partnerships, experiential learning, and flexible delivery models that enhance student outcomes and program success.';
+                            }
+                        }
                     }
                     
                     if (detectedMode === 'metrics') {
