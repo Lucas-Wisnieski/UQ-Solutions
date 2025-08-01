@@ -362,6 +362,11 @@
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                         .replace(/\n/g, '<br>');
                     
+                    // Remove numbered list formatting for institution analysis
+                    if (detectedMode === 'institutions') {
+                        htmlSummary = htmlSummary.replace(/^\d+\.\s*/gm, '');
+                    }
+                    
                     if (detectedMode === 'metrics') {
                         htmlSummary = htmlSummary.replace(
                             /Category \| Score<br>---\|---<br>([\s\S]*?)Total Score \| ([\d.]+)/,
@@ -372,11 +377,15 @@
                                 rows.forEach(row => {
                                     const [category, score] = row.split('|').map(s => s.trim());
                                     if (category && score) {
-                                        tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
+                                        // Format number to 2 decimal places
+                                        const formattedScore = parseFloat(score).toFixed(2);
+                                        tableHTML += `<tr><td>${category}</td><td>${formattedScore}</td></tr>`;
                                     }
                                 });
                                 
-                                tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${totalScore}</strong></td></tr>`;
+                                // Format total score to 2 decimal places
+                                const formattedTotalScore = parseFloat(totalScore).toFixed(2);
+                                tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
                                 tableHTML += '</tbody></table>';
                                 
                                 return tableHTML;
