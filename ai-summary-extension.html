@@ -292,6 +292,13 @@
                     .then(function() {
                         console.log('🎉 Extension initialized!');
                         updateButtonText();
+                                                
+                        // Auto-generate summary after a short delay to ensure everything is loaded
+                        setTimeout(function() {
+                            console.log('🔄 Auto-generating summary on page load...');
+                            generateSummary();
+                        }, 1500); // 2 second delay
+                        
                     })
                     .catch(function(error) {
                         console.error('❌ Init failed:', error);
@@ -372,11 +379,16 @@
                                 rows.forEach(row => {
                                     const [category, score] = row.split('|').map(s => s.trim());
                                     if (category && score) {
+                                        // Format number to 2 decimal places
+                                        const formattedScore = parseFloat(score).toFixed(2);
+                                        tableHTML += `<tr><td>${category}</td><td>${formattedScore}</td></tr>`;
                                         tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
                                     }
                                 });
                                 
-                                tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${totalScore}</strong></td></tr>`;
+                                 // Format total score to 2 decimal places
+                                const formattedTotalScore = parseFloat(totalScore).toFixed(2);
+                                tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
                                 tableHTML += '</tbody></table>';
                                 
                                 return tableHTML;
