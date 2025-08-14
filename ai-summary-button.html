@@ -4,9 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Summary</title>
+    <title>Refresh Button</title>
     <style>
-        /* Reset everything for exact positioning */
         * {
             margin: 0;
             padding: 0;
@@ -21,8 +20,7 @@
             height: 100%;
         }
         
-        /* Container to match the green button stack */
-        .button-stack {
+        .button-container {
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -30,7 +28,7 @@
         }
         
         /* Exact match for your Tableau buttons */
-        .btn-tableau-green {
+        .btn-tableau {
             background: #03304d;
             border: 1px solid #02253a;
             color: white;
@@ -43,35 +41,32 @@
             border-radius: 0;
             box-shadow: 0 1px 3px rgba(3, 48, 77, 0.2);
             transition: all 0.2s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%;
             min-height: 32px;
             white-space: nowrap;
         }
         
-        .btn-tableau-green:hover {
+        .btn-tableau:hover {
             background: #044066;
             border-color: #02253a;
             box-shadow: 0 2px 4px rgba(3, 48, 77, 0.3);
         }
         
-        .btn-tableau-green:active {
+        .btn-tableau:active {
             background: #021e2f;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
             transform: translateY(1px);
         }
         
-        .btn-tableau-green:disabled {
-            background: linear-gradient(to bottom, #a0a0a0 0%, #888888 100%);
-            border-color: #666666;
-            color: #cccccc;
+        .btn-tableau:disabled {
+            background: #6b7280;
+            border-color: #4b5563;
+            color: #d1d5db;
             cursor: not-allowed;
             box-shadow: none;
         }
         
-        /* Loading state overlay */
+        /* Loading animation */
         .btn-loading {
             position: relative;
             color: transparent !important;
@@ -86,7 +81,7 @@
             width: 16px;
             height: 16px;
             border: 2px solid rgba(255,255,255,0.3);
-            border-top: 2px solid rgba(255,255,255,0.8);
+            border-top: 2px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -101,426 +96,92 @@
             background: #28a745 !important;
             border-color: #1e7e34 !important;
         }
-        
-        /* Error state */
-        .btn-error {
-            background: #dc3545 !important;
-            border-color: #bd2130 !important;
-        }
-        
-        /* Tooltip for compact view */
-        .tooltip {
-            position: relative;
-        }
-        
-        .tooltip::before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 6px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            margin-bottom: 5px;
-            z-index: 1000;
-        }
-        
-        .tooltip::after {
-            content: "";
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 4px solid transparent;
-            border-top-color: rgba(0, 0, 0, 0.8);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            margin-bottom: 1px;
-        }
-        
-        .tooltip:hover::before,
-        .tooltip:hover::after {
-            opacity: 1;
-        }
-        
-        /* Status indicator (optional) */
-        .status-indicator {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #28a745;
-            border: 1px solid white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            display: none;
-        }
-        
-        .status-indicator.processing {
-            background: #ffc107;
-            animation: pulse 1.5s infinite;
-        }
-        
-        .status-indicator.error {
-            background: #dc3545;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* Multiple button layout (if you want multiple buttons) */
-        .multi-button {
-            margin-bottom: 2px;
-        }
-        
-        .multi-button:last-child {
-            margin-bottom: 0;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 150px) {
-            .btn-tableau-green {
-                font-size: 11px;
-                padding: 6px 8px;
-                min-height: 28px;
-            }
-        }
-        
-        /* Very compact version */
-        .compact .btn-tableau-green {
-            font-size: 11px;
-            padding: 4px 8px;
-            min-height: 24px;
-        }
     </style>
 </head>
 <body>
-    <!-- Single button version (recommended) -->
-    <div class="button-stack">
-        <button 
-            class="btn-tableau-green tooltip" 
-            id="generateBtn"
-            data-tooltip="Generate AI-powered program analysis summary"
-            onclick="generateSummary()"
-        >
+    <div class="button-container">
+        <button class="btn-tableau" id="refreshBtn" onclick="refreshPage()">
             Generate AI Summary
         </button>
-        <div class="status-indicator" id="statusIndicator"></div>
     </div>
-    
-    <!-- Multiple buttons version (uncomment if needed) -->
-    <!--
-    <div class="button-stack">
-        <button 
-            class="btn-tableau-green tooltip multi-button" 
-            id="generateBtn"
-            data-tooltip="Generate AI summary"
-            onclick="generateSummary()"
-        >
-            AI Summary
-        </button>
-        <button 
-            class="btn-tableau-green tooltip multi-button" 
-            data-tooltip="Refresh dashboard data"
-            onclick="refreshDashboard()"
-        >
-            Refresh Data
-        </button>
-    </div>
-    -->
 
     <script>
-        console.log('📜 Starting extension without external dependencies...');
+        console.log('🚀 Simple refresh button loaded');
         
-        let isProcessing = false;
-        let dashboardReady = false;
-        let tableauAPILoaded = false;
+        let isRefreshing = false;
         
-        // Multiple attempts to load Tableau API
-        function loadTableauAPI() {
-            console.log('🔄 Attempting to load Tableau Extensions API...');
+        function refreshPage() {
+            console.log('🔄 Refresh button clicked!');
             
-            // Method 1: Try the standard CDN
-            loadScript('https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js')
-                .then(() => {
-                    console.log('✅ Method 1: Standard CDN loaded successfully');
-                    tableauAPILoaded = true;
-                    initializeTableau();
-                })
-                .catch(() => {
-                    console.log('❌ Method 1 failed, trying alternative CDN...');
-                    
-                    // Method 2: Try alternative CDN
-                    return loadScript('https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.js');
-                })
-                .then(() => {
-                    if (!tableauAPILoaded) {
-                        console.log('✅ Method 2: Alternative CDN loaded successfully');
-                        tableauAPILoaded = true;
-                        initializeTableau();
-                    }
-                })
-                .catch(() => {
-                    console.log('❌ Method 2 failed, trying relative path...');
-                    
-                    // Method 3: Try relative path (might work inside Tableau)
-                    return loadScript('./tableau.extensions.1.latest.min.js');
-                })
-                .then(() => {
-                    if (!tableauAPILoaded) {
-                        console.log('✅ Method 3: Relative path loaded successfully');
-                        tableauAPILoaded = true;
-                        initializeTableau();
-                    }
-                })
-                .catch(() => {
-                    console.error('❌ All API loading methods failed');
-                    console.log('🔄 Trying manual initialization without external API...');
-                    
-                    // Method 4: Check if API exists without loading script
-                    if (typeof tableau !== 'undefined') {
-                        console.log('✅ Method 4: Tableau API found in global scope');
-                        tableauAPILoaded = true;
-                        initializeTableau();
-                    } else {
-                        console.error('❌ Tableau Extensions API completely unavailable');
-                        showAPIError();
-                    }
-                });
-        }
-        
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-        
-        function showAPIError() {
-            const btn = document.getElementById('generateBtn');
-            btn.textContent = 'API Not Available';
-            btn.disabled = true;
-            btn.style.background = '#dc3545';
-            
-            alert('Tableau Extensions API could not be loaded. Please ensure:\n\n1. This is running as a Tableau Extension\n2. You have proper internet connectivity\n3. The .trex manifest is configured correctly');
-        }
-        
-        // Initialize Tableau Extension
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Initializing Green Button Extension...');
-            
-            if (typeof tableau !== 'undefined' && tableau.extensions) {
-                tableau.extensions.initializeAsync()
-                    .then(function() {
-                        console.log('✅ Tableau Extensions API initialized');
-                        dashboardReady = true;
-                        updateStatus('ready');
-                    })
-                    .catch(function(error) {
-                        console.error('❌ Tableau initialization failed:', error);
-                        updateStatus('error');
-                    });
-            } else {
-                console.error('❌ Tableau Extensions API not available');
-                updateStatus('error');
-            }
-        });
-        
-        function generateSummary() {
-            console.log('🚀 Generate Summary button clicked!');
-            
-            if (!dashboardReady) {
-                console.error('❌ Dashboard not ready');
-                alert('Dashboard not ready. Please wait for connection.');
+            if (isRefreshing) {
+                console.log('⏳ Already refreshing...');
                 return;
             }
             
-            if (isProcessing) {
-                console.log('⏳ Already processing...');
-                return;
-            }
-            
-            const btn = document.getElementById('generateBtn');
+            const btn = document.getElementById('refreshBtn');
             const originalText = btn.textContent;
             
-            console.log('✅ Starting summary generation process...');
-            
-            // Start processing
-            isProcessing = true;
+            // Start refresh process
+            isRefreshing = true;
             btn.disabled = true;
             btn.classList.add('btn-loading');
             btn.textContent = 'Generating...';
-            updateStatus('processing');
             
-            console.log('📊 Extracting dashboard data...');
+            console.log('✨ Starting AI summary generation (page refresh)...');
             
-            // Extract dashboard data and generate summary
-            extractDashboardData()
-                .then(data => {
-                    console.log('✅ Data extracted successfully:', data);
-                    console.log('🤖 Calling AI API...');
-                    return callAIAPI(data);
-                })
-                .then(summary => {
-                    console.log('✅ AI summary generated successfully:', summary);
-                    
-                    // Success state
-                    btn.classList.remove('btn-loading');
-                    btn.classList.add('btn-success');
-                    btn.textContent = '✓ Summary Generated';
-                    updateStatus('ready');
-                    
-                    // Display or handle the summary
-                    handleSummaryResult(summary);
-                    
-                    // Reset button after delay
-                    setTimeout(() => {
-                        btn.classList.remove('btn-success');
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                        isProcessing = false;
-                    }, 3000);
-                })
-                .catch(error => {
-                    console.error('❌ Summary generation failed:', error);
-                    alert('Summary generation failed: ' + error.message);
-                    
-                    // Error state
-                    btn.classList.remove('btn-loading');
-                    btn.classList.add('btn-error');
-                    btn.textContent = '✗ Generation Failed';
-                    updateStatus('error');
-                    
-                    // Reset button after delay
-                    setTimeout(() => {
-                        btn.classList.remove('btn-error');
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                        isProcessing = false;
-                        updateStatus('ready');
-                    }, 3000);
-                });
-        }
-        
-        function extractDashboardData() {
-            return new Promise((resolve, reject) => {
-                try {
-                    const dashboard = tableau.extensions.dashboardContent.dashboard;
-                    const worksheets = dashboard.worksheets;
-                    
-                    if (worksheets.length === 0) {
-                        reject(new Error('No worksheets found'));
-                        return;
-                    }
-                    
-                    // Get data from the main worksheet
-                    const worksheet = worksheets[0];
-                    worksheet.getUnderlyingDataAsync()
-                        .then(dataTable => {
-                            const processedData = {
-                                worksheetName: worksheet.name,
-                                columnCount: dataTable.columns.length,
-                                rowCount: dataTable.data.length,
-                                columns: dataTable.columns.map(col => col.fieldName),
-                                sampleData: dataTable.data.slice(0, 10) // First 10 rows
-                            };
-                            resolve(processedData);
-                        })
-                        .catch(reject);
-                } catch (error) {
-                    reject(error);
+            // Add a small delay for visual feedback
+            setTimeout(() => {
+                console.log('🔄 Executing page reload...');
+                
+                // Method 1: Try parent window refresh (for iframe context)
+                if (window.parent && window.parent !== window) {
+                    console.log('📱 Refreshing parent window (Tableau context)');
+                    window.parent.location.reload();
+                } else {
+                    console.log('🖥️ Refreshing current window');
+                    window.location.reload();
                 }
-            });
+            }, 500);
         }
         
-        function callAIAPI(data) {
-            return new Promise((resolve, reject) => {
-                // Replace with your actual AI API call
-                const prompt = `Analyze this program data and provide insights: ${JSON.stringify(data)}`;
-                
-                // Simulate API call
-                setTimeout(() => {
-                    const summary = {
-                        title: "Program Analysis Summary",
-                        insights: [
-                            "Strong market demand indicators",
-                            "Competitive salary outcomes",
-                            "Sustainable program size"
-                        ],
-                        recommendation: "Highly recommended program with good ROI"
-                    };
-                    resolve(summary);
-                }, 2000); // 2 second simulation
-            });
-        }
-        
-        function handleSummaryResult(summary) {
-            // You can customize how to handle the generated summary
-            console.log('📊 Generated Summary:', summary);
+        // Alternative refresh methods if needed
+        function forceRefresh() {
+            console.log('💪 Force refresh triggered');
             
-            // Option 1: Log to console (current)
-            // Option 2: Display in a popup/modal
-            // Option 3: Update another part of the dashboard
-            // Option 4: Send to external API
-        }
-        
-        function updateStatus(status) {
-            const indicator = document.getElementById('statusIndicator');
-            indicator.className = 'status-indicator';
-            
-            if (status === 'ready') {
-                indicator.style.display = 'block';
-            } else if (status === 'processing') {
-                indicator.classList.add('processing');
-                indicator.style.display = 'block';
-            } else if (status === 'error') {
-                indicator.classList.add('error');
-                indicator.style.display = 'block';
-            } else {
-                indicator.style.display = 'none';
-            }
-        }
-        
-        // Optional refresh function
-        function refreshDashboard() {
-            if (!dashboardReady || isProcessing) return;
-            
-            console.log('🔄 Refreshing dashboard...');
-            
+            // Try multiple refresh approaches
             try {
-                const dashboard = tableau.extensions.dashboardContent.dashboard;
-                const worksheets = dashboard.worksheets;
-                
-                const refreshPromises = worksheets.map(worksheet => {
-                    return worksheet.getDataSourcesAsync()
-                        .then(dataSources => {
-                            return Promise.all(dataSources.map(ds => ds.refreshAsync()));
-                        });
-                });
-                
-                Promise.allSettled(refreshPromises)
-                    .then(() => {
-                        console.log('✅ Dashboard refresh completed');
-                    });
-                    
-            } catch (error) {
-                console.error('❌ Refresh failed:', error);
+                // Method 1: Hard reload
+                window.location.reload(true);
+            } catch (e) {
+                try {
+                    // Method 2: Replace location
+                    window.location.replace(window.location.href);
+                } catch (e2) {
+                    try {
+                        // Method 3: Assign location
+                        window.location.assign(window.location.href);
+                    } catch (e3) {
+                        console.error('❌ All refresh methods failed:', e3);
+                        alert('Refresh failed. Please manually refresh your browser.');
+                    }
+                }
             }
         }
+        
+        // Test button functionality on load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Refresh button ready to use!');
+            console.log('🎯 Click "Generate AI Summary" to reload the dashboard');
+        });
+        
+        // Add keyboard shortcut (optional)
+        document.addEventListener('keydown', function(event) {
+            // Ctrl+R or Cmd+R alternative
+            if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+                event.preventDefault();
+                refreshPage();
+            }
+        });
     </script>
 </body>
 </html>
