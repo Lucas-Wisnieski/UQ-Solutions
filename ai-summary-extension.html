@@ -207,7 +207,18 @@
             // Check for trigger message
             if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
                 console.log('🎯 Received AI summary trigger from button extension');
+                console.log('📊 Trigger details:', {
+                    source: event.data.source,
+                    program: event.data.program,
+                    institution: event.data.institution,
+                    timestamp: event.data.timestamp
+                });
+                
+                // Trigger the existing generateSummary function (uses Claude API + your prompts)
+                console.log('🚀 Triggering main extension summary generation with Claude API...');
                 generateSummary();
+                
+                console.log('✅ Main extension summary generation triggered by remote button');
             }
             
             // Check for direct summary display message
