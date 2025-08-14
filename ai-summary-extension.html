@@ -15,7 +15,7 @@
         
         .container {
             width: 100%;
-            margin: 4px;;
+            margin: 0;
             background: white;
             padding: 12px;
         }
@@ -97,7 +97,7 @@
             font-size: 24px;
             font-weight: 700;
             color: #03304D;
-            margin: 20px 0 12px 0;
+            margin: 20px 0 4px 0;
             line-height: 1.2;
         }
         
@@ -105,7 +105,7 @@
             font-size: 20px;
             font-weight: 700;
             color: #03304D;
-            margin: 16px 0 8px 0;
+            margin: 16px 0 4px 0;
             line-height: 1.2;
         }
         
@@ -117,7 +117,7 @@
         }
         
         .summary-text table {
-            margin: 20px auto;
+            margin: 40px auto 20px auto;
             border-collapse: collapse;
             width: 80%;
             max-width: 600px;
@@ -418,13 +418,13 @@
                                 rows.forEach(row => {
                                     const [category, score] = row.split('|').map(s => s.trim());
                                     if (category && score) {
-                                        const formattedScore = parseFloat(score).toFixed(2);
+                                        const formattedScore = parseFloat(score).toFixed(1);
                                         tableHTML += `<tr><td>${category}</td><td>${formattedScore}</td></tr>`;
                                     }
                                 });
                                 
-                                const formattedTotalScore = parseFloat(totalScore).toFixed(2);
-                                tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
+                                const formattedTotalScore = parseFloat(totalScore).toFixed(1);
+                                tableHTML += `<tr><td><strong>Total Score (Max 10)</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
                                 tableHTML += '</tbody></table>';
                                 
                                 return tableHTML;
