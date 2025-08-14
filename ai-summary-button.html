@@ -240,16 +240,84 @@
     </div>
     -->
 
-    <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
     <script>
-        console.log('📜 Script loading...');
+        console.log('📜 Starting extension without external dependencies...');
         
         let isProcessing = false;
         let dashboardReady = false;
+        let tableauAPILoaded = false;
         
-        // Check if script loaded
-        console.log('🔍 Checking if Tableau API script loaded...');
-        console.log('typeof tableau:', typeof tableau);
+        // Multiple attempts to load Tableau API
+        function loadTableauAPI() {
+            console.log('🔄 Attempting to load Tableau Extensions API...');
+            
+            // Method 1: Try the standard CDN
+            loadScript('https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js')
+                .then(() => {
+                    console.log('✅ Method 1: Standard CDN loaded successfully');
+                    tableauAPILoaded = true;
+                    initializeTableau();
+                })
+                .catch(() => {
+                    console.log('❌ Method 1 failed, trying alternative CDN...');
+                    
+                    // Method 2: Try alternative CDN
+                    return loadScript('https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.js');
+                })
+                .then(() => {
+                    if (!tableauAPILoaded) {
+                        console.log('✅ Method 2: Alternative CDN loaded successfully');
+                        tableauAPILoaded = true;
+                        initializeTableau();
+                    }
+                })
+                .catch(() => {
+                    console.log('❌ Method 2 failed, trying relative path...');
+                    
+                    // Method 3: Try relative path (might work inside Tableau)
+                    return loadScript('./tableau.extensions.1.latest.min.js');
+                })
+                .then(() => {
+                    if (!tableauAPILoaded) {
+                        console.log('✅ Method 3: Relative path loaded successfully');
+                        tableauAPILoaded = true;
+                        initializeTableau();
+                    }
+                })
+                .catch(() => {
+                    console.error('❌ All API loading methods failed');
+                    console.log('🔄 Trying manual initialization without external API...');
+                    
+                    // Method 4: Check if API exists without loading script
+                    if (typeof tableau !== 'undefined') {
+                        console.log('✅ Method 4: Tableau API found in global scope');
+                        tableauAPILoaded = true;
+                        initializeTableau();
+                    } else {
+                        console.error('❌ Tableau Extensions API completely unavailable');
+                        showAPIError();
+                    }
+                });
+        }
+        
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        function showAPIError() {
+            const btn = document.getElementById('generateBtn');
+            btn.textContent = 'API Not Available';
+            btn.disabled = true;
+            btn.style.background = '#dc3545';
+            
+            alert('Tableau Extensions API could not be loaded. Please ensure:\n\n1. This is running as a Tableau Extension\n2. You have proper internet connectivity\n3. The .trex manifest is configured correctly');
+        }
         
         // Initialize Tableau Extension
         document.addEventListener('DOMContentLoaded', function() {
