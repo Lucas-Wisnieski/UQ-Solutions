@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AI Summary Button</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Avenir", sans-serif;
+            background: transparent;
+            overflow: hidden;
+        }
+        .btn-tableau {
+            background: #03304d;
+            border: 1px solid #02253a;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(3, 48, 77, 0.2);
+            transition: all 0.2s ease;
+            width: 100%;
+            min-height: 32px;
+        }
+        .btn-tableau:hover {
+            background: #044066;
+        }
+        .btn-loading { color: transparent !important; }
+        .btn-loading::after {
+            content: ""; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white; border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <button class="btn-tableau" id="generateBtn" onclick="generateSummary()">
+        Generate AI Summary
+    </button>
+    
+    <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
+    <script>
+        let isProcessing = false;
+        let dashboardReady = false;
+        
+        // Your API URLs
+        const CLAUDE_API_URL = 'https://uq-solutions.vercel.app/api/claude';
+        const GEMINI_API_URL = 'https://uq-solutions-gemini.vercel.app/api/gemini';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof tableau !== 'undefined' && tableau.extensions) {
+                tableau.extensions.initializeAsync()
+                    .then(function() {
+                        dashboardReady = true;
+                        updateButtonText();
+                        console.log('✅ Extension initialized');
+                    })
+                    .catch(console.error);
+            }
+        });
+        
+        function updateButtonText() {
+            try {
+                const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+                const hasInstitutionTables = worksheets.some(ws => 
+                    ws.name.toLowerCase().includes('claude') && 
+                    ws.name.toLowerCase().includes('institution')
+                );
+                
+                const button = document.getElementById('generateBtn');
+                button.textContent = hasInstitutionTables ? 
+                    'Generate Institution Analysis' : 'Generate Program Summary';
+            } catch (error) {
+                console.log('Could not update button text:', error);
+            }
+        }
+        
+        function generateSummary() {
+            if (!dashboardReady || isProcessing) return;
+            
+            const btn = document.getElementById('generateBtn');
+            const originalText = btn.textContent;
+            
+            isProcessing = true;
+            btn.disabled = true;
+            btn.classList.add('btn-loading');
+            btn.textContent = 'Generating...';
+            
+            // Detect dashboard type and call appropriate API
+            detectDashboardType()
+                .then(data => callAppropriateAPI(data))
+                .then(summary => {
+                    btn.classList.remove('btn-loading');
+                    btn.textContent = '✓ Summary Generated';
+                    console.log('✅ Summary generated:', summary);
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                        isProcessing = false;
+                    }, 3000);
+                })
+                .catch(error => {
+                    btn.classList.remove('btn-loading');
+                    btn.textContent = '✗ Generation Failed';
+                    console.error('❌ Summary failed:', error);
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                        isProcessing = false;
+                    }, 3000);
+                });
+        }
+        
+        // Add your existing detectDashboardType() and callAppropriateAPI() functions here
+        // from your previous working extension
+    </script>
+</body>
+</html>
