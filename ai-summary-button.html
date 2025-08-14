@@ -221,12 +221,12 @@
             btn.classList.add('btn-loading');
             btn.textContent = 'Generating...';
             
-            console.log('✨ Triggering AI summary generation...');
+            console.log('✨ Sending trigger to main extension (no direct API call)...');
             
-            // Call your API to trigger summary generation
-            triggerAISummaryGeneration()
+            // Send trigger message to main extension (let it handle everything)
+            triggerMainExtension()
                 .then(result => {
-                    console.log('✅ AI summary generation triggered successfully');
+                    console.log('✅ Main extension trigger sent successfully');
                     
                     // Success state
                     btn.classList.remove('btn-loading');
@@ -242,7 +242,7 @@
                     }, 3000);
                 })
                 .catch(error => {
-                    console.error('❌ AI summary generation failed:', error);
+                    console.error('❌ Failed to trigger main extension:', error);
                     
                     // Error state
                     btn.classList.remove('btn-loading');
@@ -257,6 +257,52 @@
                         isProcessing = false;
                     }, 3000);
                 });
+        }
+        
+        function triggerMainExtension() {
+            return new Promise((resolve, reject) => {
+                console.log('📡 Sending TRIGGER message to main extension...');
+                
+                // Send trigger message to main extension (let it do all the work)
+                const triggerMessage = {
+                    type: 'TRIGGER_AI_SUMMARY',
+                    source: 'trigger-button-extension',
+                    timestamp: Date.now()
+                };
+                
+                console.log('📤 Sending trigger message to main extension:', triggerMessage);
+                
+                try {
+                    // Send trigger message to main extension
+                    window.parent.postMessage(triggerMessage, '*');
+                    console.log('📤 Trigger message sent to parent window');
+                    
+                    // Send to all frames to ensure main extension receives it
+                    if (window.parent && window.parent.frames) {
+                        for (let i = 0; i < window.parent.frames.length; i++) {
+                            try {
+                                window.parent.frames[i].postMessage(triggerMessage, '*');
+                                console.log(`📤 Trigger message sent to frame ${i}`);
+                            } catch (e) {
+                                // Ignore cross-origin errors
+                            }
+                        }
+                    }
+                    
+                    // Simulate success for button feedback
+                    setTimeout(() => {
+                        resolve({
+                            success: true,
+                            message: 'Main extension triggered to generate summary with Claude API',
+                            method: 'postMessage_trigger_only'
+                        });
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('❌ Failed to send trigger message:', error);
+                    reject(error);
+                }
+            });
         }
         
         function triggerAISummaryGeneration() {
