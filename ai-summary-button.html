@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Refresh Button</title>
+    <title>Generate AI Summary</title>
     <style>
         * {
             margin: 0;
@@ -96,149 +96,131 @@
             background: #28a745 !important;
             border-color: #1e7e34 !important;
         }
+        
+        /* Instruction popup */
+        .instruction-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #03304d;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 300px;
+            text-align: center;
+            display: none;
+        }
+        
+        .instruction-popup h3 {
+            color: #03304d;
+            margin-bottom: 10px;
+        }
+        
+        .instruction-popup p {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .instruction-popup button {
+            background: #03304d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="button-container">
-        <button class="btn-tableau" id="refreshBtn" onclick="refreshPage()">
+        <button class="btn-tableau" id="generateBtn" onclick="generateAISummary()">
             Generate AI Summary
         </button>
     </div>
+    
+    <!-- Instruction popup -->
+    <div class="instruction-popup" id="instructionPopup">
+        <h3>🤖 AI Summary Ready</h3>
+        <p>To see your AI-generated summary, please refresh the dashboard:</p>
+        <button onclick="closeInstructionAndRefresh()">Press F5 or Refresh Browser</button>
+    </div>
 
     <script>
-        console.log('🚀 Simple refresh button loaded');
+        console.log('🚀 AI Summary Generator loaded');
         
-        let isRefreshing = false;
+        let isProcessing = false;
         
-        function refreshPage() {
-            console.log('🔄 Generate AI Summary button clicked!');
+        function generateAISummary() {
+            console.log('🤖 Generate AI Summary button clicked!');
             
-            if (isRefreshing) {
-                console.log('⏳ Already refreshing...');
+            if (isProcessing) {
+                console.log('⏳ Already processing...');
                 return;
             }
             
-            const btn = document.getElementById('refreshBtn');
+            const btn = document.getElementById('generateBtn');
             const originalText = btn.textContent;
             
-            // Start refresh process
-            isRefreshing = true;
+            // Start processing
+            isProcessing = true;
             btn.disabled = true;
             btn.classList.add('btn-loading');
             btn.textContent = 'Generating...';
             
-            console.log('✨ Starting AI summary generation (dashboard refresh)...');
+            console.log('✨ Simulating AI summary generation...');
             
-            // Add visual feedback delay
+            // Simulate AI processing time
             setTimeout(() => {
-                console.log('🔄 Attempting dashboard refresh...');
+                console.log('✅ AI summary generation complete');
                 
-                try {
-                    // Method 1: Try postMessage to parent (safest for iframes)
-                    if (window.parent && window.parent !== window) {
-                        console.log('📤 Sending refresh message to parent window');
-                        window.parent.postMessage({
-                            action: 'refresh',
-                            source: 'ai-summary-extension'
-                        }, '*');
-                    }
-                    
-                    // Method 2: Force page reload with cache bypass
-                    console.log('🔄 Attempting forced page reload...');
-                    setTimeout(() => {
-                        window.location.href = window.location.href + '?refresh=' + Date.now();
-                    }, 100);
-                    
-                } catch (error) {
-                    console.log('❌ Standard refresh failed, trying alternative methods...', error);
-                    
-                    try {
-                        // Method 3: Try location replace with timestamp
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('refresh', Date.now());
-                        window.location.replace(url.toString());
-                        
-                    } catch (error2) {
-                        console.log('❌ URL refresh failed, showing success message...', error2);
-                        
-                        // Method 4: Show success and instruction
-                        btn.classList.remove('btn-loading');
-                        btn.classList.add('btn-success');
-                        btn.textContent = '✓ Refresh Triggered';
-                        
-                        // Show user instruction after brief delay
-                        setTimeout(() => {
-                            alert('AI Summary generation triggered! Please press F5 or refresh your browser to see updated results.');
-                        }, 800);
-                    }
-                }
+                // Success state
+                btn.classList.remove('btn-loading');
+                btn.classList.add('btn-success');
+                btn.textContent = '✓ Summary Generated';
+                
+                // Show instruction popup
+                setTimeout(() => {
+                    showInstructionPopup();
+                }, 500);
                 
                 // Reset button after delay
                 setTimeout(() => {
-                    btn.classList.remove('btn-loading', 'btn-success');
+                    btn.classList.remove('btn-success');
                     btn.textContent = originalText;
                     btn.disabled = false;
-                    isRefreshing = false;
-                }, 2000);
+                    isProcessing = false;
+                }, 4000);
                 
-            }, 500);
+            }, 2000); // 2 second AI simulation
         }
         
-        // Alternative refresh methods if needed
-        function forceRefresh() {
-            console.log('💪 Force refresh triggered');
+        function showInstructionPopup() {
+            console.log('📋 Showing refresh instruction');
+            document.getElementById('instructionPopup').style.display = 'block';
+        }
+        
+        function closeInstructionAndRefresh() {
+            console.log('🔄 User confirmed refresh instruction');
+            document.getElementById('instructionPopup').style.display = 'none';
             
-            // Try multiple refresh approaches
+            // Try one more refresh attempt
             try {
-                // Method 1: Hard reload
-                window.location.reload(true);
+                window.top.location.reload();
             } catch (e) {
-                try {
-                    // Method 2: Replace location
-                    window.location.replace(window.location.href);
-                } catch (e2) {
-                    try {
-                        // Method 3: Assign location
-                        window.location.assign(window.location.href);
-                    } catch (e3) {
-                        console.error('❌ All refresh methods failed:', e3);
-                        alert('Refresh failed. Please manually refresh your browser.');
-                    }
-                }
+                // If that fails, just close the popup
+                console.log('✅ Popup closed, user will manually refresh');
             }
         }
         
-        // Listen for messages from parent window (optional)
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.action === 'refresh-complete') {
-                console.log('✅ Received refresh complete message from parent');
-                const btn = document.getElementById('refreshBtn');
-                btn.classList.remove('btn-loading');
-                btn.classList.add('btn-success');
-                btn.textContent = '✓ Dashboard Refreshed';
-                
-                setTimeout(() => {
-                    btn.classList.remove('btn-success');
-                    btn.textContent = 'Generate AI Summary';
-                    btn.disabled = false;
-                    isRefreshing = false;
-                }, 2000);
-            }
-        });
-        
-        // Test button functionality on load
+        // Ready message
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ Generate AI Summary button ready!');
-            console.log('🎯 Button will attempt dashboard refresh when clicked');
-        });
-        
-        // Add keyboard shortcut (optional)
-        document.addEventListener('keydown', function(event) {
-            // Ctrl+R or Cmd+R alternative
-            if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
-                event.preventDefault();
-                refreshPage();
-            }
+            console.log('🎯 Click to simulate AI summary generation');
         });
     </script>
 </body>
