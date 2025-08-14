@@ -204,27 +204,55 @@
         window.addEventListener('message', function(event) {
             console.log('📨 Message received in main extension:', event.data);
             
-            // Check if this is a trigger message from the button extension
+            // Check for trigger message
             if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
                 console.log('🎯 Received AI summary trigger from button extension');
-                console.log('📊 Trigger details:', {
-                    source: event.data.source,
+                generateSummary();
+            }
+            
+            // Check for direct summary display message
+            if (event.data && event.data.type === 'DISPLAY_AI_SUMMARY') {
+                console.log('📋 Received generated summary from button extension');
+                console.log('📊 Summary details:', {
                     program: event.data.program,
                     institution: event.data.institution,
-                    timestamp: event.data.timestamp
+                    summaryLength: event.data.summary ? event.data.summary.length : 0
                 });
                 
-                // Trigger the existing Generate Summary functionality
-                console.log('🚀 Triggering main extension summary generation...');
-                
-                // Call the existing generateSummary function
-                generateSummary();
-                
-                console.log('✅ Main extension summary generation triggered by remote button');
+                // Display the summary directly in main extension
+                if (event.data.summary) {
+                    displayExternalSummary(event.data.summary);
+                }
             }
         });
 
         console.log('✅ Main extension message listener initialized');
+
+        function displayExternalSummary(summaryText) {
+            console.log('📋 Displaying external AI summary in main extension...');
+            
+            // Convert markdown-style formatting to HTML (same as your existing logic)
+            let htmlSummary = summaryText
+                .replace(/## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph tags if not already formatted
+            if (!htmlSummary.includes('<p>')) {
+                htmlSummary = '<p>' + htmlSummary + '</p>';
+            }
+            
+            // Display in the main summary area
+            document.getElementById('summaryText').innerHTML = htmlSummary;
+            
+            // Hide loading if it's showing
+            document.getElementById('loadingIndicator').style.display = 'none';
+            hideError();
+            
+            console.log('✅ External summary displayed successfully in main extension');
+        }
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
