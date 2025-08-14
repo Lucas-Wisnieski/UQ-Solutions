@@ -96,44 +96,6 @@
             background: #28a745 !important;
             border-color: #1e7e34 !important;
         }
-        
-        /* Instruction popup */
-        .instruction-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 2px solid #03304d;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            z-index: 1000;
-            max-width: 300px;
-            text-align: center;
-            display: none;
-        }
-        
-        .instruction-popup h3 {
-            color: #03304d;
-            margin-bottom: 10px;
-        }
-        
-        .instruction-popup p {
-            color: #374151;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        
-        .instruction-popup button {
-            background: #03304d;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -141,13 +103,6 @@
         <button class="btn-tableau" id="generateBtn" onclick="generateAISummary()">
             Generate AI Summary
         </button>
-    </div>
-    
-    <!-- Instruction popup -->
-    <div class="instruction-popup" id="instructionPopup">
-        <h3>🤖 AI Summary Ready</h3>
-        <p>To see your AI-generated summary, please refresh the dashboard:</p>
-        <button onclick="closeInstructionAndRefresh()">Press F5 or Refresh Browser</button>
     </div>
 
     <script>
@@ -172,55 +127,90 @@
             btn.classList.add('btn-loading');
             btn.textContent = 'Generating...';
             
-            console.log('✨ Simulating AI summary generation...');
+            console.log('✨ Triggering AI summary generation...');
             
-            // Simulate AI processing time
-            setTimeout(() => {
-                console.log('✅ AI summary generation complete');
-                
-                // Success state
-                btn.classList.remove('btn-loading');
-                btn.classList.add('btn-success');
-                btn.textContent = '✓ Summary Generated';
-                
-                // Show instruction popup
-                setTimeout(() => {
-                    showInstructionPopup();
-                }, 500);
-                
-                // Reset button after delay
-                setTimeout(() => {
-                    btn.classList.remove('btn-success');
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    isProcessing = false;
-                }, 4000);
-                
-            }, 2000); // 2 second AI simulation
+            // Call your API to trigger summary generation
+            triggerAISummaryGeneration()
+                .then(result => {
+                    console.log('✅ AI summary generation triggered successfully');
+                    
+                    // Success state
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('btn-success');
+                    btn.textContent = '✓ Summary Generated';
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        btn.classList.remove('btn-success');
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                        isProcessing = false;
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('❌ AI summary generation failed:', error);
+                    
+                    // Error state
+                    btn.classList.remove('btn-loading');
+                    btn.textContent = '✗ Failed - Try Again';
+                    btn.style.background = '#dc3545';
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '#03304d';
+                        btn.disabled = false;
+                        isProcessing = false;
+                    }, 3000);
+                });
         }
         
-        function showInstructionPopup() {
-            console.log('📋 Showing refresh instruction');
-            document.getElementById('instructionPopup').style.display = 'block';
-        }
-        
-        function closeInstructionAndRefresh() {
-            console.log('🔄 User confirmed refresh instruction');
-            document.getElementById('instructionPopup').style.display = 'none';
-            
-            // Try one more refresh attempt
-            try {
-                window.top.location.reload();
-            } catch (e) {
-                // If that fails, just close the popup
-                console.log('✅ Popup closed, user will manually refresh');
-            }
+        function triggerAISummaryGeneration() {
+            return new Promise((resolve, reject) => {
+                console.log('📡 Calling AI summary trigger API...');
+                
+                // Gather context information
+                const dashboardInfo = {
+                    timestamp: Date.now(),
+                    trigger: 'button_click',
+                    url: window.location.href
+                };
+                
+                // Call your new trigger API
+                fetch('https://uq-solutions.vercel.app/api/trigger-summary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'generate_summary',
+                        context: dashboardInfo,
+                        program: 'Occupational Therapy',
+                        institution: 'Saint Scholastica'
+                    })
+                })
+                .then(response => {
+                    console.log('📡 API Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`API call failed: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ API trigger successful:', data);
+                    resolve(data);
+                })
+                .catch(error => {
+                    console.error('❌ API trigger failed:', error);
+                    reject(error);
+                });
+            });
         }
         
         // Ready message
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ Generate AI Summary button ready!');
-            console.log('🎯 Click to simulate AI summary generation');
+            console.log('🎯 Button will trigger AI summary generation via API call');
         });
     </script>
 </body>
