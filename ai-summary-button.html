@@ -143,33 +143,33 @@
                         }, '*');
                     }
                     
-                    // Method 2: Try history manipulation (works in some contexts)
-                    console.log('🔄 Attempting history refresh...');
-                    window.history.go(0);
+                    // Method 2: Force page reload with cache bypass
+                    console.log('🔄 Attempting forced page reload...');
+                    setTimeout(() => {
+                        window.location.href = window.location.href + '?refresh=' + Date.now();
+                    }, 100);
                     
                 } catch (error) {
-                    console.log('❌ Standard refresh failed, trying alternative methods...');
+                    console.log('❌ Standard refresh failed, trying alternative methods...', error);
                     
                     try {
-                        // Method 3: Try location hash change (triggers refresh in some cases)
-                        const currentHash = window.location.hash;
-                        window.location.hash = '#refresh-' + Date.now();
-                        setTimeout(() => {
-                            window.location.hash = currentHash;
-                        }, 100);
+                        // Method 3: Try location replace with timestamp
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('refresh', Date.now());
+                        window.location.replace(url.toString());
                         
                     } catch (error2) {
-                        console.log('❌ Hash refresh failed, using manual reset...');
+                        console.log('❌ URL refresh failed, showing success message...', error2);
                         
-                        // Method 4: Reset button and show message
+                        // Method 4: Show success and instruction
                         btn.classList.remove('btn-loading');
                         btn.classList.add('btn-success');
                         btn.textContent = '✓ Refresh Triggered';
                         
-                        // Show user instruction
+                        // Show user instruction after brief delay
                         setTimeout(() => {
-                            alert('Dashboard refresh triggered! If data doesn\'t update automatically, please press F5 to refresh manually.');
-                        }, 500);
+                            alert('AI Summary generation triggered! Please press F5 or refresh your browser to see updated results.');
+                        }, 800);
                     }
                 }
                 
