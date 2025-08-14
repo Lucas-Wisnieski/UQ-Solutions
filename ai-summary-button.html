@@ -242,8 +242,14 @@
 
     <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
     <script>
+        console.log('📜 Script loading...');
+        
         let isProcessing = false;
         let dashboardReady = false;
+        
+        // Check if script loaded
+        console.log('🔍 Checking if Tableau API script loaded...');
+        console.log('typeof tableau:', typeof tableau);
         
         // Initialize Tableau Extension
         document.addEventListener('DOMContentLoaded', function() {
