@@ -531,9 +531,51 @@
                             tertiaryInstitutions = extractInstitutionNames(tertiaryData);
                         }
 
+                        // Extract program and job from the institution data
+                        let currentProgram = 'Program Analysis';
+                        let currentJob = 'Various Careers';
+                        
+                        if (secondaryData && secondaryData.data.length > 0) {
+                            const firstRow = secondaryData.data[0];
+                            const columns = secondaryData.columns.map(col => col.fieldName);
+                            
+                            const cipIndex = columns.findIndex(col => 
+                                col.toLowerCase().includes('cip') || 
+                                col.toLowerCase().includes('award') ||
+                                col.toLowerCase().includes('program')
+                            );
+                            
+                            if (cipIndex >= 0 && firstRow[cipIndex]) {
+                                const cipValue = (typeof firstRow[cipIndex] === 'object' && firstRow[cipIndex].value !== undefined) 
+                                    ? firstRow[cipIndex].value : firstRow[cipIndex];
+                                if (cipValue && cipValue !== '%null%') {
+                                    currentProgram = cipValue;
+                                    console.log('📊 Current program from institution data:', currentProgram);
+                                }
+                            }
+                        } else if (tertiaryData && tertiaryData.data.length > 0) {
+                            const firstRow = tertiaryData.data[0];
+                            const columns = tertiaryData.columns.map(col => col.fieldName);
+                            
+                            const cipIndex = columns.findIndex(col => 
+                                col.toLowerCase().includes('cip') || 
+                                col.toLowerCase().includes('award') ||
+                                col.toLowerCase().includes('program')
+                            );
+                            
+                            if (cipIndex >= 0 && firstRow[cipIndex]) {
+                                const cipValue = (typeof firstRow[cipIndex] === 'object' && firstRow[cipIndex].value !== undefined) 
+                                    ? firstRow[cipIndex].value : firstRow[cipIndex];
+                                if (cipValue && cipValue !== '%null%') {
+                                    currentProgram = cipValue;
+                                    console.log('📊 Current program from institution data:', currentProgram);
+                                }
+                            }
+                        }
+
                         resolve({
-                            program: 'Program Analysis',
-                            jobTarget: 'Various Careers',
+                            program: currentProgram,
+                            jobTarget: currentJob,
                             secondaryInstitutions: secondaryInstitutions,
                             tertiaryInstitutions: tertiaryInstitutions,
                             dataSource: 'Institution Data (Tableau View)',
