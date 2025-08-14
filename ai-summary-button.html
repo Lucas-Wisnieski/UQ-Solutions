@@ -12,6 +12,29 @@
             box-sizing: border-box;
         }
         
+        function displaySummary(summaryText, program, institution) {
+            console.log('📋 Displaying AI summary...');
+            
+            // Convert markdown-style formatting to HTML
+            let htmlSummary = summaryText
+                .replace(/## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph tags
+            htmlSummary = '<p>' + htmlSummary + '</p>';
+            
+            // Display in popup
+            document.getElementById('summaryContent').innerHTML = htmlSummary;
+            document.getElementById('summaryDisplay').style.display = 'block';
+        }
+        
+        function closeSummary() {
+            document.getElementById('summaryDisplay').style.display = 'none';
+        }
+        
         body {
             font-family: "Avenir", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: transparent;
@@ -25,6 +48,66 @@
             flex-direction: column;
             width: 100%;
             height: 100%;
+            position: relative;
+        }
+        
+        /* Summary display area */
+        .summary-display {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #03304d;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            max-height: 70vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #03304d;
+        }
+        
+        .summary-header h3 {
+            color: #03304d;
+            margin: 0;
+        }
+        
+        .close-btn {
+            background: #03304d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .summary-content {
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        .summary-content h2 {
+            color: #03304d;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .summary-content h4 {
+            color: #065f46;
+            margin-top: 15px;
+            margin-bottom: 8px;
         }
         
         /* Exact match for your Tableau buttons */
@@ -103,6 +186,17 @@
         <button class="btn-tableau" id="generateBtn" onclick="generateAISummary()">
             Generate AI Summary
         </button>
+    </div>
+    
+    <!-- Summary display popup -->
+    <div class="summary-display" id="summaryDisplay">
+        <div class="summary-header">
+            <h3>🤖 AI Generated Summary</h3>
+            <button class="close-btn" onclick="closeSummary()">×</button>
+        </div>
+        <div class="summary-content" id="summaryContent">
+            <!-- AI summary will be displayed here -->
+        </div>
     </div>
 
     <script>
@@ -198,6 +292,45 @@
                 })
                 .then(data => {
                     console.log('✅ API trigger successful:', data);
+                    
+                    // Send the generated summary directly to main extension
+                    console.log('📤 Sending generated summary to main extension...');
+                    
+                    const summaryMessage = {
+                        type: 'DISPLAY_AI_SUMMARY',
+                        source: 'trigger-button-extension',
+                        summary: data.summary,
+                        program: data.program,
+                        institution: data.institution,
+                        timestamp: data.timestamp
+                    };
+                    
+                    // Try multiple ways to send the message
+                    try {
+                        // Method 1: Send to parent
+                        window.parent.postMessage(summaryMessage, '*');
+                        console.log('📤 Summary sent to parent window');
+                        
+                        // Method 2: Send to all frames
+                        if (window.parent && window.parent.frames) {
+                            for (let i = 0; i < window.parent.frames.length; i++) {
+                                try {
+                                    window.parent.frames[i].postMessage(summaryMessage, '*');
+                                    console.log(`📤 Summary sent to frame ${i}`);
+                                } catch (e) {
+                                    // Ignore errors
+                                }
+                            }
+                        }
+                        
+                        // Method 3: Send to specific origin
+                        window.parent.postMessage(summaryMessage, 'https://uq-solutions.vercel.app');
+                        console.log('📤 Summary sent to specific origin');
+                        
+                    } catch (error) {
+                        console.log('⚠️ Could not send summary message:', error);
+                    }
+                    
                     resolve(data);
                 })
                 .catch(error => {
