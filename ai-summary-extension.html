@@ -85,14 +85,13 @@
             background: white;
             padding: 0;
             min-height: 200px;
-            font-size: 15px;  /* Increased from 14px to 15px */
+            font-size: 15px;
             line-height: 1.5;
             color: #2c3e50;
             white-space: pre-wrap;
             font-family: 'Avenir', sans-serif;
         }
         
-        /* Style the AI-generated content headings */
         .summary-text h1,
         .summary-text h2 {
             font-size: 24px;
@@ -110,7 +109,6 @@
             line-height: 1.2;
         }
         
-        /* Program name styling */
         .summary-text p:first-of-type {
             font-size: 24px;
             font-weight: 700;
@@ -118,7 +116,6 @@
             margin-bottom: 8px;
         }
         
-        /* Score table styling */
         .summary-text table {
             margin: 20px auto;
             border-collapse: collapse;
@@ -142,7 +139,7 @@
         }
         
         .summary-text td {
-            font-size: 15px;  /* Updated to match text size */
+            font-size: 15px;
             color: #2c3e50;
         }
         
@@ -202,6 +199,32 @@
         let claudePrompt = null;
         let geminiPrompt = null;
         let detectedMode = null;
+
+        // 🆕 ADD MESSAGE LISTENER FOR TRIGGER BUTTON COMMUNICATION
+        window.addEventListener('message', function(event) {
+            console.log('📨 Message received in main extension:', event.data);
+            
+            // Check if this is a trigger message from the button extension
+            if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
+                console.log('🎯 Received AI summary trigger from button extension');
+                console.log('📊 Trigger details:', {
+                    source: event.data.source,
+                    program: event.data.program,
+                    institution: event.data.institution,
+                    timestamp: event.data.timestamp
+                });
+                
+                // Trigger the existing Generate Summary functionality
+                console.log('🚀 Triggering main extension summary generation...');
+                
+                // Call the existing generateSummary function
+                generateSummary();
+                
+                console.log('✅ Main extension summary generation triggered by remote button');
+            }
+        });
+
+        console.log('✅ Main extension message listener initialized');
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
@@ -379,13 +402,11 @@
                                 rows.forEach(row => {
                                     const [category, score] = row.split('|').map(s => s.trim());
                                     if (category && score) {
-                                        // Format number to 2 decimal places
                                         const formattedScore = parseFloat(score).toFixed(2);
                                         tableHTML += `<tr><td>${category}</td><td>${formattedScore}</td></tr>`;
                                     }
                                 });
                                 
-                                 // Format total score to 2 decimal places
                                 const formattedTotalScore = parseFloat(totalScore).toFixed(2);
                                 tableHTML += `<tr><td><strong>Total Score</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
                                 tableHTML += '</tbody></table>';
@@ -517,12 +538,10 @@
             
             console.log('Institution table columns:', columns);
             
-            // Look specifically for the "Institution" column
             const institutionColumnIndex = columns.findIndex(col => 
                 col.toLowerCase() === 'institution'
             );
             
-            // If not found, try alternative names
             if (institutionColumnIndex === -1) {
                 const fallbackIndex = columns.findIndex(col => 
                     col.toLowerCase().includes('institution') ||
@@ -558,7 +577,6 @@
                     
                     if (institutionName && typeof institutionName === 'string' && institutionName.trim() !== '') {
                         const cleanName = institutionName.trim();
-                        // Only add if it's not a duplicate and looks like an institution name
                         if (!institutions.includes(cleanName) && !cleanName.includes('|')) {
                             institutions.push(cleanName);
                             console.log(`Found institution ${institutions.length}: ${cleanName}`);
