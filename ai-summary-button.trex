@@ -3,13 +3,12 @@
   <dashboard-extension id="com.uqsolutions.ai-summary" extension-version="1.0.0">
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
-    <description>AI-powered summary generation for Tableau dashboards</description>
-    <author name="UQ Solutions" email="your-email@domain.com" organization="UQ Solutions" website="https://uq-solutions.vercel.app"/>
+    <description>AI Summary Generator</description>
+    <author name="UQ Solutions"/>
     <min-api-version>1.0</min-api-version>
     <source-location>
       <url>https://uq-solutions.vercel.app/ai-summary-button.html</url>
     </source-location>
-    <icon></icon>
     <permissions>
       <permission>full data</permission>
     </permissions>
