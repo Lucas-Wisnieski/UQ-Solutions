@@ -2,125 +2,451 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>AI Summary Button</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Summary</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* Reset everything for exact positioning */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: "Avenir", sans-serif;
+            font-family: "Avenir", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: transparent;
             overflow: hidden;
+            width: 100%;
+            height: 100%;
         }
-        .btn-tableau {
+        
+        /* Container to match the green button stack */
+        .button-stack {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Exact match for your Tableau buttons */
+        .btn-tableau-green {
             background: #03304d;
             border: 1px solid #02253a;
             color: white;
+            font-family: "Avenir", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             font-size: 12px;
             font-weight: bold;
             text-align: center;
             padding: 8px 16px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 0;
             box-shadow: 0 1px 3px rgba(3, 48, 77, 0.2);
             transition: all 0.2s ease;
-            width: 100%;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             min-height: 32px;
+            white-space: nowrap;
         }
-        .btn-tableau:hover {
+        
+        .btn-tableau-green:hover {
             background: #044066;
+            border-color: #02253a;
+            box-shadow: 0 2px 4px rgba(3, 48, 77, 0.3);
         }
-        .btn-loading { color: transparent !important; }
+        
+        .btn-tableau-green:active {
+            background: #021e2f;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            transform: translateY(1px);
+        }
+        
+        .btn-tableau-green:disabled {
+            background: linear-gradient(to bottom, #a0a0a0 0%, #888888 100%);
+            border-color: #666666;
+            color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        /* Loading state overlay */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        
         .btn-loading::after {
-            content: ""; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); width: 16px; height: 16px;
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
             border: 2px solid rgba(255,255,255,0.3);
-            border-top: 2px solid white; border-radius: 50%;
+            border-top: 2px solid rgba(255,255,255,0.8);
+            border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* Success state */
+        .btn-success {
+            background: #28a745 !important;
+            border-color: #1e7e34 !important;
+        }
+        
+        /* Error state */
+        .btn-error {
+            background: #dc3545 !important;
+            border-color: #bd2130 !important;
+        }
+        
+        /* Tooltip for compact view */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            margin-bottom: 5px;
+            z-index: 1000;
+        }
+        
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            margin-bottom: 1px;
+        }
+        
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+        
+        /* Status indicator (optional) */
+        .status-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            border: 1px solid white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            display: none;
+        }
+        
+        .status-indicator.processing {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-indicator.error {
+            background: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Multiple button layout (if you want multiple buttons) */
+        .multi-button {
+            margin-bottom: 2px;
+        }
+        
+        .multi-button:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 150px) {
+            .btn-tableau-green {
+                font-size: 11px;
+                padding: 6px 8px;
+                min-height: 28px;
+            }
+        }
+        
+        /* Very compact version */
+        .compact .btn-tableau-green {
+            font-size: 11px;
+            padding: 4px 8px;
+            min-height: 24px;
+        }
     </style>
 </head>
 <body>
-    <button class="btn-tableau" id="generateBtn" onclick="generateSummary()">
-        Generate AI Summary
-    </button>
+    <!-- Single button version (recommended) -->
+    <div class="button-stack">
+        <button 
+            class="btn-tableau-green tooltip" 
+            id="generateBtn"
+            data-tooltip="Generate AI-powered program analysis summary"
+            onclick="generateSummary()"
+        >
+            Generate AI Summary
+        </button>
+        <div class="status-indicator" id="statusIndicator"></div>
+    </div>
     
+    <!-- Multiple buttons version (uncomment if needed) -->
+    <!--
+    <div class="button-stack">
+        <button 
+            class="btn-tableau-green tooltip multi-button" 
+            id="generateBtn"
+            data-tooltip="Generate AI summary"
+            onclick="generateSummary()"
+        >
+            AI Summary
+        </button>
+        <button 
+            class="btn-tableau-green tooltip multi-button" 
+            data-tooltip="Refresh dashboard data"
+            onclick="refreshDashboard()"
+        >
+            Refresh Data
+        </button>
+    </div>
+    -->
+
     <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
     <script>
         let isProcessing = false;
         let dashboardReady = false;
         
-        // Your API URLs
-        const CLAUDE_API_URL = 'https://uq-solutions.vercel.app/api/claude';
-        const GEMINI_API_URL = 'https://uq-solutions-gemini.vercel.app/api/gemini';
-        
+        // Initialize Tableau Extension
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing Green Button Extension...');
+            
             if (typeof tableau !== 'undefined' && tableau.extensions) {
                 tableau.extensions.initializeAsync()
                     .then(function() {
+                        console.log('✅ Tableau Extensions API initialized');
                         dashboardReady = true;
-                        updateButtonText();
-                        console.log('✅ Extension initialized');
+                        updateStatus('ready');
                     })
-                    .catch(console.error);
+                    .catch(function(error) {
+                        console.error('❌ Tableau initialization failed:', error);
+                        updateStatus('error');
+                    });
+            } else {
+                console.error('❌ Tableau Extensions API not available');
+                updateStatus('error');
             }
         });
         
-        function updateButtonText() {
-            try {
-                const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                const hasInstitutionTables = worksheets.some(ws => 
-                    ws.name.toLowerCase().includes('claude') && 
-                    ws.name.toLowerCase().includes('institution')
-                );
-                
-                const button = document.getElementById('generateBtn');
-                button.textContent = hasInstitutionTables ? 
-                    'Generate Institution Analysis' : 'Generate Program Summary';
-            } catch (error) {
-                console.log('Could not update button text:', error);
-            }
-        }
-        
         function generateSummary() {
-            if (!dashboardReady || isProcessing) return;
+            console.log('🚀 Generate Summary button clicked!');
+            
+            if (!dashboardReady) {
+                console.error('❌ Dashboard not ready');
+                alert('Dashboard not ready. Please wait for connection.');
+                return;
+            }
+            
+            if (isProcessing) {
+                console.log('⏳ Already processing...');
+                return;
+            }
             
             const btn = document.getElementById('generateBtn');
             const originalText = btn.textContent;
             
+            console.log('✅ Starting summary generation process...');
+            
+            // Start processing
             isProcessing = true;
             btn.disabled = true;
             btn.classList.add('btn-loading');
             btn.textContent = 'Generating...';
+            updateStatus('processing');
             
-            // Detect dashboard type and call appropriate API
-            detectDashboardType()
-                .then(data => callAppropriateAPI(data))
+            console.log('📊 Extracting dashboard data...');
+            
+            // Extract dashboard data and generate summary
+            extractDashboardData()
+                .then(data => {
+                    console.log('✅ Data extracted successfully:', data);
+                    console.log('🤖 Calling AI API...');
+                    return callAIAPI(data);
+                })
                 .then(summary => {
-                    btn.classList.remove('btn-loading');
-                    btn.textContent = '✓ Summary Generated';
-                    console.log('✅ Summary generated:', summary);
+                    console.log('✅ AI summary generated successfully:', summary);
                     
+                    // Success state
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('btn-success');
+                    btn.textContent = '✓ Summary Generated';
+                    updateStatus('ready');
+                    
+                    // Display or handle the summary
+                    handleSummaryResult(summary);
+                    
+                    // Reset button after delay
                     setTimeout(() => {
+                        btn.classList.remove('btn-success');
                         btn.textContent = originalText;
                         btn.disabled = false;
                         isProcessing = false;
                     }, 3000);
                 })
                 .catch(error => {
-                    btn.classList.remove('btn-loading');
-                    btn.textContent = '✗ Generation Failed';
-                    console.error('❌ Summary failed:', error);
+                    console.error('❌ Summary generation failed:', error);
+                    alert('Summary generation failed: ' + error.message);
                     
+                    // Error state
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('btn-error');
+                    btn.textContent = '✗ Generation Failed';
+                    updateStatus('error');
+                    
+                    // Reset button after delay
                     setTimeout(() => {
+                        btn.classList.remove('btn-error');
                         btn.textContent = originalText;
                         btn.disabled = false;
                         isProcessing = false;
+                        updateStatus('ready');
                     }, 3000);
                 });
         }
         
-        // Add your existing detectDashboardType() and callAppropriateAPI() functions here
-        // from your previous working extension
+        function extractDashboardData() {
+            return new Promise((resolve, reject) => {
+                try {
+                    const dashboard = tableau.extensions.dashboardContent.dashboard;
+                    const worksheets = dashboard.worksheets;
+                    
+                    if (worksheets.length === 0) {
+                        reject(new Error('No worksheets found'));
+                        return;
+                    }
+                    
+                    // Get data from the main worksheet
+                    const worksheet = worksheets[0];
+                    worksheet.getUnderlyingDataAsync()
+                        .then(dataTable => {
+                            const processedData = {
+                                worksheetName: worksheet.name,
+                                columnCount: dataTable.columns.length,
+                                rowCount: dataTable.data.length,
+                                columns: dataTable.columns.map(col => col.fieldName),
+                                sampleData: dataTable.data.slice(0, 10) // First 10 rows
+                            };
+                            resolve(processedData);
+                        })
+                        .catch(reject);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+        
+        function callAIAPI(data) {
+            return new Promise((resolve, reject) => {
+                // Replace with your actual AI API call
+                const prompt = `Analyze this program data and provide insights: ${JSON.stringify(data)}`;
+                
+                // Simulate API call
+                setTimeout(() => {
+                    const summary = {
+                        title: "Program Analysis Summary",
+                        insights: [
+                            "Strong market demand indicators",
+                            "Competitive salary outcomes",
+                            "Sustainable program size"
+                        ],
+                        recommendation: "Highly recommended program with good ROI"
+                    };
+                    resolve(summary);
+                }, 2000); // 2 second simulation
+            });
+        }
+        
+        function handleSummaryResult(summary) {
+            // You can customize how to handle the generated summary
+            console.log('📊 Generated Summary:', summary);
+            
+            // Option 1: Log to console (current)
+            // Option 2: Display in a popup/modal
+            // Option 3: Update another part of the dashboard
+            // Option 4: Send to external API
+        }
+        
+        function updateStatus(status) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.className = 'status-indicator';
+            
+            if (status === 'ready') {
+                indicator.style.display = 'block';
+            } else if (status === 'processing') {
+                indicator.classList.add('processing');
+                indicator.style.display = 'block';
+            } else if (status === 'error') {
+                indicator.classList.add('error');
+                indicator.style.display = 'block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+        
+        // Optional refresh function
+        function refreshDashboard() {
+            if (!dashboardReady || isProcessing) return;
+            
+            console.log('🔄 Refreshing dashboard...');
+            
+            try {
+                const dashboard = tableau.extensions.dashboardContent.dashboard;
+                const worksheets = dashboard.worksheets;
+                
+                const refreshPromises = worksheets.map(worksheet => {
+                    return worksheet.getDataSourcesAsync()
+                        .then(dataSources => {
+                            return Promise.all(dataSources.map(ds => ds.refreshAsync()));
+                        });
+                });
+                
+                Promise.allSettled(refreshPromises)
+                    .then(() => {
+                        console.log('✅ Dashboard refresh completed');
+                    });
+                    
+            } catch (error) {
+                console.error('❌ Refresh failed:', error);
+            }
+        }
     </script>
 </body>
 </html>
