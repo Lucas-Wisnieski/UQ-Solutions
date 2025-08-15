@@ -123,7 +123,7 @@
         }
         
         .summary-text table {
-            margin: 120px auto 20px auto;
+            margin: 240px auto 20px auto;
             border-collapse: collapse;
             width: 80%;
             max-width: 600px;
@@ -170,11 +170,6 @@
             <span>Analyzing program data...</span>
         </div>
         
-        <!-- Debug info for message communication -->
-        <div id="messageDebug" style="background: #e3f2fd; padding: 10px; font-size: 12px; color: #1976d2; margin-bottom: 16px; display: block;">
-            <strong>Message Debug:</strong> <span id="messageLog">Listening for button messages...</span>
-        </div>
-        
         <div class="summary-container">
             <div class="summary-text" id="summaryText">
                 Program analysis will appear here when triggered.
@@ -206,27 +201,50 @@
         let claudePrompt = null;
         let geminiPrompt = null;
         let detectedMode = null;
-        let messageCount = 0;
         let lastTriggerCheck = 0;
-
-        // Debug function to show message status
-        function updateMessageLog(message) {
-            messageCount++;
-            const messageLog = document.getElementById('messageLog');
-            if (messageLog) {
-                messageLog.innerHTML = `[${messageCount}] ${message} - ${new Date().toLocaleTimeString()}`;
-            }
-        }
 
         // Check for triggers from multiple sources
         function checkForTriggers() {
-            // Method 1: Check localStorage
+            // Check for completed summary results
+            try {
+                const storedResult = localStorage.getItem('ai-summary-result');
+                if (storedResult) {
+                    const resultData = JSON.parse(storedResult);
+                    if (resultData.timestamp > lastTriggerCheck) {
+                        localStorage.removeItem('ai-summary-result'); // Clear it
+                        lastTriggerCheck = Date.now();
+                        displayExternalSummary(resultData.content);
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Ignore localStorage errors
+            }
+            
+            // Check Tableau settings for completed summary
+            if (typeof tableau !== 'undefined' && tableau.extensions && tableau.extensions.settings) {
+                try {
+                    const summaryContent = tableau.extensions.settings.get('ai-summary-content');
+                    const summaryTimestamp = tableau.extensions.settings.get('ai-summary-timestamp');
+                    
+                    if (summaryContent && summaryTimestamp && parseInt(summaryTimestamp) > lastTriggerCheck) {
+                        tableau.extensions.settings.set('ai-summary-content', ''); // Clear it
+                        tableau.extensions.settings.set('ai-summary-timestamp', '');
+                        lastTriggerCheck = Date.now();
+                        displayExternalSummary(summaryContent);
+                        return;
+                    }
+                } catch (e) {
+                    // Ignore settings errors
+                }
+            }
+            
+            // Legacy trigger checking (keep for backwards compatibility)
             try {
                 const storedTrigger = localStorage.getItem('ai-summary-trigger');
                 if (storedTrigger) {
                     const triggerData = JSON.parse(storedTrigger);
                     if (triggerData.timestamp > lastTriggerCheck) {
-                        updateMessageLog('🎯 LocalStorage trigger detected!');
                         localStorage.removeItem('ai-summary-trigger'); // Clear it
                         lastTriggerCheck = Date.now();
                         generateSummary();
@@ -236,22 +254,6 @@
             } catch (e) {
                 // Ignore localStorage errors
             }
-            
-            // Method 2: Check Tableau settings
-            if (typeof tableau !== 'undefined' && tableau.extensions && tableau.extensions.settings) {
-                try {
-                    const settingsTrigger = tableau.extensions.settings.get('ai-summary-trigger');
-                    if (settingsTrigger && parseInt(settingsTrigger) > lastTriggerCheck) {
-                        updateMessageLog('🎯 Tableau settings trigger detected!');
-                        tableau.extensions.settings.set('ai-summary-trigger', ''); // Clear it
-                        lastTriggerCheck = Date.now();
-                        generateSummary();
-                        return;
-                    }
-                } catch (e) {
-                    // Ignore settings errors
-                }
-            }
         }
 
         // Start polling for triggers
@@ -259,30 +261,18 @@
 
         // 🆕 ADD MESSAGE LISTENER FOR TRIGGER BUTTON COMMUNICATION
         window.addEventListener('message', function(event) {
-            updateMessageLog('Message received from: ' + (event.origin || 'unknown origin'));
-            
             // Check for trigger message
             if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
-                updateMessageLog('🎯 PostMessage AI SUMMARY TRIGGER RECEIVED!');
                 lastTriggerCheck = Date.now();
                 generateSummary();
             }
             
             // Check for direct summary display message
             else if (event.data && event.data.type === 'DISPLAY_AI_SUMMARY') {
-                updateMessageLog('📋 Direct summary display received');
-                
                 // Display the summary directly in main extension
                 if (event.data.summary) {
                     displayExternalSummary(event.data.summary);
                 }
-            }
-            
-            // Log other message types for debugging
-            else if (event.data && event.data.type) {
-                updateMessageLog('📨 Other message type: ' + event.data.type);
-            } else {
-                updateMessageLog('📨 Tableau internal message (ignored)');
             }
         });
 
@@ -424,21 +414,16 @@
         }
 
         function generateSummary() {
-            updateMessageLog('📊 generateSummary() function started');
-            
             if (isProcessing) {
-                updateMessageLog('⏳ Already processing - skipping');
                 return;
             }
             
             if (!claudePrompt || !geminiPrompt) {
-                updateMessageLog('❌ Prompts not loaded');
                 showError('Prompts not loaded. Please refresh the page and try again.');
                 return;
             }
             
             isProcessing = true;
-            updateMessageLog('🚀 Starting summary generation process...');
             
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
