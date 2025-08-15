@@ -8,7 +8,7 @@
         body {
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 0;
             background: white;
             min-height: 100vh;
         }
@@ -19,13 +19,13 @@
             max-height: 1240px;
             margin: 0 auto;
             background: white;
-            padding: 12px;
+            padding: 0;
             overflow: hidden;
         }
         
         .header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin-bottom: 16px;
             padding-bottom: 8px;
@@ -40,15 +40,18 @@
         }
         
         .refresh-btn {
-            background: #03304d;
+            background: #333333;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 4px;
+            border-radius: 0;
             cursor: pointer;
-            font-weight: 600;
-            font-family: 'Avenir', sans-serif;
+            font-weight: bold;
+            font-family: "Avenir", "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 12px;
             transition: all 0.3s ease;
+            height: 32px;
+            min-width: 120px;
         }
         
         .refresh-btn:hover {
@@ -167,6 +170,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <button class="refresh-btn" onclick="generateSummary()">Generate AI Summary</button>
         </div>
         
         <div id="loadingIndicator" class="loading" style="display: none;">
