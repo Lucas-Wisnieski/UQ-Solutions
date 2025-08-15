@@ -116,8 +116,14 @@
             display: none;
         }
         
+        /* Hide any h1 or h2 that contains program title patterns */
+        .summary-text h1:first-child,
+        .summary-text h2:first-child {
+            display: none;
+        }
+        
         .summary-text table {
-            margin: 40px auto 20px auto;
+            margin: 120px auto 20px auto;
             border-collapse: collapse;
             width: 80%;
             max-width: 600px;
@@ -164,6 +170,11 @@
             <span>Analyzing program data...</span>
         </div>
         
+        <!-- Debug info for message communication -->
+        <div id="messageDebug" style="background: #e3f2fd; padding: 10px; font-size: 12px; color: #1976d2; margin-bottom: 16px; display: block;">
+            <strong>Message Debug:</strong> <span id="messageLog">Listening for button messages...</span>
+        </div>
+        
         <div class="summary-container">
             <div class="summary-text" id="summaryText">
                 Program analysis will appear here when triggered.
@@ -195,41 +206,47 @@
         let claudePrompt = null;
         let geminiPrompt = null;
         let detectedMode = null;
+        let messageCount = 0;
+
+        // Debug function to show message status
+        function updateMessageLog(message) {
+            messageCount++;
+            const messageLog = document.getElementById('messageLog');
+            if (messageLog) {
+                messageLog.innerHTML = `[${messageCount}] ${message} - ${new Date().toLocaleTimeString()}`;
+            }
+        }
 
         // 🆕 ADD MESSAGE LISTENER FOR TRIGGER BUTTON COMMUNICATION
         window.addEventListener('message', function(event) {
-            console.log('📨 Message received in main extension:', event.data);
+            updateMessageLog('Message received from: ' + (event.origin || 'unknown origin'));
             
             // Check for trigger message
             if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
-                console.log('🎯 Received AI summary trigger from button extension');
-                console.log('📊 Trigger details:', {
-                    source: event.data.source,
-                    program: event.data.program,
-                    institution: event.data.institution,
-                    timestamp: event.data.timestamp
-                });
+                updateMessageLog('🎯 AI SUMMARY TRIGGER RECEIVED! Starting generation...');
                 
                 // Trigger the existing generateSummary function (uses Claude API + your prompts)
-                console.log('🚀 Triggering main extension summary generation with Claude API...');
+                updateMessageLog('🚀 Calling generateSummary()...');
                 generateSummary();
                 
-                console.log('✅ Main extension summary generation triggered by remote button');
+                updateMessageLog('✅ generateSummary() called successfully');
             }
             
             // Check for direct summary display message
-            if (event.data && event.data.type === 'DISPLAY_AI_SUMMARY') {
-                console.log('📋 Received generated summary from button extension');
-                console.log('📊 Summary details:', {
-                    program: event.data.program,
-                    institution: event.data.institution,
-                    summaryLength: event.data.summary ? event.data.summary.length : 0
-                });
+            else if (event.data && event.data.type === 'DISPLAY_AI_SUMMARY') {
+                updateMessageLog('📋 Direct summary display received');
                 
                 // Display the summary directly in main extension
                 if (event.data.summary) {
                     displayExternalSummary(event.data.summary);
                 }
+            }
+            
+            // Log other message types for debugging
+            else if (event.data && event.data.type) {
+                updateMessageLog('📨 Other message type: ' + event.data.type);
+            } else {
+                updateMessageLog('📨 Message without type: ' + JSON.stringify(event.data).substring(0, 50) + '...');
             }
         });
 
@@ -371,18 +388,21 @@
         }
 
         function generateSummary() {
+            updateMessageLog('📊 generateSummary() function started');
+            
             if (isProcessing) {
-                console.log('Already processing...');
+                updateMessageLog('⏳ Already processing - skipping');
                 return;
             }
             
             if (!claudePrompt || !geminiPrompt) {
+                updateMessageLog('❌ Prompts not loaded');
                 showError('Prompts not loaded. Please refresh the page and try again.');
                 return;
             }
             
             isProcessing = true;
-            console.log('🚀 Starting summary generation...');
+            updateMessageLog('🚀 Starting summary generation process...');
             
             document.getElementById('loadingIndicator').style.display = 'block';
             hideError();
