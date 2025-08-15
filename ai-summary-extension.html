@@ -207,6 +207,7 @@
         let geminiPrompt = null;
         let detectedMode = null;
         let messageCount = 0;
+        let lastTriggerCheck = 0;
 
         // Debug function to show message status
         function updateMessageLog(message) {
@@ -217,19 +218,54 @@
             }
         }
 
+        // Check for triggers from multiple sources
+        function checkForTriggers() {
+            // Method 1: Check localStorage
+            try {
+                const storedTrigger = localStorage.getItem('ai-summary-trigger');
+                if (storedTrigger) {
+                    const triggerData = JSON.parse(storedTrigger);
+                    if (triggerData.timestamp > lastTriggerCheck) {
+                        updateMessageLog('🎯 LocalStorage trigger detected!');
+                        localStorage.removeItem('ai-summary-trigger'); // Clear it
+                        lastTriggerCheck = Date.now();
+                        generateSummary();
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Ignore localStorage errors
+            }
+            
+            // Method 2: Check Tableau settings
+            if (typeof tableau !== 'undefined' && tableau.extensions && tableau.extensions.settings) {
+                try {
+                    const settingsTrigger = tableau.extensions.settings.get('ai-summary-trigger');
+                    if (settingsTrigger && parseInt(settingsTrigger) > lastTriggerCheck) {
+                        updateMessageLog('🎯 Tableau settings trigger detected!');
+                        tableau.extensions.settings.set('ai-summary-trigger', ''); // Clear it
+                        lastTriggerCheck = Date.now();
+                        generateSummary();
+                        return;
+                    }
+                } catch (e) {
+                    // Ignore settings errors
+                }
+            }
+        }
+
+        // Start polling for triggers
+        setInterval(checkForTriggers, 500); // Check every 500ms
+
         // 🆕 ADD MESSAGE LISTENER FOR TRIGGER BUTTON COMMUNICATION
         window.addEventListener('message', function(event) {
             updateMessageLog('Message received from: ' + (event.origin || 'unknown origin'));
             
             // Check for trigger message
             if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
-                updateMessageLog('🎯 AI SUMMARY TRIGGER RECEIVED! Starting generation...');
-                
-                // Trigger the existing generateSummary function (uses Claude API + your prompts)
-                updateMessageLog('🚀 Calling generateSummary()...');
+                updateMessageLog('🎯 PostMessage AI SUMMARY TRIGGER RECEIVED!');
+                lastTriggerCheck = Date.now();
                 generateSummary();
-                
-                updateMessageLog('✅ generateSummary() called successfully');
             }
             
             // Check for direct summary display message
@@ -246,7 +282,7 @@
             else if (event.data && event.data.type) {
                 updateMessageLog('📨 Other message type: ' + event.data.type);
             } else {
-                updateMessageLog('📨 Message without type: ' + JSON.stringify(event.data).substring(0, 50) + '...');
+                updateMessageLog('📨 Tableau internal message (ignored)');
             }
         });
 
