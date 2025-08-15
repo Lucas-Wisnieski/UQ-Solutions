@@ -187,6 +187,11 @@
         <button class="btn-tableau" id="generateBtn" onclick="generateAISummary()">
             Generate AI Summary
         </button>
+        
+        <!-- Debug info display -->
+        <div id="debugInfo" style="background: #f0f0f0; padding: 5px; font-size: 10px; color: #333; margin-top: 5px; display: none;">
+            Debug: <span id="debugText">Ready</span>
+        </div>
     </div>
     
     <!-- Summary display popup -->
@@ -205,11 +210,19 @@
         
         let isProcessing = false;
         
+        // Debug function to show status
+        function showDebug(message) {
+            const debugDiv = document.getElementById('debugInfo');
+            const debugText = document.getElementById('debugText');
+            debugDiv.style.display = 'block';
+            debugText.textContent = message + ' - ' + new Date().toLocaleTimeString();
+        }
+        
         function generateAISummary() {
-            console.log('🤖 Generate AI Summary button clicked!');
+            showDebug('Button clicked!');
             
             if (isProcessing) {
-                console.log('⏳ Already processing...');
+                showDebug('Already processing...');
                 return;
             }
             
@@ -222,12 +235,12 @@
             btn.classList.add('btn-loading');
             btn.textContent = 'Generating...';
             
-            console.log('✨ Sending trigger to main extension (no direct API call)...');
+            showDebug('Starting generation...');
             
             // Send trigger message to main extension (let it handle everything)
             triggerMainExtension()
                 .then(result => {
-                    console.log('✅ Main extension trigger sent successfully');
+                    showDebug('Success: ' + result.message);
                     
                     // Success state
                     btn.classList.remove('btn-loading');
@@ -240,10 +253,11 @@
                         btn.textContent = originalText;
                         btn.disabled = false;
                         isProcessing = false;
+                        showDebug('Reset complete');
                     }, 3000);
                 })
                 .catch(error => {
-                    console.error('❌ Failed to trigger main extension:', error);
+                    showDebug('Error: ' + error.message);
                     
                     // Error state
                     btn.classList.remove('btn-loading');
@@ -253,16 +267,17 @@
                     // Reset button after delay
                     setTimeout(() => {
                         btn.textContent = originalText;
-                        btn.style.background = '#03304d';
+                        btn.style.background = '#333333';
                         btn.disabled = false;
                         isProcessing = false;
+                        showDebug('Error reset complete');
                     }, 3000);
                 });
         }
         
         function triggerMainExtension() {
             return new Promise((resolve, reject) => {
-                console.log('📡 Sending TRIGGER message to main extension...');
+                showDebug('Sending trigger message...');
                 
                 // Send trigger message to main extension (let it do all the work)
                 const triggerMessage = {
@@ -271,21 +286,21 @@
                     timestamp: Date.now()
                 };
                 
-                console.log('📤 Sending trigger message to main extension:', triggerMessage);
+                showDebug('Message prepared');
                 
                 try {
                     // Send trigger message to main extension
                     window.parent.postMessage(triggerMessage, '*');
-                    console.log('📤 Trigger message sent to parent window');
+                    showDebug('Sent to parent window');
                     
                     // Send to all frames to ensure main extension receives it
                     if (window.parent && window.parent.frames) {
                         for (let i = 0; i < window.parent.frames.length; i++) {
                             try {
                                 window.parent.frames[i].postMessage(triggerMessage, '*');
-                                console.log(`📤 Trigger message sent to frame ${i}`);
+                                showDebug('Sent to frame ' + i);
                             } catch (e) {
-                                // Ignore cross-origin errors
+                                showDebug('Frame ' + i + ' error: ' + e.message);
                             }
                         }
                     }
@@ -294,13 +309,13 @@
                     setTimeout(() => {
                         resolve({
                             success: true,
-                            message: 'Main extension triggered to generate summary with Claude API',
+                            message: 'Trigger sent successfully',
                             method: 'postMessage_trigger_only'
                         });
                     }, 1000);
                     
                 } catch (error) {
-                    console.error('❌ Failed to send trigger message:', error);
+                    showDebug('Send error: ' + error.message);
                     reject(error);
                 }
             });
