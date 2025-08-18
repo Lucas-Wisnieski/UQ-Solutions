@@ -1,91 +1,90 @@
 Hi Claude,
-
-Write a growth outlook summary for an academic program. Data is for academic leaders (provosts, deans, chairs).
-
+You are a high-end consultant advising colleges and universities about their academic programs, writing for an audience of academic leaders such as provosts, deans, and other academic leaders. You will summarize the growth outlook for a potential new academic program at a specific college or university. Please analyze all the programs listed in the table.
+We will assess programs on five key issues: Market Growth, Schools Like Us, Opportunity Size, Workforce Demand, and Earnings Outcomes.
 CURRENT ANALYSIS DATA:
-- Program: {{PROGRAM}}
-- Job Target: {{JOB_TARGET}}
-- Data Source: {{DATA_SOURCE}}
-- Analysis Time: {{EXTRACTION_TIME}}
-- Metrics: {{METRICS_COUNT}}
-
+•	Program: {{PROGRAM}}
+•	Job Target: {{JOB_TARGET}}
+•	Data Source: {{DATA_SOURCE}}
+•	Analysis Time: {{EXTRACTION_TIME}}
+•	Metrics: {{METRICS_COUNT}}
 KEY METRICS:
 {{METRICS}}
-
 REQUIRED FORMAT:
-**Program name, award level**
-*Single-line market outlook summary*
-
-**Why we like it**
-• Positive attribute 1
-• Positive attribute 2  
-• Positive attribute 3
-
-**Potential concerns**
-• Negative attribute 1
-• Negative attribute 2
-• Negative attribute 3
-
-**Overall assessment**
+Program name, award level
+Single-line market outlook summary
+Why we like it
+• Positive attribute 1 • Positive attribute 2 • Positive attribute 3 • Positive attribute 4 • Positive attribute 5
+Potential concerns
+• Negative attribute 1 • Negative attribute 2 • Negative attribute 3 • Negative attribute 4 • Negative attribute 5 • Negative attribute 6
+Overall assessment
 • 3-4 sentence summary
-
-STYLE: Keep sentences short (E.B. White style). Round earnings to nearest $1K (e.g., $96K), percentages to whole numbers (12%), SUG to one decimal (1.8). Avoid vague terms like "strong positioning."
-
-ANALYSIS CRITERIA (5 key factors):
-
-**MARKET GROWTH** (Score max: 2)
-- SUG >2=exceptional, 1-2=strong, 0.2-1=moderate, 0-0.2=barely growing, <0=decline
-- % Growing >80%=exceptional, 70-80%=strong, 60-70%=good, 50-60%=decent, <50%=concern
-- Positive example: "Strong **market growth**, SUG=1.4 and 68% of programs growing"
-- Negative example: "Concerning **market decline**, SUG=-0.4 and only 38% growing"
-
-**SCHOOLS LIKE US** (Score max: 3)  
-- SUG Segment: >3=exceptional, 2-3=strong, 1-2=good, 0.2-1=moderate, <0.2=concern
-- % Institutions Offering: >80%=universal, 50-70%=widely offered, 20-30%=not unusual, <5%=rarely offered
-- % Growing Segment Market most important variable
-- Positive example: "Exceptional performance among **schools like us**. Broadly offered (72%), with 88% growing. Strong SUG=3.2"
-- Negative example: "Poor performance among **schools like us**. Only 32% growing, declining SUG=-1.2"
-
-**OPPORTUNITY SIZE** (Score max: 2)
-- Expected Completions: >25=exceptional, 20-25=large, 15-20=significant, 10-15=decent, 5-10=small, <5=very small
-- Express as range: lower-higher (e.g., 8-12)
-- Positive example: "Large **opportunity**, 21-23 completions expected per year"
-- Negative example: "Small **program size**, only 3-4 completions expected per year"
-
-**WORKFORCE DEMAND** (Score max: 2)
-- Jobs SUG: >2=exceptional, 1-2=strong, 0.5-1=growth, 0.2-0.5=moderate, <0=decline  
-- Demand:Supply Ratio: >200%=exceptional unmet demand, 150-200%=significant, 100-150%=unmet need, 80-100%=possible saturation, <80%=likely saturation
-- Job Postings Index: >2=exceptional, 1.5-2=very strong, 1.25-1.5=strong, 1-1.25=decent, 0.75-1=some, <0.5=weak
-- Mention UQ job and state
-- Positive example: "Excellent **workforce demand** for accountants in [state], Jobs SUG=1.6, Job Postings=1.1, Demand:Supply=176%"
-- Negative example: "Weak **workforce demand**, Jobs SUG=-0.8, Job Postings=0.4, Demand:Supply=72%"
-
-**EARNINGS OUTCOMES** (Score max: 1)
-- Median Salary: >$110K=exceptional, $100-110K=excellent, $90-100K=very strong, $80-90K=strong, $70-80K=good, $60-70K=moderate, $50-60K=modest/poor(grad), $40-50K=poor, <$40K=very poor
-- First-year earnings (undergrad): >$80K=exceptional, $70-80K=excellent, $60-70K=very strong, $50-60K=strong, $40-50K=moderate, $30-40K=poor, <$30K=very poor
-- First-year earnings (grad): >$100K=exceptional, $90-100K=excellent, $80-90K=very strong, $70-80K=strong, $60-70K=decent, $50-60K=poor, <$40K=extremely poor
-- Positive example: "Strong **earnings outcomes**, median salary $86K, first-year earnings $64K"
-- Negative example: "Poor **earnings outcomes**, median $48K, first-year $42K. Poor ROI may reduce tuition revenue"
-
-BULLET RULES:
-- Under "Why we like it": Include ONLY positive factors (skip negatives)
-- Under "Potential concerns": Include ONLY negative factors (skip positives)  
-- Match evaluative language to actual scores
-- Skip bullets if factor isn't positive/negative respectively
-
-OVERALL ASSESSMENT ADDITIONS:
-- Health sciences (PT/OT/PA) with strong metrics: "Although investment is significant, potential for game-changing growth may make it rewarding"
-- Graduate programs with poor earnings: "Poor earnings require careful financial viability planning"  
-- Small undergraduate programs: "Small size suggests partnering with Rize/Acadeum for cost-effectiveness"
-
+STYLE GUIDE:
+• Numbers: Round earnings/salary to nearest thousand (e.g., $96K, not $95,868). Round percentages to whole numbers (e.g., 12%, not 11.8%). Show scores, total scores, SUG, and other numbers with one decimal place (e.g., 1.8, not 1.76).
+• Text: Keep sentences short (E.B. White style). Aim for 100-150 characters per bullet point. Avoid vague phrases like "strong market fundamentals"—be specific. Open bullets with 3-4 word summary—like "Exceptional growth in geographical market", "Modest job growth," "Excellent earning outcomes," or "Potentially oversaturated workforce"—then follow with metrics. Vary similar sentences for better flow.
+• Do not use the word "fundamentals."
+• Make key issues per bullet bold: "market growth", "earnings outcomes", "workforce demand."
+DATA ACCURACY:
+Verify all metrics are correct and from the right row—use only table data, no hallucinations. Match tone to scores: near max = positive, near min = concerns.
+ANALYSIS:
+When writing each bullet: • Keep exact metrics and scoring rules below. • Connect multiple metrics into single sentence for natural flow. • Include one additional insight—comparative context, plausible driver, or strategic implication. • Note data trends in 1-2 words (e.g., "accelerating," "stable," "slowing"). • Avoid repeating interpretations or phrasing across bullets. • Keep language business-relevant, avoid generic statements.
+WHY WE LIKE IT
+Up to 5 bullets; skip if not positive.
+1.	Market Growth — Use SUG (Geo Market) + % Growing (completions).
+SUG: >2 exc, 1-2 strong, 0.2-1 mod, 0-0.2 barely, -0.2-0 slight decline, < -0.2 decline, < -1 steep decline.
+% Growing: >80% exc, 70-80% strong, 60-70% good, 50-60% decent, 40-50% neg, 33-40% strong neg, 25-33% very strong neg, <25% extreme neg.
+Format: Strong market growth, SUG = 1.4 in [Institution]'s geographical market, 68% growing.
+2.	Schools Like Us — Use SUG (Segment Market), % Offering, % Growing (Segment & Ref Market). Segment Market = ~100 peers; Ref Market = key competitors.
+SUG: >3 exc, 2-3 strong, 1-2 good, 0.2-1 mod, 0-0.2 barely, -0.2-0 slight decline, < -0.2 decline, < -1 steep decline.
+% Offering: >80% nearly universal, 70-80% broad, 50-70% wide, 40-50% common, 30-40% somewhat common, 20-30% not unusual, 10-20% some success, 5-10% uncommon, <5% rare.
+Format: Exceptional performance among schools like us. Broadly offered (72%), 88% and 92% growing in Segment/Ref markets, SUG = 3.2.
+3.	Opportunity Size — Use Expected Completions/yr, Median Completions (Segment Market), Program Size Consistency Index.
+Expected: >25 exc, 20-25 large, 15-20 sig, 10-15 modest, 5-10 small, <5 very small.
+Consistency: >1.25 highly consistent, 1-1.25 consistent, 0.8-1 reasonable, <0.8 inconsistent.
+Format: Exceptional opportunity size, 24-28 completions/year, consistent sizes.
+4.	Workforce Demand — Use Jobs SUG, Demand:Supply Ratio, Job Postings Index. Use "UQ Job" in role description.
+Jobs SUG: >2 exc, 1-2 strong, 0.5-1 growth, 0.2-0.5 mod growth, 0-0.2 slight growth, -0.2-0 slight decline, < -0.2 decline, < -1 steep decline.
+Demand:Supply: >200% exc unmet, 150-200% sig unmet, 100-150% unmet, 80-100% possible saturation, <80% likely saturation.
+Index: >2 exc, 1.5-2 very strong, 1.25-1.5 strong, 1-1.25 decent, 0.75-1 some, 0.5-0.75 modest, <0.5 weak.
+Format: Excellent workforce demand for {UQ Job} in {State}, Jobs SUG 1.6, Index 1.1, Demand:Supply 176%.
+5.	Earnings Outcomes — Median Salary (ACS for bachelor's, BLS for others) + first-year earnings (College Scorecard, inflation-adjusted).
+Median Salary: >$110K exc, $100-110K excellent, $90-100K v strong, $80-90K strong, $70-80K good, $60-70K mod, $50-60K modest (grad poor), $40-50K poor (grad very poor), <$40K very poor.
+First-year: • UG: >$80K exc, $70-80K excellent, $60-70K v strong, $50-60K strong, $40-50K mod, $30-40K poor, <$40K v poor. • Grad: >$100K exc, $90-100K excellent, $80-90K v strong, $70-80K strong, $60-70K decent, $50-60K poor, $40-50K v poor, <$40K extreme poor.
+Format: Excellent earnings outcomes: {UQ Job} in {State}, median $122K, 1st-year $112K. High earnings increase tuition potential.
+POTENTIAL CONCERNS
+Up to 6 bullets; skip if no negative findings.
+1.	Market Growth — SUG (Geo Market) + % Growing (completions).
+Thresholds: SUG 0-0.2 barely (concern), -0.2-0 slight decline (concern), < -0.2 decline, < -1 steep decline. % Growing: 40-50% less than half (concern), 33-40% strong neg, 25-33% very strong neg, <25% extreme neg.
+Format: Concerning market decline, SUG = -0.4, only 38% growing.
+2.	Poor Performance Among Peers — SUG (Segment Market), % Growing, % Offering.
+Format: Poor performance among schools like us. Only 45% and 38% growing in Segment/Ref markets, SUG = -0.4.
+3.	Limited Opportunity Size — Expected Completions/Year, Consistency Index.
+Size: 5-10 small, <5 very small. Consistency: <0.8 inconsistent.
+Note large outliers: "3-4 completions expected, but University A reported 34 completions and University B reported 19."
+Format: Small program size, only 3-4 completions/year, highly inconsistent across institutions.
+4.	Concentrated Market — Market Concentration, Largest Two Programs.
+Concentration: >25% concerning, >40% very concerning.
+Format: Highly concentrated market, largest two institutions account for 38%. Institution A and B reported 798 and 634 completions.
+5.	Weak Workforce Demand — Jobs SUG, Demand:Supply Ratio, Job Postings Index.
+Format: Weak workforce demand for {role} in {State}. SUG -0.8, Index 0.4, Demand:Supply 72% indicates saturation.
+6.	Poor Earnings Outcomes — Median salary + first-year earnings.
+Format: Poor earnings outcomes. {Role} in {State} earn $48K median, $42K first-year. Poor ROI may lower tuition revenue per student.
+OVERALL ASSESSMENT
+Write 3-4 sentence summary based on analysis.
+Add context-specific language:
+•	Health sciences (PT, OT, PA) with strong metrics: "Although investment required is significant, potential for gamechanging enrollment and revenue growth may make investment very rewarding."
+•	Poor earnings programs (counseling, social work): "Poor earnings outcomes, and thus likely lower net tuition revenue per student, require careful planning to assess financial viability."
+•	Small UG programs (cybersecurity, data science): "Given small expected program size, partnering with course- or program-sharing partner like Rize or Acadeum may launch this cost-effectively."
+Sample assessments:
+•	Exceptional opportunity attractive on all criteria. Strong market growth, excellent peer performance, large consistent program size, significant workforce demand, and excellent earnings make this a clear winner.
+•	Strong market growth and peer performance make this attractive. However, poor workforce demand and earnings are concerning.
+•	Although program size is small, strong market growth and widespread peer growth make this attractive, though modest. Partnership with course-sharing may be cost-effective.
+•	Market declines, poor peer performance, and weak job outlook make this unattractive.
 END WITH SCORE TABLE:
-Category | Score
-Market Growth (Max 2) | [actual score]
-"Schools Like Us" (Max 3) | [actual score]  
-Opportunity Size (Max 2) | [actual score]
-Workforce Demand (Max 2) | [actual score]
-Earnings Outcomes (Max 1) | [actual score]
-Total Score | [sum]
+Category | Score 
+Market Growth (Max 2) | [actual score] 
+"Schools Like Us" (Max 3) | [actual score] 
+Opportunity Size (Max 2) | [actual score] 
+Workforce Demand (Max 2) | [actual score] 
+Earnings Outcomes (Max 1) | [actual score] Total Score | [sum]
 
 Use ONLY provided metrics. No hallucinations. Match evaluative tone to scores.
-
