@@ -371,7 +371,7 @@
             
             // Apply blue color to first actual content line (the market outlook description)
             if (lines.length > 0 && lines[0] && !lines[0].includes('<h2>')) {
-                lines[0] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[0]}</span>`;
+                lines[0] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 15px;">${lines[0]}</span>`;
             }
             
             htmlSummary = lines.join('<br>');
@@ -566,7 +566,7 @@
                     let colorApplied = false;
                     for (let i = 0; i < lines.length; i++) {
                         if (lines[i] && lines[i].trim() !== '' && !lines[i].includes('<h2>') && !colorApplied) {
-                            lines[i] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[i]}</span>`;
+                            lines[i] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 15px;">${lines[i]}</span>`;
                             colorApplied = true;
                             break;
                         }
