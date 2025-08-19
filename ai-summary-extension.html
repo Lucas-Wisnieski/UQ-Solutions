@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Program Summary</title>
+    <title>AI Program Summary - Claude</title>
     <style>
         body {
             font-family: 'Avenir Medium', 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -39,15 +39,6 @@
             margin: 0;
             font-family: 'Avenir Medium', 'Avenir', sans-serif;
             text-align: center;
-        }
-        
-        .program-title {
-            font-family: 'Avenir Medium', 'Avenir', sans-serif;
-            font-size: 22px;
-            font-weight: bold;
-            color: #03304d;
-            margin: 20px 0 15px 0;
-            text-align: left;
         }
         
         .refresh-btn {
@@ -112,7 +103,6 @@
             font-family: 'Avenir Medium', 'Avenir', sans-serif;
         }
         
-        /* First line - lighter blue subtitle */
         .summary-text .subtitle {
             font-family: 'Avenir Medium', 'Avenir', sans-serif;
             font-size: 18px;
@@ -155,16 +145,6 @@
             margin-bottom: 14px;
             line-height: 1.8;
             font-size: 17px;
-        }
-        
-        /* Make subtitle/description text bold and larger */
-        .summary-text p:nth-of-type(2),
-        .summary-text p:first-child:not([style*="display: none"]) {
-            font-weight: 900;
-            font-size: 19px;
-            color: #2c3e50;
-            font-style: italic;
-            margin-bottom: 20px;
         }
         
         .summary-text table {
@@ -218,13 +198,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">New Program AI Summary</h1>
+            <h1 class="title">Program Metrics Analysis - Claude AI</h1>
             <button class="refresh-btn" onclick="generateSummary()">Update Summary</button>
         </div>
         
         <div id="loadingIndicator" class="loading" style="display: none;">
             <div class="spinner"></div>
-            <span>Analyzing program data...</span>
+            <span>Analyzing program metrics...</span>
         </div>
         
         <div class="summary-container">
@@ -237,11 +217,11 @@
     </div>
 
     <script>
-        console.log('🚀 AI Summary Extension v2025.01.25.4 loaded');
+        console.log('🚀 Claude AI Extension v2025.01.25 loaded');
         
-        // API URLs
+        // API Configuration
         const CLAUDE_API_URL = 'https://uq-solutions.vercel.app/api/claude';
-        const GEMINI_API_URL = 'https://uq-solutions-gemini.vercel.app/api/gemini';
+        const CLAUDE_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/ai-analysis-prompt.txt';
         
         // GitHub Pages URLs for Tableau API
         const GITHUB_API_URLS = [
@@ -249,26 +229,20 @@
             'https://lucas-wisnieski.github.io/UQ-Solutions/js/tableau.extensions.1.latest.min.js'
         ];
 
-        // Prompt URLs
-        const CLAUDE_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/ai-analysis-prompt.txt';
-        const GEMINI_PROMPT_URL = 'https://raw.githubusercontent.com/Lucas-Wisnieski/UQ-Solutions/main/prompts/institution-analysis-prompt.txt';
-
         // Global state
         let isProcessing = false;
         let claudePrompt = null;
-        let geminiPrompt = null;
-        let detectedMode = null;
         let lastTriggerCheck = 0;
 
-        // Check for triggers from multiple sources
+        // Check for triggers from external sources
         function checkForTriggers() {
             // Check for completed summary results
             try {
-                const storedResult = localStorage.getItem('ai-summary-result');
+                const storedResult = localStorage.getItem('claude-summary-result');
                 if (storedResult) {
                     const resultData = JSON.parse(storedResult);
                     if (resultData.timestamp > lastTriggerCheck) {
-                        localStorage.removeItem('ai-summary-result'); // Clear it
+                        localStorage.removeItem('claude-summary-result');
                         lastTriggerCheck = Date.now();
                         displayExternalSummary(resultData.content);
                         return;
@@ -281,12 +255,12 @@
             // Check Tableau settings for completed summary
             if (typeof tableau !== 'undefined' && tableau.extensions && tableau.extensions.settings) {
                 try {
-                    const summaryContent = tableau.extensions.settings.get('ai-summary-content');
-                    const summaryTimestamp = tableau.extensions.settings.get('ai-summary-timestamp');
+                    const summaryContent = tableau.extensions.settings.get('claude-summary-content');
+                    const summaryTimestamp = tableau.extensions.settings.get('claude-summary-timestamp');
                     
                     if (summaryContent && summaryTimestamp && parseInt(summaryTimestamp) > lastTriggerCheck) {
-                        tableau.extensions.settings.set('ai-summary-content', ''); // Clear it
-                        tableau.extensions.settings.set('ai-summary-timestamp', '');
+                        tableau.extensions.settings.set('claude-summary-content', '');
+                        tableau.extensions.settings.set('claude-summary-timestamp', '');
                         lastTriggerCheck = Date.now();
                         displayExternalSummary(summaryContent);
                         return;
@@ -296,13 +270,13 @@
                 }
             }
             
-            // Legacy trigger checking (keep for backwards compatibility)
+            // Check for trigger signal
             try {
-                const storedTrigger = localStorage.getItem('ai-summary-trigger');
+                const storedTrigger = localStorage.getItem('claude-summary-trigger');
                 if (storedTrigger) {
                     const triggerData = JSON.parse(storedTrigger);
                     if (triggerData.timestamp > lastTriggerCheck) {
-                        localStorage.removeItem('ai-summary-trigger'); // Clear it
+                        localStorage.removeItem('claude-summary-trigger');
                         lastTriggerCheck = Date.now();
                         generateSummary();
                         return;
@@ -314,117 +288,133 @@
         }
 
         // Start polling for triggers
-        setInterval(checkForTriggers, 500); // Check every 500ms
+        setInterval(checkForTriggers, 500);
 
-        // 🆕 ADD MESSAGE LISTENER FOR TRIGGER BUTTON COMMUNICATION
+        // Message listener for trigger button communication
         window.addEventListener('message', function(event) {
-            // Check for trigger message
-            if (event.data && event.data.type === 'TRIGGER_AI_SUMMARY') {
+            if (event.data && event.data.type === 'TRIGGER_CLAUDE_SUMMARY') {
                 lastTriggerCheck = Date.now();
                 generateSummary();
             }
-            
-            // Check for direct summary display message
-            else if (event.data && event.data.type === 'DISPLAY_AI_SUMMARY') {
-                // Display the summary directly in main extension
+            else if (event.data && event.data.type === 'DISPLAY_CLAUDE_SUMMARY') {
                 if (event.data.summary) {
                     displayExternalSummary(event.data.summary);
                 }
             }
         });
 
-        console.log('✅ Main extension message listener initialized');
+        console.log('✅ Claude extension message listener initialized');
 
         function displayExternalSummary(summaryText) {
-            console.log('📋 Displaying external AI summary in main extension...');
+            console.log('📋 Displaying Claude AI summary...');
             
-            // Enhanced conversion to catch different heading patterns
             let htmlSummary = summaryText
-                // Convert standalone bold lines to h2 (for section headings)
                 .replace(/^(?:\*\*)?([A-Z][^:.\n]+(?::|$))(?:\*\*)?$/gm, '<h2>$1</h2>')
-                // Convert "Why we like it:", "Potential concerns:", etc. to h2
                 .replace(/^(Why we like it|Potential concerns|Overall assessment)[:]*$/gmi, '<h2>$1</h2>')
-                // Convert ## markdown headings
                 .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                // Convert **text** on its own line to h2
                 .replace(/^\*\*(.*?)\*\*$/gm, '<h2>$1</h2>')
-                // Remove remaining ** markdown for inline bold
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>')
-                // Clean up any colons after h2 tags
                 .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
             
-            // Remove only the "MARKET OUTLOOK SUMMARY" header, keep the description
             let lines = htmlSummary.split('<br>');
             
-            // Remove only specific header lines, not content
             lines = lines.filter(line => {
                 const cleanLine = line.replace(/<[^>]*>/g, '').trim().toUpperCase();
-                // Only remove these specific headers
                 return !(cleanLine === 'MARKET OUTLOOK SUMMARY' || 
                         cleanLine === 'MARKET OUTLOOK' ||
                         cleanLine === 'SUMMARY' ||
                         cleanLine === '');
             });
             
-            // Apply blue color to first actual content line (the market outlook description)
             if (lines.length > 0 && lines[0] && !lines[0].includes('<h2>')) {
                 lines[0] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block;">${lines[0]}</span>`;
             }
             
             htmlSummary = lines.join('<br>');
             
-            // Wrap in paragraph tags if not already formatted
             if (!htmlSummary.includes('<p>')) {
                 htmlSummary = '<p>' + htmlSummary + '</p>';
             }
             
-            console.log('🔍 HTML Summary after conversion:', htmlSummary.substring(0, 500));
+            // Handle metrics table if present
+            if (htmlSummary.includes('Category | Score')) {
+                htmlSummary = convertMetricsTable(htmlSummary);
+            }
             
-            // Display in the main summary area without additional title
             document.getElementById('summaryText').innerHTML = htmlSummary;
-            
-            // Hide loading if it's showing
             document.getElementById('loadingIndicator').style.display = 'none';
             hideError();
             
-            console.log('✅ External summary displayed successfully in main extension');
+            console.log('✅ Claude summary displayed successfully');
+        }
+
+        function convertMetricsTable(htmlSummary) {
+            return htmlSummary.replace(
+                /Category \| Score[\s\S]*?Total Score[^|]*\|[^0-9]*([\d.]+)/,
+                function(match) {
+                    const lines = match.split(/\n|<br>/);
+                    let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
+                    
+                    lines.forEach(line => {
+                        if (line.includes('Category | Score') || line.includes('---') || !line.trim()) {
+                            return;
+                        }
+                        
+                        if (line.includes('Total Score')) {
+                            const totalMatch = line.match(/Total Score[^|]*\|[^0-9]*([\d.]+)/);
+                            if (totalMatch) {
+                                const formattedTotalScore = parseFloat(totalMatch[1]).toFixed(1);
+                                tableHTML += `<tr><td><strong>Total Score (Max 10)</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
+                            }
+                        } else if (line.includes('|')) {
+                            const parts = line.split('|');
+                            if (parts.length >= 2) {
+                                const category = parts[0].trim();
+                                const scoreText = parts[1].trim();
+                                const scoreMatch = scoreText.match(/([\d.]+)/);
+                                if (scoreMatch) {
+                                    const score = parseFloat(scoreMatch[1]).toFixed(1);
+                                    tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
+                                }
+                            }
+                        }
+                    });
+                    
+                    tableHTML += '</tbody></table>';
+                    return tableHTML;
+                }
+            );
         }
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up...');
+            console.log('DOM loaded, setting up Claude extension...');
             
             try {
-                console.log('✅ Main extension initialized');
-                loadPrompts();
+                loadPrompt();
             } catch (error) {
                 console.error('Setup error:', error);
                 showError('Extension setup failed: ' + error.message);
             }
         });
 
-        function loadPrompts() {
-            console.log('🔍 Loading prompts from GitHub...');
+        function loadPrompt() {
+            console.log('🔍 Loading Claude prompt from GitHub...');
             
-            Promise.all([
-                fetch(CLAUDE_PROMPT_URL).then(r => r.text()),
-                fetch(GEMINI_PROMPT_URL).then(r => r.text())
-            ])
-            .then(function([claudeText, geminiText]) {
-                claudePrompt = claudeText.trim();
-                geminiPrompt = geminiText.trim();
-                console.log('✅ Claude prompt loaded:', claudePrompt.length, 'characters');
-                console.log('✅ Gemini prompt loaded:', geminiPrompt.length, 'characters');
-                
-                loadTableauAPI();
-            })
-            .catch(function(error) {
-                console.error('❌ Failed to load prompts:', error);
-                showError('Failed to load analysis prompts: ' + error.message);
-            });
+            fetch(CLAUDE_PROMPT_URL)
+                .then(r => r.text())
+                .then(function(text) {
+                    claudePrompt = text.trim();
+                    console.log('✅ Claude prompt loaded:', claudePrompt.length, 'characters');
+                    loadTableauAPI();
+                })
+                .catch(function(error) {
+                    console.error('❌ Failed to load prompt:', error);
+                    showError('Failed to load analysis prompt: ' + error.message);
+                });
         }
 
         function loadTableauAPI() {
@@ -478,15 +468,13 @@
             if (tableau && tableau.extensions) {
                 tableau.extensions.initializeAsync()
                     .then(function() {
-                        console.log('🎉 Extension initialized!');
-                        updateButtonText();
-                                                
-                        // Auto-generate summary after a short delay to ensure everything is loaded
-                        setTimeout(function() {
-                            console.log('🔄 Auto-generating summary on page load...');
-                            generateSummary();
-                        }, 200); // 0.2 second delay
+                        console.log('🎉 Claude extension initialized!');
                         
+                        // Auto-generate summary after initialization
+                        setTimeout(function() {
+                            console.log('🔄 Auto-generating Claude summary on page load...');
+                            generateSummary();
+                        }, 200);
                     })
                     .catch(function(error) {
                         console.error('❌ Init failed:', error);
@@ -494,17 +482,13 @@
             }
         }
 
-        function updateButtonText() {
-            console.log('📝 Button text update');
-        }
-
         function generateSummary() {
             if (isProcessing) {
                 return;
             }
             
-            if (!claudePrompt || !geminiPrompt) {
-                showError('Prompts not loaded. Please refresh the page and try again.');
+            if (!claudePrompt) {
+                showError('Prompt not loaded. Please refresh the page and try again.');
                 return;
             }
             
@@ -521,105 +505,13 @@
                 }
             }, 45000);
             
-            detectDashboardType()
+            extractData()
                 .then(function(data) {
                     console.log('✅ Data extracted:', data);
-                    console.log('🎯 Detected mode:', detectedMode);
-                    
-                    return callAPI(data);
+                    return callClaudeAPI(data);
                 })
                 .then(function(summary) {
-                    // Enhanced conversion to catch different heading patterns
-                    let htmlSummary = summary
-                        // Convert standalone bold lines to h2 (for section headings)
-                        .replace(/^(?:\*\*)?([A-Z][^:.\n]+(?::|$))(?:\*\*)?$/gm, '<h2>$1</h2>')
-                        // Convert "Why we like it:", "Potential concerns:", etc. to h2
-                        .replace(/^(Why we like it|Potential concerns|Overall assessment)[:]*$/gmi, '<h2>$1</h2>')
-                        // Convert ## markdown headings
-                        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                        // Convert **text** on its own line to h2
-                        .replace(/^\*\*(.*?)\*\*$/gm, '<h2>$1</h2>')
-                        // Remove remaining ** markdown for inline bold
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/\n/g, '<br>')
-                        // Clean up any colons after h2 tags
-                        .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
-                    
-                    // Remove only the "MARKET OUTLOOK SUMMARY" header line
-                    let lines = htmlSummary.split('<br>');
-                    
-                    // Filter out only the header, keep the description
-                    lines = lines.filter((line, index) => {
-                        const cleanLine = line.replace(/<[^>]*>/g, '').trim().toUpperCase();
-                        // Only remove these specific headers
-                        if (cleanLine === 'MARKET OUTLOOK SUMMARY' || 
-                            cleanLine === 'MARKET OUTLOOK' ||
-                            cleanLine === 'SUMMARY') {
-                            return false;
-                        }
-                        // Keep everything else including empty lines for spacing
-                        return true;
-                    });
-                    
-                    // Apply blue color to first actual content line (market outlook description)
-                    let colorApplied = false;
-                    for (let i = 0; i < lines.length; i++) {
-                        if (lines[i] && lines[i].trim() !== '' && !lines[i].includes('<h2>') && !colorApplied) {
-                            lines[i] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block;">${lines[i]}</span>`;
-                            colorApplied = true;
-                            break;
-                        }
-                    }
-                    
-                    htmlSummary = lines.join('<br>');
-                    
-                    console.log('🔍 HTML Summary after conversion:', htmlSummary.substring(0, 500));
-                    
-                    // Convert Category | Score table to HTML table
-                    if (detectedMode === 'metrics' || htmlSummary.includes('Category | Score')) {
-                        // First try to match the simple text format
-                        htmlSummary = htmlSummary.replace(
-                            /Category \| Score[\s\S]*?Total Score[^|]*\|[^0-9]*([\d.]+)/,
-                            function(match) {
-                                // Parse the text block into rows
-                                const lines = match.split(/\n|<br>/);
-                                let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
-                                
-                                lines.forEach(line => {
-                                    // Skip header and separator lines
-                                    if (line.includes('Category | Score') || line.includes('---') || !line.trim()) {
-                                        return;
-                                    }
-                                    
-                                    // Check if it's the total score line
-                                    if (line.includes('Total Score')) {
-                                        const totalMatch = line.match(/Total Score[^|]*\|[^0-9]*([\d.]+)/);
-                                        if (totalMatch) {
-                                            const formattedTotalScore = parseFloat(totalMatch[1]).toFixed(1);
-                                            tableHTML += `<tr><td><strong>Total Score (Max 10)</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
-                                        }
-                                    } else if (line.includes('|')) {
-                                        // Parse regular score lines
-                                        const parts = line.split('|');
-                                        if (parts.length >= 2) {
-                                            const category = parts[0].trim();
-                                            const scoreText = parts[1].trim();
-                                            const scoreMatch = scoreText.match(/([\d.]+)/);
-                                            if (scoreMatch) {
-                                                const score = parseFloat(scoreMatch[1]).toFixed(1);
-                                                tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
-                                            }
-                                        }
-                                    }
-                                });
-                                
-                                tableHTML += '</tbody></table>';
-                                return tableHTML;
-                            }
-                        );
-                    }
-                    
+                    let htmlSummary = formatSummary(summary);
                     document.getElementById('summaryText').innerHTML = htmlSummary;
                 })
                 .catch(function(error) {
@@ -630,209 +522,6 @@
                     isProcessing = false;
                     document.getElementById('loadingIndicator').style.display = 'none';
                 });
-        }
-
-        function detectDashboardType() {
-            return new Promise(function(resolve, reject) {
-                if (typeof tableau === 'undefined' || !tableau.extensions) {
-                    reject(new Error('Tableau API not available'));
-                    return;
-                }
-
-                try {
-                    const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-                    console.log(`Found ${worksheets.length} worksheets`);
-                    
-                    worksheets.forEach((ws, i) => {
-                        console.log(`Worksheet ${i + 1}: "${ws.name}"`);
-                    });
-                    
-                    const hasInstitutionTables = worksheets.some(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('institution')
-                    );
-                    
-                    const hasMetricsTables = worksheets.some(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('metrics')
-                    );
-                    
-                    if (hasInstitutionTables) {
-                        detectedMode = 'institutions';
-                        console.log('🏛️ Detected: Institution Analysis Dashboard');
-                        extractInstitutionData(worksheets).then(resolve).catch(reject);
-                    } else if (hasMetricsTables) {
-                        detectedMode = 'metrics';
-                        console.log('📊 Detected: Program Metrics Dashboard');
-                        extractData().then(resolve).catch(reject);
-                    } else {
-                        reject(new Error('No recognized Claude worksheets found'));
-                    }
-                    
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-
-        function extractInstitutionData(worksheets) {
-            return new Promise(function(resolve, reject) {
-                try {
-                    let secondaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('secondary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-                    
-                    let tertiaryInstitutionsWs = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && 
-                        ws.name.toLowerCase().includes('tertiary') &&
-                        ws.name.toLowerCase().includes('institution')
-                    );
-
-                    if (!secondaryInstitutionsWs && !tertiaryInstitutionsWs) {
-                        reject(new Error('No institution worksheets found'));
-                        return;
-                    }
-
-                    console.log(`Found secondary institutions: "${secondaryInstitutionsWs?.name || 'None'}"`);
-                    console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs?.name || 'None'}"`);
-
-                    Promise.all([
-                        secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
-                        tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
-                    ])
-                    .then(function([secondaryData, tertiaryData]) {
-                        let secondaryInstitutions = [];
-                        let tertiaryInstitutions = [];
-                        
-                        if (secondaryData) {
-                            console.log(`Got ${secondaryData.data.length} secondary institution rows`);
-                            secondaryInstitutions = extractInstitutionNames(secondaryData);
-                        }
-                        
-                        if (tertiaryData) {
-                            console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
-                            tertiaryInstitutions = extractInstitutionNames(tertiaryData);
-                        }
-
-                        // Extract program and job from the institution data
-                        let currentProgram = 'Program Analysis';
-                        let currentJob = 'Various Careers';
-                        
-                        if (secondaryData && secondaryData.data.length > 0) {
-                            const firstRow = secondaryData.data[0];
-                            const columns = secondaryData.columns.map(col => col.fieldName);
-                            
-                            const cipIndex = columns.findIndex(col => 
-                                col.toLowerCase().includes('cip') || 
-                                col.toLowerCase().includes('award') ||
-                                col.toLowerCase().includes('program')
-                            );
-                            
-                            if (cipIndex >= 0 && firstRow[cipIndex]) {
-                                const cipValue = (typeof firstRow[cipIndex] === 'object' && firstRow[cipIndex].value !== undefined) 
-                                    ? firstRow[cipIndex].value : firstRow[cipIndex];
-                                if (cipValue && cipValue !== '%null%') {
-                                    currentProgram = cipValue;
-                                    console.log('📊 Current program from institution data:', currentProgram);
-                                }
-                            }
-                        } else if (tertiaryData && tertiaryData.data.length > 0) {
-                            const firstRow = tertiaryData.data[0];
-                            const columns = tertiaryData.columns.map(col => col.fieldName);
-                            
-                            const cipIndex = columns.findIndex(col => 
-                                col.toLowerCase().includes('cip') || 
-                                col.toLowerCase().includes('award') ||
-                                col.toLowerCase().includes('program')
-                            );
-                            
-                            if (cipIndex >= 0 && firstRow[cipIndex]) {
-                                const cipValue = (typeof firstRow[cipIndex] === 'object' && firstRow[cipIndex].value !== undefined) 
-                                    ? firstRow[cipIndex].value : firstRow[cipIndex];
-                                if (cipValue && cipValue !== '%null%') {
-                                    currentProgram = cipValue;
-                                    console.log('📊 Current program from institution data:', currentProgram);
-                                }
-                            }
-                        }
-
-                        resolve({
-                            program: currentProgram,
-                            jobTarget: currentJob,
-                            secondaryInstitutions: secondaryInstitutions,
-                            tertiaryInstitutions: tertiaryInstitutions,
-                            dataSource: 'Institution Data (Tableau View)',
-                            timestamp: new Date().toLocaleString()
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error('Institution data extraction error:', error);
-                        reject(new Error('Institution data extraction failed: ' + error.message));
-                    });
-
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-
-        function extractInstitutionNames(dataTable) {
-            const columns = dataTable.columns.map(col => col.fieldName);
-            const rows = dataTable.data;
-            
-            console.log('Institution table columns:', columns);
-            
-            const institutionColumnIndex = columns.findIndex(col => 
-                col.toLowerCase() === 'institution'
-            );
-            
-            if (institutionColumnIndex === -1) {
-                const fallbackIndex = columns.findIndex(col => 
-                    col.toLowerCase().includes('institution') ||
-                    col.toLowerCase().includes('school') ||
-                    col.toLowerCase().includes('university') ||
-                    col.toLowerCase().includes('college')
-                );
-                
-                if (fallbackIndex === -1) {
-                    console.log('⚠️ No institution column found');
-                    return [];
-                }
-                
-                console.log(`Found institution column at index ${fallbackIndex}: "${columns[fallbackIndex]}"`);
-                const institutionColumnIndex = fallbackIndex;
-            } else {
-                console.log(`Found institution column at index ${institutionColumnIndex}: "${columns[institutionColumnIndex]}"`);
-            }
-            
-            const institutions = [];
-            
-            rows.forEach(function(row, index) {
-                if (row[institutionColumnIndex]) {
-                    let institutionName = row[institutionColumnIndex];
-                    
-                    if (typeof institutionName === 'object' && institutionName._formattedValue) {
-                        institutionName = institutionName._formattedValue;
-                    } else if (typeof institutionName === 'object' && institutionName._value) {
-                        institutionName = institutionName._value;
-                    } else if (typeof institutionName === 'object' && institutionName.value !== undefined) {
-                        institutionName = institutionName.value;
-                    }
-                    
-                    if (institutionName && typeof institutionName === 'string' && institutionName.trim() !== '') {
-                        const cleanName = institutionName.trim();
-                        if (!institutions.includes(cleanName) && !cleanName.includes('|')) {
-                            institutions.push(cleanName);
-                            console.log(`Found institution ${institutions.length}: ${cleanName}`);
-                        }
-                    }
-                }
-            });
-            
-            console.log(`Extracted ${institutions.length} unique institutions`);
-            return institutions;
         }
 
         function extractData() {
@@ -846,10 +535,13 @@
                     const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
                     console.log(`Found ${worksheets.length} worksheets`);
                     
-                    let target = worksheets.find(ws => 
-                        ws.name.toLowerCase().includes('claude') && ws.name.toLowerCase().includes('metrics')
+                    // Look for Claude metrics worksheet
+                    let metricsWs = worksheets.find(ws => 
+                        ws.name.toLowerCase().includes('claude') && 
+                        ws.name.toLowerCase().includes('metrics')
                     );
                     
+                    // Look for institution worksheets (optional)
                     let secondaryInstitutionsWs = worksheets.find(ws => 
                         ws.name.toLowerCase().includes('claude') && 
                         ws.name.toLowerCase().includes('secondary') &&
@@ -862,79 +554,36 @@
                         ws.name.toLowerCase().includes('institution')
                     );
                     
-                    if (!target && worksheets.length > 0) {
-                        target = worksheets[0];
+                    if (!metricsWs && worksheets.length > 0) {
+                        metricsWs = worksheets[0];
                     }
                     
-                    if (!target) {
-                        reject(new Error('No worksheets found'));
+                    if (!metricsWs) {
+                        reject(new Error('No metrics worksheet found'));
                         return;
                     }
                     
-                    console.log(`Using main worksheet: "${target.name}"`);
-                    if (secondaryInstitutionsWs) console.log(`Found secondary institutions: "${secondaryInstitutionsWs.name}"`);
-                    if (tertiaryInstitutionsWs) console.log(`Found tertiary institutions: "${tertiaryInstitutionsWs.name}"`);
+                    console.log(`Using metrics worksheet: "${metricsWs.name}"`);
                     
                     Promise.all([
-                        target.getSummaryDataAsync(),
+                        metricsWs.getSummaryDataAsync(),
                         secondaryInstitutionsWs ? secondaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null),
                         tertiaryInstitutionsWs ? tertiaryInstitutionsWs.getSummaryDataAsync() : Promise.resolve(null)
                     ])
-                        .then(function([summaryData, secondaryData, tertiaryData]) {
-                            console.log(`Got ${summaryData.data.length} summary rows`);
-                            
-                            let secondaryInstitutions = [];
-                            let tertiaryInstitutions = [];
-                            
-                            if (secondaryData) {
-                                console.log(`Got ${secondaryData.data.length} secondary institution rows`);
-                                secondaryInstitutions = extractInstitutionNames(secondaryData);
-                            }
-                            
-                            if (tertiaryData) {
-                                console.log(`Got ${tertiaryData.data.length} tertiary institution rows`);
-                                tertiaryInstitutions = extractInstitutionNames(tertiaryData);
-                            }
-                            
-                            if (summaryData.data.length > 0) {
-                                const data = processSummaryData(summaryData);
-                                if (data.metrics.length >= 3) {
-                                    console.log('✅ Using summary data with', data.metrics.length, 'metrics');
-                                    
-                                    data.secondaryInstitutions = secondaryInstitutions;
-                                    data.tertiaryInstitutions = tertiaryInstitutions;
-                                    
-                                    resolve(data);
-                                    return;
-                                } else {
-                                    console.log(`⚠️ Summary data has only ${data.metrics.length} metrics, trying underlying data...`);
-                                }
-                            }
-                            
-                            console.log('Summary data insufficient, trying underlying data...');
-                            return target.getUnderlyingDataAsync();
-                        })
-                        .then(function(underlyingData) {
-                            if (!underlyingData) {
-                                reject(new Error('No underlying data available'));
-                                return;
-                            }
-                            
-                            console.log(`Got ${underlyingData.data.length} underlying rows`);
-                            const data = processUnderlyingData(underlyingData);
-                            
-                            if (data.metrics.length === 0) {
-                                reject(new Error('No meaningful metrics found in underlying data'));
-                                return;
-                            }
-                            
-                            console.log('✅ Using underlying data with', data.metrics.length, 'metrics');
-                            resolve(data);
-                        })
-                        .catch(function(error) {
-                            console.error('Data extraction error:', error);
-                            reject(new Error('Data extraction failed: ' + error.message));
-                        });
+                    .then(function([metricsData, secondaryData, tertiaryData]) {
+                        const processedData = processMetricsData(metricsData);
+                        
+                        if (secondaryData) {
+                            processedData.secondaryInstitutions = extractInstitutionNames(secondaryData);
+                        }
+                        
+                        if (tertiaryData) {
+                            processedData.tertiaryInstitutions = extractInstitutionNames(tertiaryData);
+                        }
+                        
+                        resolve(processedData);
+                    })
+                    .catch(reject);
                     
                 } catch (error) {
                     reject(error);
@@ -942,23 +591,12 @@
             });
         }
 
-        function processSummaryData(dataTable) {
+        function processMetricsData(dataTable) {
             const columns = dataTable.columns.map(col => col.fieldName);
             const rows = dataTable.data;
             
-            console.log('Summary columns:', columns);
-            console.log('Summary rows:', rows.length);
-            
-            console.log('🔍 DEBUG: First 10 rows complete structure:');
-            for (let i = 0; i < Math.min(rows.length, 10); i++) {
-                const row = rows[i];
-                console.log(`Row ${i}:`, {
-                    cipCode: row[0],
-                    uqJob: row[1], 
-                    measureName: row[2],
-                    measureValue: row[3]
-                });
-            }
+            console.log('Metrics columns:', columns);
+            console.log('Metrics rows:', rows.length);
             
             const metrics = [];
             
@@ -972,13 +610,8 @@
                 col.toLowerCase().includes('names')
             );
             
-            console.log('Measure Values column index:', measureValuesIndex);
-            console.log('Measure Names column index:', measureNamesIndex);
-            
             if (measureValuesIndex >= 0 && measureNamesIndex >= 0) {
-                console.log('✅ Found Measure Names/Values columns - extracting ALL measure data...');
-                
-                rows.forEach(function(row, rowIndex) {
+                rows.forEach(function(row) {
                     let measureName = null;
                     let measureValue = null;
                     
@@ -999,43 +632,16 @@
                         
                         if (!metrics.some(m => m.name === cleanName)) {
                             console.log(`✅ Found measure: ${cleanName} = ${measureValue}`);
-                            
                             metrics.push({
                                 name: cleanName,
-                                value: measureValue,
-                                originalName: measureName
+                                value: measureValue
                             });
                         }
                     }
                 });
-            } else {
-                console.log('⚠️ Measure Names/Values columns not found, trying alternative approach...');
-                
-                rows.forEach(function(row, rowIndex) {
-                    if (rowIndex < 10) {
-                        columns.forEach(function(col, colIndex) {
-                            if (row[colIndex]) {
-                                let value = row[colIndex];
-                                
-                                if (typeof value === 'object' && value.value !== undefined) {
-                                    value = value.value;
-                                }
-                                
-                                if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
-                                    console.log(`✅ Found direct measure: ${col} = ${value}`);
-                                    metrics.push({
-                                        name: col,
-                                        value: value
-                                    });
-                                }
-                            }
-                        });
-                    }
-                });
             }
             
-            console.log(`Summary data processing complete: ${metrics.length} metrics found`);
-            
+            // Extract program and job information
             let currentProgram = '11.0701 | Computer Science | Bachelor\'s';
             let currentJob = 'Software Developers';
             
@@ -1047,7 +653,6 @@
                         ? firstRow[0].value : firstRow[0];
                     if (cipValue && cipValue !== '%null%') {
                         currentProgram = cipValue;
-                        console.log('📊 Current program from data:', currentProgram);
                     }
                 }
                 
@@ -1056,7 +661,6 @@
                         ? firstRow[1].value : firstRow[1];
                     if (jobValue && jobValue !== '%null%') {
                         currentJob = jobValue;
-                        console.log('🎯 Current job from data:', currentJob);
                     }
                 }
             }
@@ -1065,120 +669,122 @@
                 program: currentProgram,
                 jobTarget: currentJob,
                 metrics: metrics,
-                dataSource: 'Summary Data (Tableau View)',
+                dataSource: 'Claude Metrics Analysis',
                 recordCount: rows.length,
                 timestamp: new Date().toLocaleString()
             };
         }
 
-        function processUnderlyingData(dataTable) {
+        function extractInstitutionNames(dataTable) {
             const columns = dataTable.columns.map(col => col.fieldName);
             const rows = dataTable.data;
             
-            console.log('Underlying columns count:', columns.length);
-            console.log('Underlying rows count:', rows.length);
+            const institutionColumnIndex = columns.findIndex(col => 
+                col.toLowerCase().includes('institution')
+            );
             
-            const metrics = [];
+            if (institutionColumnIndex === -1) {
+                return [];
+            }
             
-            for (let i = 0; i < Math.min(rows.length, 10); i++) {
-                const row = rows[i];
-                
-                columns.forEach(function(col, colIndex) {
-                    if (row[colIndex]) {
-                        let value = row[colIndex];
-                        
-                        if (typeof value === 'object' && value.value !== undefined) {
-                            value = value.value;
-                        }
-                        
-                        if (typeof value === 'number' && !metrics.some(m => m.name === col)) {
-                            console.log(`✅ Found metric in underlying: ${col} = ${value}`);
-                            metrics.push({
-                                name: col,
-                                value: value
-                            });
+            const institutions = [];
+            
+            rows.forEach(function(row) {
+                if (row[institutionColumnIndex]) {
+                    let institutionName = row[institutionColumnIndex];
+                    
+                    if (typeof institutionName === 'object' && institutionName.value !== undefined) {
+                        institutionName = institutionName.value;
+                    }
+                    
+                    if (institutionName && typeof institutionName === 'string' && institutionName.trim() !== '') {
+                        const cleanName = institutionName.trim();
+                        if (!institutions.includes(cleanName)) {
+                            institutions.push(cleanName);
                         }
                     }
-                });
-            }
+                }
+            });
             
-            return {
-                program: '11.0701 | Computer Science | Bachelor\'s',
-                jobTarget: 'Software Developers',
-                metrics: metrics,
-                dataSource: 'Underlying Data',
-                recordCount: Math.min(rows.length, 100)
-            };
+            return institutions;
         }
 
-        function callAPI(data) {
-            let prompt, apiUrl;
-            
-            if (detectedMode === 'institutions') {
-                console.log('🔍 Using Gemini for institution analysis');
-                
-                let institutionList = [];
-                if (data.secondaryInstitutions) {
-                    institutionList = institutionList.concat(data.secondaryInstitutions);
-                }
-                if (data.tertiaryInstitutions) {
-                    institutionList = institutionList.concat(data.tertiaryInstitutions);
-                }
-                
-                institutionList = [...new Set(institutionList)].slice(0, 20);
-                
-                prompt = geminiPrompt
-                    .replace(/\[Program\]/g, data.program)
-                    .replace(/\[List of institutions\]/g, institutionList.join(', '));
-                
-                apiUrl = GEMINI_API_URL;
-                
-            } else {
-                console.log('🔍 Using Claude for metrics analysis');
-                
-                let institutionText = '';
-                if (data.secondaryInstitutions && data.secondaryInstitutions.length > 0) {
-                    institutionText += `\n\nTOP INSTITUTIONS (SECONDARY MARKET):\n${data.secondaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
-                }
-                if (data.tertiaryInstitutions && data.tertiaryInstitutions.length > 0) {
-                    institutionText += `\n\nTOP INSTITUTIONS (TERTIARY MARKET):\n${data.tertiaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
-                }
-                
-                prompt = claudePrompt
-                    .replace(/\{\{PROGRAM\}\}/g, data.program)
-                    .replace(/\{\{JOB_TARGET\}\}/g, data.jobTarget)
-                    .replace(/\{\{TIMESTAMP\}\}/g, data.timestamp)
-                    .replace(/\{\{DATA_SOURCE\}\}/g, data.dataSource)
-                    .replace(/\{\{METRICS\}\}/g, data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n'))
-                    .replace(/\{\{INSTITUTIONS\}\}/g, institutionText);
-                
-                apiUrl = CLAUDE_API_URL;
+        function callClaudeAPI(data) {
+            let institutionText = '';
+            if (data.secondaryInstitutions && data.secondaryInstitutions.length > 0) {
+                institutionText += `\n\nTOP INSTITUTIONS (SECONDARY MARKET):\n${data.secondaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
             }
+            if (data.tertiaryInstitutions && data.tertiaryInstitutions.length > 0) {
+                institutionText += `\n\nTOP INSTITUTIONS (TERTIARY MARKET):\n${data.tertiaryInstitutions.slice(0, 10).map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
+            }
+            
+            const prompt = claudePrompt
+                .replace(/\{\{PROGRAM\}\}/g, data.program)
+                .replace(/\{\{JOB_TARGET\}\}/g, data.jobTarget)
+                .replace(/\{\{TIMESTAMP\}\}/g, data.timestamp)
+                .replace(/\{\{DATA_SOURCE\}\}/g, data.dataSource)
+                .replace(/\{\{METRICS\}\}/g, data.metrics.map(m => `• ${m.name}: ${m.value}`).join('\n'))
+                .replace(/\{\{INSTITUTIONS\}\}/g, institutionText);
+            
+            console.log('🚀 Sending prompt to Claude API...');
 
-            console.log('🚀 Sending prompt to', detectedMode === 'institutions' ? 'Gemini' : 'Claude', 'API...');
-
-            return fetch(apiUrl, {
+            return fetch(CLAUDE_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: prompt })
             })
             .then(function(response) {
-                console.log('API response status:', response.status);
                 if (!response.ok) throw new Error('API error: ' + response.status);
                 return response.json();
             })
             .then(function(result) {
-                console.log('API result:', result);
                 if (result && result.success) {
                     return result.content;
                 } else {
                     throw new Error(result?.error || 'API returned error');
                 }
-            })
-            .catch(function(error) {
-                console.error('API error:', error);
-                throw new Error('API failed: ' + error.message);
             });
+        }
+
+        function formatSummary(summary) {
+            let htmlSummary = summary
+                .replace(/^(?:\*\*)?([A-Z][^:.\n]+(?::|$))(?:\*\*)?$/gm, '<h2>$1</h2>')
+                .replace(/^(Why we like it|Potential concerns|Overall assessment)[:]*$/gmi, '<h2>$1</h2>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^\*\*(.*?)\*\*$/gm, '<h2>$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>')
+                .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
+            
+            let lines = htmlSummary.split('<br>');
+            
+            lines = lines.filter((line, index) => {
+                const cleanLine = line.replace(/<[^>]*>/g, '').trim().toUpperCase();
+                if (cleanLine === 'MARKET OUTLOOK SUMMARY' || 
+                    cleanLine === 'MARKET OUTLOOK' ||
+                    cleanLine === 'SUMMARY') {
+                    return false;
+                }
+                return true;
+            });
+            
+            let colorApplied = false;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i] && lines[i].trim() !== '' && !lines[i].includes('<h2>') && !colorApplied) {
+                    lines[i] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block;">${lines[i]}</span>`;
+                    colorApplied = true;
+                    break;
+                }
+            }
+            
+            htmlSummary = lines.join('<br>');
+            
+            if (htmlSummary.includes('Category | Score')) {
+                htmlSummary = convertMetricsTable(htmlSummary);
+            }
+            
+            return htmlSummary;
         }
 
         function showError(message) {
