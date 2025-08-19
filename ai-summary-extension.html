@@ -168,30 +168,40 @@
         }
         
         .summary-text table {
-            margin: 240px auto 20px auto;
+            margin: 40px auto;
             border-collapse: collapse;
             width: 80%;
             max-width: 600px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .summary-text th,
         .summary-text td {
-            border: 4px solid #03304D;
-            padding: 8px 16px;
+            border: 1px solid #03304D;
+            padding: 12px 20px;
             text-align: center;
-            background-color: #f8f9fa;
+            font-family: 'Avenir Medium', 'Avenir', sans-serif;
         }
         
         .summary-text th {
             background-color: #03304D;
             color: white;
-            font-weight: 700;
-            font-size: 16px;
+            font-weight: bold;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .summary-text td {
-            font-size: 15px;
+            background-color: #f8f9fa;
+            font-size: 16px;
             color: #2c3e50;
+        }
+        
+        .summary-text tr:last-child td {
+            background-color: #e8f4f8;
+            font-weight: bold;
+            font-size: 17px;
         }
         
         .error {
