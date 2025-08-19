@@ -1,0 +1,10 @@
+Hi Gemini, 
+
+I need you to act as a curriculum consultant for a US college or university that is considering launching a new academic program. In your response, however, don’t identify your role.
+
+[Institution], in [City], [State Abbreviation], is considering launching a [CIP Codes & Award Level] program. Please show a sample curriculum, based on curricula offered by similar institutions. Please include specific courses. Please also include total credit hours for each portion of the curriculum, and for the program as a whole. 
+
+Comparison schools to consider include:
+[List of Institutions]
+
+Please use a concise, direct writing style, with no complete sentences in the bullet points.
