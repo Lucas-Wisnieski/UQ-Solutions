@@ -356,20 +356,21 @@
                 // Clean up any colons after h2 tags
                 .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
             
-            // Remove any title/header lines (including MARKET OUTLOOK SUMMARY)
+            // Remove only the "MARKET OUTLOOK SUMMARY" header, keep the description
             let lines = htmlSummary.split('<br>');
             
-            // Remove lines that are headers or titles
+            // Remove only specific header lines, not content
             lines = lines.filter(line => {
-                const trimmedLine = line.replace(/<[^>]*>/g, '').trim().toUpperCase();
-                return !(trimmedLine === 'MARKET OUTLOOK SUMMARY' || 
-                        trimmedLine === 'PROGRAM ANALYSIS' ||
-                        trimmedLine.includes('AI SUMMARY') ||
-                        trimmedLine === '');
+                const cleanLine = line.replace(/<[^>]*>/g, '').trim().toUpperCase();
+                // Only remove these specific headers
+                return !(cleanLine === 'MARKET OUTLOOK SUMMARY' || 
+                        cleanLine === 'MARKET OUTLOOK' ||
+                        cleanLine === 'SUMMARY' ||
+                        cleanLine === '');
             });
             
-            // Apply blue color to first actual content line
-            if (lines.length > 0 && lines[0]) {
+            // Apply blue color to first actual content line (the market outlook description)
+            if (lines.length > 0 && lines[0] && !lines[0].includes('<h2>')) {
                 lines[0] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[0]}</span>`;
             }
             
@@ -545,26 +546,30 @@
                         // Clean up any colons after h2 tags
                         .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
                     
-                    // Remove any title/header lines (including MARKET OUTLOOK SUMMARY)
+                    // Remove only the "MARKET OUTLOOK SUMMARY" header line
                     let lines = htmlSummary.split('<br>');
                     
-                    // Filter out headers and empty lines
+                    // Filter out only the header, keep the description
                     lines = lines.filter((line, index) => {
                         const cleanLine = line.replace(/<[^>]*>/g, '').trim().toUpperCase();
-                        // Remove common headers
+                        // Only remove these specific headers
                         if (cleanLine === 'MARKET OUTLOOK SUMMARY' || 
-                            cleanLine === 'PROGRAM ANALYSIS' ||
-                            cleanLine.includes('AI SUMMARY') ||
-                            (index === 0 && cleanLine.includes('PROGRAM'))) {
+                            cleanLine === 'MARKET OUTLOOK' ||
+                            cleanLine === 'SUMMARY') {
                             return false;
                         }
-                        // Keep non-empty lines
-                        return line.trim() !== '';
+                        // Keep everything else including empty lines for spacing
+                        return true;
                     });
                     
-                    // Apply blue color to first actual content line
-                    if (lines.length > 0 && lines[0]) {
-                        lines[0] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[0]}</span>`;
+                    // Apply blue color to first actual content line (market outlook description)
+                    let colorApplied = false;
+                    for (let i = 0; i < lines.length; i++) {
+                        if (lines[i] && lines[i].trim() !== '' && !lines[i].includes('<h2>') && !colorApplied) {
+                            lines[i] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[i]}</span>`;
+                            colorApplied = true;
+                            break;
+                        }
                     }
                     
                     htmlSummary = lines.join('<br>');
