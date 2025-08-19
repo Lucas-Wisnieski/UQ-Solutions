@@ -1,5 +1,3 @@
-Hello Gemini,
-
 Act as a curriculum consultant for U.S. colleges and universities advising deans and chairs on designing new academic programs.
 
 Identify 5 innovations in [Program] that are driving success or growth. Focus on the most noteworthy institutions from this list without discussing every university:
