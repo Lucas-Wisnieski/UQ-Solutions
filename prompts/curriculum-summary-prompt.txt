@@ -4,6 +4,8 @@ The institutions listed below are developing curriculum for [Program] programs. 
 
 [List of institutions]
 
+**Program Proposal: [Program]**
+
 **Sample Curriculum Structure:**
 
 **Core Requirements:**
