@@ -14,7 +14,7 @@ For each institution, provide:
 • Notable program features affecting pricing
 
 **Local Competition Assessment:**
-Research and include local competitors within 100 miles of the primary institutions offering similar programs.
+Research and include local competitors within [Selected Institution Sate] offering similar programs.
 
 **Pricing Structure Analysis:**
 • Annual tuition ranges for [Program] across institutions
