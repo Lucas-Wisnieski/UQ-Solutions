@@ -549,25 +549,45 @@
                     
                     console.log('🔍 HTML Summary after conversion:', htmlSummary.substring(0, 500));
                     
-                    if (detectedMode === 'metrics') {
+                    // Convert Category | Score table to HTML table
+                    if (detectedMode === 'metrics' || htmlSummary.includes('Category | Score')) {
+                        // First try to match the simple text format
                         htmlSummary = htmlSummary.replace(
-                            /Category \| Score<br>---\|---<br>([\s\S]*?)Total Score \| ([\d.]+)/,
-                            function(match, tableRows, totalScore) {
+                            /Category \| Score[\s\S]*?Total Score[^|]*\|[^0-9]*([\d.]+)/,
+                            function(match) {
+                                // Parse the text block into rows
+                                const lines = match.split(/\n|<br>/);
                                 let tableHTML = '<table><thead><tr><th>Category</th><th>Score</th></tr></thead><tbody>';
                                 
-                                const rows = tableRows.split('<br>').filter(row => row.trim() && row.includes('|'));
-                                rows.forEach(row => {
-                                    const [category, score] = row.split('|').map(s => s.trim());
-                                    if (category && score) {
-                                        const formattedScore = parseFloat(score).toFixed(1);
-                                        tableHTML += `<tr><td>${category}</td><td>${formattedScore}</td></tr>`;
+                                lines.forEach(line => {
+                                    // Skip header and separator lines
+                                    if (line.includes('Category | Score') || line.includes('---') || !line.trim()) {
+                                        return;
+                                    }
+                                    
+                                    // Check if it's the total score line
+                                    if (line.includes('Total Score')) {
+                                        const totalMatch = line.match(/Total Score[^|]*\|[^0-9]*([\d.]+)/);
+                                        if (totalMatch) {
+                                            const formattedTotalScore = parseFloat(totalMatch[1]).toFixed(1);
+                                            tableHTML += `<tr><td><strong>Total Score (Max 10)</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
+                                        }
+                                    } else if (line.includes('|')) {
+                                        // Parse regular score lines
+                                        const parts = line.split('|');
+                                        if (parts.length >= 2) {
+                                            const category = parts[0].trim();
+                                            const scoreText = parts[1].trim();
+                                            const scoreMatch = scoreText.match(/([\d.]+)/);
+                                            if (scoreMatch) {
+                                                const score = parseFloat(scoreMatch[1]).toFixed(1);
+                                                tableHTML += `<tr><td>${category}</td><td>${score}</td></tr>`;
+                                            }
+                                        }
                                     }
                                 });
                                 
-                                const formattedTotalScore = parseFloat(totalScore).toFixed(1);
-                                tableHTML += `<tr><td><strong>Total Score (Max 10)</strong></td><td><strong>${formattedTotalScore}</strong></td></tr>`;
                                 tableHTML += '</tbody></table>';
-                                
                                 return tableHTML;
                             }
                         );
