@@ -85,6 +85,7 @@ Market Growth (Max 2) | [actual score]
 "Schools Like Us" (Max 3) | [actual score] 
 Opportunity Size (Max 2) | [actual score] 
 Workforce Demand (Max 2) | [actual score] 
-Earnings Outcomes (Max 1) | [actual score] Total Score | [sum]
+Earnings Outcomes (Max 1) | [actual score]
+Total Score (Max 10)  | [sum]
 
 Use ONLY provided metrics. No hallucinations. Match evaluative tone to scores.
