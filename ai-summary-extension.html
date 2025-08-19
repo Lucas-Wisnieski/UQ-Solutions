@@ -28,7 +28,7 @@
             justify-content: center;
             align-items: center;
             margin: 0;
-            padding: 20px 0 4px 0;
+            padding: 4px 0 4px 0;
             border-bottom: 1px solid #dee2e6;
         }
         
@@ -64,7 +64,7 @@
             height: 39px;
             width: 188px;
             position: absolute;
-            top: 20px;
+            top: 4px;
             right: 20px;
         }
         
@@ -206,7 +206,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">AI Program Summary</h1>
+            <h1 class="title">New Program AI Summary</h1>
             <button class="refresh-btn" onclick="generateSummary()">Update Summary</button>
         </div>
         
@@ -326,16 +326,23 @@
         function displayExternalSummary(summaryText) {
             console.log('📋 Displaying external AI summary in main extension...');
             
-            // Add "New Program AI Summary" title
-            const programTitleHtml = '<div class="program-title">New Program AI Summary</div>';
-            
-            // Convert markdown-style formatting to HTML
+            // Enhanced conversion to catch different heading patterns
             let htmlSummary = summaryText
-                .replace(/## (.*$)/gm, '<h2>$1</h2>')
-                .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>')
+                // Convert standalone bold lines to h2 (for section headings)
+                .replace(/^(?:\*\*)?([A-Z][^:.\n]+(?::|$))(?:\*\*)?$/gm, '<h2>$1</h2>')
+                // Convert "Why we like it:", "Potential concerns:", etc. to h2
+                .replace(/^(Why we like it|Potential concerns|Overall assessment)[:]*$/gmi, '<h2>$1</h2>')
+                // Convert ## markdown headings
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                // Convert **text** on its own line to h2
+                .replace(/^\*\*(.*?)\*\*$/gm, '<h2>$1</h2>')
+                // Remove remaining ** markdown for inline bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/\n\n/g, '</p><p>')
-                .replace(/\n/g, '<br>');
+                .replace(/\n/g, '<br>')
+                // Clean up any colons after h2 tags
+                .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
             
             // Add lighter blue color to first sentence
             const sentences = htmlSummary.split('.');
@@ -349,8 +356,10 @@
                 htmlSummary = '<p>' + htmlSummary + '</p>';
             }
             
-            // Display in the main summary area with title
-            document.getElementById('summaryText').innerHTML = programTitleHtml + htmlSummary;
+            console.log('🔍 HTML Summary after conversion:', htmlSummary.substring(0, 500));
+            
+            // Display in the main summary area without additional title
+            document.getElementById('summaryText').innerHTML = htmlSummary;
             
             // Hide loading if it's showing
             document.getElementById('loadingIndicator').style.display = 'none';
@@ -495,13 +504,22 @@
                     return callAPI(data);
                 })
                 .then(function(summary) {
-                    // Add "New Program AI Summary" title
-                    const programTitleHtml = '<div class="program-title">New Program AI Summary</div>';
-                    
+                    // Enhanced conversion to catch different heading patterns
                     let htmlSummary = summary
-                        .replace(/\*\*(.*?)\*\*/g, '<h2>$1</h2>')
+                        // Convert standalone bold lines to h2 (for section headings)
+                        .replace(/^(?:\*\*)?([A-Z][^:.\n]+(?::|$))(?:\*\*)?$/gm, '<h2>$1</h2>')
+                        // Convert "Why we like it:", "Potential concerns:", etc. to h2
+                        .replace(/^(Why we like it|Potential concerns|Overall assessment)[:]*$/gmi, '<h2>$1</h2>')
+                        // Convert ## markdown headings
+                        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                        // Convert **text** on its own line to h2
+                        .replace(/^\*\*(.*?)\*\*$/gm, '<h2>$1</h2>')
+                        // Remove remaining ** markdown for inline bold
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/\n/g, '<br>');
+                        .replace(/\n/g, '<br>')
+                        // Clean up any colons after h2 tags
+                        .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
                     
                     // Add lighter blue color to first sentence
                     const sentences = htmlSummary.split('.');
@@ -516,6 +534,8 @@
                         lines.shift(); // Remove first line
                         htmlSummary = lines.join('<br>');
                     }
+                    
+                    console.log('🔍 HTML Summary after conversion:', htmlSummary.substring(0, 500));
                     
                     if (detectedMode === 'metrics') {
                         htmlSummary = htmlSummary.replace(
@@ -541,7 +561,7 @@
                         );
                     }
                     
-                    document.getElementById('summaryText').innerHTML = programTitleHtml + htmlSummary;
+                    document.getElementById('summaryText').innerHTML = htmlSummary;
                 })
                 .catch(function(error) {
                     console.error('❌ Failed:', error);
