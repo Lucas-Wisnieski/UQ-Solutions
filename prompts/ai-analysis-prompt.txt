@@ -10,7 +10,6 @@ CURRENT ANALYSIS DATA:
 KEY METRICS:
 {{METRICS}}
 REQUIRED FORMAT:
-Program name, award level
 Single-line market outlook summary
 Why we like it
 • Positive attribute 1 • Positive attribute 2 • Positive attribute 3 • Positive attribute 4 • Positive attribute 5
