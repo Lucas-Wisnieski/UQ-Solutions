@@ -1,8 +1,6 @@
 Act as a pricing consultant for US colleges and universities considering new academic program launches.
 
-The institutions listed below are analyzing pricing strategies for [Program] programs in [Selected Institution State]. Provide a comprehensive pricing analysis including:
-
-**Target Institution Location:** [Selected Institution State]
+The institutions listed below are analyzing pricing strategies for [Program] programs. Provide a comprehensive pricing analysis including:
 
 **Comparison Institution Analysis:**
 Analyze pricing for [Program] at these institutions:
@@ -21,21 +19,21 @@ Research and include specific competitors within 100 miles of [Selected Institut
 • Regional pricing patterns specific to [Selected Institution State]
 • Local market dynamics affecting [Program] pricing in [Selected Institution State]
 
-**State-Specific Pricing Analysis:**
-• [Selected Institution State] resident vs non-resident tuition considerations
-• Regional cost of living impact on pricing in [Selected Institution State]
-• State funding patterns affecting [Program] costs
-• Competition density in [Selected Institution State] market
+**Pricing Structure Analysis:**
+• Annual tuition ranges for [Program] across institutions
+• Total program cost comparisons
+• Financial aid impact on net pricing
+• Regional pricing variations
 
-**Market Positioning Recommendations for [Selected Institution State]:**
-• Competitive pricing strategy based on [Selected Institution State] market conditions
-• Program delivery format considerations for [Selected Institution State] demographics
-• Target [Selected Institution State] student demographics and pricing sensitivity
-• [Selected Institution State] regional market dynamics
+**Market Positioning Recommendations:**
+• Competitive pricing strategy based on institutional prestige
+• Program delivery format considerations (online, hybrid, in-person)
+• Target demographics and pricing sensitivity
+• Regional market dynamics
 
-**Final Pricing Recommendation for [Selected Institution State] Institution:**
-• Recommended annual tuition range for [Selected Institution State] market
-• Total program cost estimate considering [Selected Institution State] factors
-• Justification based on [Selected Institution State] competitive landscape
+**Final Pricing Recommendation:**
+• Recommended annual tuition range
+• Total program cost estimate
+• Justification based on competitive analysis
 
 Keep response concise, use bullet points only, avoid tables or complex formatting. Present all information in simple paragraph and bullet point format without any table structures, lines, or special characters. Focus specifically on [Selected Institution State] market conditions and competition.
