@@ -356,12 +356,26 @@
                 // Clean up any colons after h2 tags
                 .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
             
-            // Add lighter blue color to first sentence
-            const sentences = htmlSummary.split('.');
-            if (sentences.length > 0 && sentences[0].trim()) {
-                sentences[0] = `<span class="subtitle" style="color: #1AB2D7 !important;">${sentences[0].trim()}.</span>`;
-                htmlSummary = sentences.join('.');
+            // Remove duplicate title if present
+            const lines = htmlSummary.split('<br>');
+            let startIndex = 0;
+            if (lines.length > 0 && (lines[0].includes('Program') || lines[0].includes('Analysis'))) {
+                startIndex = 1; // Skip the title line
             }
+            
+            // Apply blue color to first content line
+            if (startIndex < lines.length) {
+                // Find first non-empty line after title
+                while (startIndex < lines.length && (!lines[startIndex] || lines[startIndex].trim() === '')) {
+                    startIndex++;
+                }
+                
+                if (startIndex < lines.length && lines[startIndex]) {
+                    lines[startIndex] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[startIndex]}</span>`;
+                }
+            }
+            
+            htmlSummary = lines.join('<br>');
             
             // Wrap in paragraph tags if not already formatted
             if (!htmlSummary.includes('<p>')) {
@@ -533,19 +547,30 @@
                         // Clean up any colons after h2 tags
                         .replace(/<h2>([^<]+):<\/h2>/g, '<h2>$1</h2>');
                     
-                    // Add lighter blue color to first sentence
-                    const sentences = htmlSummary.split('.');
-                    if (sentences.length > 0 && sentences[0].trim()) {
-                        sentences[0] = `<span class="subtitle" style="color: #1AB2D7 !important;">${sentences[0].trim()}.</span>`;
-                        htmlSummary = sentences.join('.');
-                    }
-                    
-                    // Remove the first line (title) from the summary
+                    // Remove the first line (title) from the summary if needed
                     const lines = htmlSummary.split('<br>');
                     if (lines.length > 0) {
-                        lines.shift(); // Remove first line
-                        htmlSummary = lines.join('<br>');
+                        // Check if first line needs to be removed (duplicate title)
+                        if (lines[0].includes('Program') || lines[0].includes('Analysis')) {
+                            lines.shift(); // Remove first line
+                        }
                     }
+                    
+                    // Add lighter blue color to first visible sentence/line
+                    if (lines.length > 0) {
+                        // Find the first non-empty line
+                        let firstContentIndex = 0;
+                        while (firstContentIndex < lines.length && (!lines[firstContentIndex] || lines[firstContentIndex].trim() === '')) {
+                            firstContentIndex++;
+                        }
+                        
+                        if (firstContentIndex < lines.length && lines[firstContentIndex]) {
+                            // Apply the blue color to the first content line
+                            lines[firstContentIndex] = `<span style="color: #1AB2D7 !important; font-size: 18px; display: block; margin-bottom: 20px;">${lines[firstContentIndex]}</span>`;
+                        }
+                    }
+                    
+                    htmlSummary = lines.join('<br>');
                     
                     console.log('🔍 HTML Summary after conversion:', htmlSummary.substring(0, 500));
                     
