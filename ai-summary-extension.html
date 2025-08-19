@@ -25,18 +25,29 @@
         
         .header {
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
             align-items: center;
             margin: 0;
-            padding: 0 0 30px 0;
+            padding: 20px 0 4px 0;
             border-bottom: 1px solid #dee2e6;
         }
         
         .title {
-            font-size: 20px;
+            font-size: 28px;
             font-weight: 700;
-            color: #2c3e50;
+            color: #03304D;
             margin: 0;
+            font-family: 'Avenir', sans-serif;
+            text-align: center;
+        }
+        
+        .program-title {
+            font-family: 'Avenir', sans-serif;
+            font-size: 22px;
+            font-weight: bold;
+            color: #03304d;
+            margin: 20px 0 15px 0;
+            text-align: left;
         }
         
         .refresh-btn {
@@ -52,6 +63,9 @@
             transition: all 0.3s ease;
             height: 39px;
             width: 188px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
         
         .refresh-btn:hover {
@@ -89,34 +103,56 @@
         
         .summary-text {
             background: white;
-            padding: 0;
+            padding: 20px;
             min-height: 200px;
-            font-size: 18px;
-            line-height: 1.6;
+            font-size: 16px;
+            line-height: 1.8;
             color: #2c3e50;
             white-space: pre-wrap;
             font-family: 'Avenir', sans-serif;
         }
         
+        /* First line - lighter blue subtitle */
+        .summary-text .subtitle {
+            font-family: 'Avenir', sans-serif;
+            font-size: 16px;
+            color: #5a9bd4;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
         .summary-text h1,
         .summary-text h2 {
-            font-size: 28px;
-            font-weight: 700;
+            font-family: 'Avenir', sans-serif;
+            font-size: 32px;
+            font-weight: bold;
             color: #03304D;
-            margin: 20px 0 4px 0;
-            line-height: 1.2;
+            margin: 30px 0 15px 0;
+            line-height: 1.3;
         }
         
         .summary-text h3 {
-            font-size: 24px;
-            font-weight: 700;
+            font-family: 'Avenir', sans-serif;
+            font-size: 28px;
+            font-weight: bold;
             color: #03304D;
-            margin: 16px 0 4px 0;
-            line-height: 1.2;
+            margin: 25px 0 12px 0;
+            line-height: 1.3;
         }
         
-        .summary-text p:first-of-type {
-            display: none;
+        .summary-text p {
+            margin-bottom: 18px;
+            line-height: 1.8;
+        }
+        
+        .summary-text ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .summary-text li {
+            margin-bottom: 12px;
+            line-height: 1.8;
         }
         
         /* Make subtitle/description text bold and larger */
@@ -170,7 +206,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <button class="refresh-btn" onclick="generateSummary()">Generate AI Summary</button>
+            <h1 class="title">AI Program Summary</h1>
+            <button class="refresh-btn" onclick="generateSummary()">Update Summary</button>
         </div>
         
         <div id="loadingIndicator" class="loading" style="display: none;">
@@ -289,7 +326,10 @@
         function displayExternalSummary(summaryText) {
             console.log('📋 Displaying external AI summary in main extension...');
             
-            // Convert markdown-style formatting to HTML (same as your existing logic)
+            // Add "New Program AI Summary" title
+            const programTitleHtml = '<div class="program-title">New Program AI Summary</div>';
+            
+            // Convert markdown-style formatting to HTML
             let htmlSummary = summaryText
                 .replace(/## (.*$)/gm, '<h2>$1</h2>')
                 .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>')
@@ -297,13 +337,20 @@
                 .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>');
             
+            // Add lighter blue color to first sentence
+            const sentences = htmlSummary.split('.');
+            if (sentences.length > 0 && sentences[0].trim()) {
+                sentences[0] = `<span class="subtitle">${sentences[0].trim()}.</span>`;
+                htmlSummary = sentences.join('.');
+            }
+            
             // Wrap in paragraph tags if not already formatted
             if (!htmlSummary.includes('<p>')) {
                 htmlSummary = '<p>' + htmlSummary + '</p>';
             }
             
-            // Display in the main summary area
-            document.getElementById('summaryText').innerHTML = htmlSummary;
+            // Display in the main summary area with title
+            document.getElementById('summaryText').innerHTML = programTitleHtml + htmlSummary;
             
             // Hide loading if it's showing
             document.getElementById('loadingIndicator').style.display = 'none';
@@ -317,9 +364,7 @@
             console.log('DOM loaded, setting up...');
             
             try {
-                // Remove the button event listener since there's no button now
-                console.log('✅ Main extension initialized without button');
-                
+                console.log('✅ Main extension initialized');
                 loadPrompts();
             } catch (error) {
                 console.error('Setup error:', error);
@@ -416,9 +461,7 @@
         }
 
         function updateButtonText() {
-            // This function is no longer needed since there's no button
-            // But keeping it to avoid errors in case it's called elsewhere
-            console.log('📝 Button text update skipped - no button in main extension');
+            console.log('📝 Button text update');
         }
 
         function generateSummary() {
@@ -452,10 +495,20 @@
                     return callAPI(data);
                 })
                 .then(function(summary) {
+                    // Add "New Program AI Summary" title
+                    const programTitleHtml = '<div class="program-title">New Program AI Summary</div>';
+                    
                     let htmlSummary = summary
                         .replace(/\*\*(.*?)\*\*/g, '<h2>$1</h2>')
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                         .replace(/\n/g, '<br>');
+                    
+                    // Add lighter blue color to first sentence
+                    const sentences = htmlSummary.split('.');
+                    if (sentences.length > 0 && sentences[0].trim()) {
+                        sentences[0] = `<span class="subtitle">${sentences[0].trim()}.</span>`;
+                        htmlSummary = sentences.join('.');
+                    }
                     
                     // Remove the first line (title) from the summary
                     const lines = htmlSummary.split('<br>');
@@ -488,7 +541,7 @@
                         );
                     }
                     
-                    document.getElementById('summaryText').innerHTML = htmlSummary;
+                    document.getElementById('summaryText').innerHTML = programTitleHtml + htmlSummary;
                 })
                 .catch(function(error) {
                     console.error('❌ Failed:', error);
