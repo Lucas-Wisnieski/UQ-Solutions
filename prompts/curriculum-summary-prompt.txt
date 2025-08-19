@@ -1,10 +1,45 @@
-Hi Gemini, 
+Act as a curriculum consultant for US colleges and universities considering new academic program launches.
 
-I need you to act as a curriculum consultant for a US college or university that is considering launching a new academic program. In your response, however, don’t identify your role.
+The institutions listed below are developing curriculum for [Program] programs. Create a comprehensive curriculum analysis based on similar programs at these comparison institutions:
 
-[Institution], in [City], [State Abbreviation], is considering launching a [CIP Codes & Award Level] program. Please show a sample curriculum, based on curricula offered by similar institutions. Please include specific courses. Please also include total credit hours for each portion of the curriculum, and for the program as a whole. 
+[List of institutions]
 
-Comparison schools to consider include:
-[List of Institutions]
+**Sample Curriculum Structure:**
 
-Please use a concise, direct writing style, with no complete sentences in the bullet points.
+**Core Requirements:**
+• List specific required courses with credit hours
+• Foundation courses essential to [Program]
+• Prerequisites and sequencing requirements
+• Total credit hours: [X credits]
+
+**Major/Specialization Courses:**
+• Advanced courses specific to [Program] field
+• Capstone or culminating experience requirements
+• Hands-on/practical application courses
+• Laboratory or field work components
+• Total credit hours: [X credits]
+
+**Electives/Concentrations:**
+• Optional specialization tracks available
+• Interdisciplinary course options
+• Professional development electives
+• Total credit hours: [X credits]
+
+**General Education Requirements:**
+• Liberal arts/sciences distribution
+• Communication and quantitative skills
+• Diversity and global perspectives
+• Total credit hours: [X credits]
+
+**Program Totals:**
+• Total program credit hours: [X credits]
+• Typical completion timeline
+• Full-time vs part-time options
+
+**Curriculum Analysis:**
+• Comparison of credit hour distributions across institutions
+• Unique curriculum features at comparison schools
+• Industry alignment and accreditation considerations
+• Recommended curriculum innovations
+
+Use concise, direct writing style with bullet points only. Include specific course names and exact credit hour totals for each curriculum section and overall program.
