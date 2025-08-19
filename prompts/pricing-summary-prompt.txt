@@ -6,14 +6,21 @@ The institutions listed below are analyzing pricing strategies for [Program] pro
 Analyze pricing for [Program] at these institutions:
 [List of institutions]
 
+For each institution, provide:
+• Institution name and location
+• Annual tuition estimate 
+• Total program cost estimate
+• Cost per credit hour
+• Notable program features affecting pricing
+
 **Local Competition Assessment:**
 Research and include local competitors within 100 miles of the primary institutions offering similar programs.
 
 **Pricing Structure Analysis:**
-• Annual tuition rates for [Program]
-• Total program costs (including fees)
-• Cost per credit hour comparisons
+• Annual tuition ranges for [Program] across institutions
+• Total program cost comparisons
 • Financial aid impact on net pricing
+• Regional pricing variations
 
 **Market Positioning Recommendations:**
 • Competitive pricing strategy based on institutional prestige
@@ -25,3 +32,5 @@ Research and include local competitors within 100 miles of the primary instituti
 • Recommended annual tuition range
 • Total program cost estimate
 • Justification based on competitive analysis
+
+Keep response concise, use bullet points only, avoid tables or complex formatting. Present all information in simple paragraph and bullet point format without any table structures, lines, or special characters.
