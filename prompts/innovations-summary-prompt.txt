@@ -1,0 +1,20 @@
+Hello Gemini,
+
+I need you to act as a curriculum consultant for U.S. colleges and universities. You'll advise a dean or a chair on designing a new academic program.
+
+Please identify 5 innovations in [CIP Codes & Award Level] that are driving their success or growth. You don't need to discuss every university on the list, just the most noteworthy ones. 
+
+When identifying these innovations, please consider the following:
+•	Modality, delivery models, and schedules
+•	Curricular innovations
+•	Technological innovations
+•	Special centers or facilities
+•	Experiential learning
+•	Marketing innovations
+•	Employer partnerships
+•	Partnerships with other higher education institutions
+
+The list of universities to consider includes:
+[List of Institutions]
+
+Please structure your response with each innovation as a heading, followed by 3-4 bullet points. Please include specific examples from specific college or universities. Write a short 1-2 sentence summary at the top. Keep the entire response to a single page and use a concise, direct writing style, with no complete sentences in the bullet points.
