@@ -349,7 +349,7 @@
             // Add lighter blue color to first sentence
             const sentences = htmlSummary.split('.');
             if (sentences.length > 0 && sentences[0].trim()) {
-                sentences[0] = `<span class="subtitle">${sentences[0].trim()}.</span>`;
+                sentences[0] = `<span class="subtitle" style="color: #1AB2D7 !important;">${sentences[0].trim()}.</span>`;
                 htmlSummary = sentences.join('.');
             }
             
@@ -526,7 +526,7 @@
                     // Add lighter blue color to first sentence
                     const sentences = htmlSummary.split('.');
                     if (sentences.length > 0 && sentences[0].trim()) {
-                        sentences[0] = `<span class="subtitle">${sentences[0].trim()}.</span>`;
+                        sentences[0] = `<span class="subtitle" style="color: #1AB2D7 !important;">${sentences[0].trim()}.</span>`;
                         htmlSummary = sentences.join('.');
                     }
                     
