@@ -1,0 +1,12 @@
+Hi Gemini, 
+
+I need you to act as a pricing consulting for a US college or university that is considering launching a new academic program. In your response, however, don’t identify your role.
+
+[Institution], in [City], [State Abbreviation], is considering launching a [CIP Codes & Award Level] program. How should they price their program, in terms of tuition and fees?
+
+Comparison schools to consider include:
+[List of Institutions]
+
+Also, please include local competition, i.e. schools within 100 miles or so of their campus.
+
+Please describe the pricing of several comparison institutions, and then several local competitors. Finally, recommend a price. Include in your recommendation both the annual price and the total price. Keep the entire response to a single page and use a concise, direct writing style, with no complete sentences in the bullet points.
