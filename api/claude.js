@@ -1,10 +1,10 @@
 // api/claude.js - Vercel serverless function
 export default async function handler(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://lucas-wisnieski.github.io');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.status(200).end();
