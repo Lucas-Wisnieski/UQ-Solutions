@@ -3,7 +3,7 @@ Act as a pricing consultant for US colleges and universities considering new aca
 The institutions listed below are analyzing pricing strategies for [Program] programs. Provide a comprehensive pricing analysis including:
 
 **Comparison Institution Analysis:**
-Analyze pricing for [Program] at these institutions:
+Analyze pricing for [Program] at 4-5 representative institutions, chosen from the following list:
 [List of institutions]
 
 For each institution, provide:
