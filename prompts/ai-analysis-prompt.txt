@@ -19,54 +19,54 @@ Overall assessment
 • 3-4 sentence summary
 STYLE GUIDE:
 • Numbers: Round earnings/salary to nearest thousand (e.g., $96K, not $95,868). Round percentages to whole numbers (e.g., 12%, not 11.8%). Show scores, total scores, SUG, and other numbers with one decimal place (e.g., 1.8, not 1.76).
-• Text: Keep sentences short (E.B. White style). Aim for 100-150 characters per bullet point. Avoid vague phrases like "strong market fundamentals"—be specific. Open bullets with 3-4 word summary—like "Exceptional growth in geographical market", "Modest job growth," "Excellent earning outcomes," or "Potentially oversaturated workforce"—then follow with metrics. Vary similar sentences for better flow.
+• Text: Write bullets as 2-3 flowing sentences that feel conversational and analytical, aiming for 200-300 characters per bullet. Keep E.B. White's clarity but allow more room for context and interpretation. Avoid vague phrases like "strong market fundamentals"—be specific with data and implications. Open bullets with a 3-4 word bolded summary—like "Exceptional growth in geographical market", "Modest job growth," "Excellent earning outcomes," or "Potentially oversaturated workforce"—then develop the point with supporting metrics and strategic context. Vary sentence structure and phrasing across bullets for better flow and readability.
 • Do not use the word "fundamentals."
 • Make key issues per bullet bold: "market growth", "earnings outcomes", "workforce demand."
 DATA ACCURACY:
 Verify all metrics are correct and from the right row—use only table data, no hallucinations. Match tone to scores: near max = positive, near min = concerns.
 ANALYSIS:
-When writing each bullet: • Keep exact metrics and scoring rules below. • Connect multiple metrics into single sentence for natural flow. • Include one additional insight—comparative context, plausible driver, or strategic implication. • Note data trends in 1-2 words (e.g., "accelerating," "stable," "slowing"). • Avoid repeating interpretations or phrasing across bullets. • Keep language business-relevant, avoid generic statements.
+When writing each bullet: • Keep exact metrics and scoring rules below. • Weave multiple metrics together into coherent, flowing sentences that build a complete picture. • Include 1-2 additional insights—comparative context, plausible drivers, or strategic implications that help academic leaders understand what the data means for their institution. • Note data trends using descriptive language (e.g., "accelerating rapidly," "holding steady," "slowing considerably"). • Avoid repeating interpretations, metrics, or phrasing across bullets. • Keep language business-relevant and strategic, avoiding generic consultant-speak.
 WHY WE LIKE IT
 Up to 5 bullets; skip if not positive.
 1.	Market Growth — Use SUG (Geo Market) + % Growing (completions).
 SUG: >2 exc, 1-2 strong, 0.2-1 mod, 0-0.2 barely, -0.2-0 slight decline, < -0.2 decline, < -1 steep decline.
 % Growing: >80% exc, 70-80% strong, 60-70% good, 50-60% decent, 40-50% neg, 33-40% strong neg, 25-33% very strong neg, <25% extreme neg.
-Format: Strong market growth, SUG = 1.4 in [Institution]'s geographical market, 68% growing.
+Format: Strong market growth is evident in [Institution]'s geographical market, with SUG of 1.4 and 68% of institutions showing year-over-year growth. This suggests sustained regional demand that could support new program launch, particularly if [Institution] can differentiate its offering from existing programs in the area.
 2.	Schools Like Us — Use SUG (Segment Market), % Offering, % Growing (Segment & Ref Market). Segment Market = ~100 peers; Ref Market = key competitors.
 SUG: >3 exc, 2-3 strong, 1-2 good, 0.2-1 mod, 0-0.2 barely, -0.2-0 slight decline, < -0.2 decline, < -1 steep decline.
 % Offering: >80% nearly universal, 70-80% broad, 50-70% wide, 40-50% common, 30-40% somewhat common, 20-30% not unusual, 10-20% some success, 5-10% uncommon, <5% rare.
-Format: Exceptional performance among schools like us. Broadly offered (72%), 88% and 92% growing in Segment/Ref markets, SUG = 3.2.
+Format: Exceptional performance among schools like us, with the program broadly offered across 72% of peer institutions. Among both segment and reference market schools, growth rates are strong at 88% and 92% respectively, while SUG of 3.2 indicates peers are expanding these programs aggressively. This widespread adoption and growth suggests proven market demand and established pathways to employment.
 3.	Opportunity Size — Use Expected Completions/yr, Median Completions (Segment Market), Program Size Consistency Index.
 Expected: >25 exc, 20-25 large, 15-20 sig, 10-15 modest, 5-10 small, <5 very small.
 Consistency: >1.25 highly consistent, 1-1.25 consistent, 0.8-1 reasonable, <0.8 inconsistent.
-Format: Exceptional opportunity size, 24-28 completions/year, consistent sizes.
+Format: Exceptional opportunity size with expected annual completions of 24-28 students, placing this program in the upper tier of program scale. The consistency index shows that similar institutions report reasonably uniform program sizes, reducing implementation risk and suggesting stable, predictable enrollment patterns that support reliable revenue projections.
 4.	Workforce Demand — Use Jobs SUG, Demand:Supply Ratio, Job Postings Index. Use "UQ Job" in role description.
 Jobs SUG: >2 exc, 1-2 strong, 0.5-1 growth, 0.2-0.5 mod growth, 0-0.2 slight growth, -0.2-0 slight decline, < -0.2 decline, < -1 steep decline.
 Demand:Supply: >200% exc unmet, 150-200% sig unmet, 100-150% unmet, 80-100% possible saturation, <80% likely saturation.
 Index: >2 exc, 1.5-2 very strong, 1.25-1.5 strong, 1-1.25 decent, 0.75-1 some, 0.5-0.75 modest, <0.5 weak.
-Format: Excellent workforce demand for {UQ Job} in {State}, Jobs SUG 1.6, Index 1.1, Demand:Supply 176%.
+Format: Excellent workforce demand for {UQ Job} in {State}, with Jobs SUG of 1.6 indicating sustained job growth, Job Postings Index of 1.1 showing active hiring, and Demand:Supply ratio of 176% suggesting significant unmet labor market need. This combination points to strong graduate employment prospects, which should support recruitment and help justify tuition pricing to prospective students.
 5.	Earnings Outcomes — Median Salary (ACS for bachelor's, BLS for others) + first-year earnings (College Scorecard, inflation-adjusted).
 Median Salary: >$110K exc, $100-110K excellent, $90-100K v strong, $80-90K strong, $70-80K good, $60-70K mod, $50-60K modest (grad poor), $40-50K poor (grad very poor), <$40K very poor.
 First-year: • UG: >$80K exc, $70-80K excellent, $60-70K v strong, $50-60K strong, $40-50K mod, $30-40K poor, <$40K v poor. • Grad: >$100K exc, $90-100K excellent, $80-90K v strong, $70-80K strong, $60-70K decent, $50-60K poor, $40-50K v poor, <$40K extreme poor.
-Format: Excellent earnings outcomes: {UQ Job} in {State}, median $122K, 1st-year $112K. High earnings increase tuition potential.
+Format: Excellent earnings outcomes for {UQ Job} in {State}, with median salary of $122K and first-year earnings of $112K representing strong return on educational investment. These high earnings levels not only support student recruitment and satisfaction but also increase tuition pricing flexibility and may enable the program to attract high-quality faculty through competitive graduate assistantship funding.
 POTENTIAL CONCERNS
 Up to 6 bullets; skip if no negative findings.
 1.	Market Growth — SUG (Geo Market) + % Growing (completions).
 Thresholds: SUG 0-0.2 barely (concern), -0.2-0 slight decline (concern), < -0.2 decline, < -1 steep decline. % Growing: 40-50% less than half (concern), 33-40% strong neg, 25-33% very strong neg, <25% extreme neg.
-Format: Concerning market decline, SUG = -0.4, only 38% growing.
+Format: Concerning market decline in [Institution]'s geographical region, with SUG of -0.4 and only 38% of institutions showing growth in completions. This suggests weakening regional demand that may reflect shifting student preferences, economic conditions, or competitive pressures. Market entry in a declining regional market increases risk and may require aggressive differentiation or marketing investment to achieve target enrollment.
 2.	Poor Performance Among Peers — SUG (Segment Market), % Growing, % Offering.
-Format: Poor performance among schools like us. Only 45% and 38% growing in Segment/Ref markets, SUG = -0.4.
+Format: Poor performance among schools like us, with only 45% and 38% of segment and reference market institutions showing growth, and SUG of -0.4 indicating contraction. This peer-level weakness suggests the program may be facing structural challenges—such as changing workforce needs, competition from alternative credentials, or affordability concerns—that transcend any single institution's market position.
 3.	Limited Opportunity Size — Expected Completions/Year, Consistency Index.
 Size: 5-10 small, <5 very small. Consistency: <0.8 inconsistent.
 Note large outliers: "3-4 completions expected, but University A reported 34 completions and University B reported 19."
-Format: Small program size, only 3-4 completions/year, highly inconsistent across institutions.
+Format: Small program size with expected annual completions of only 3-4 students, coupled with highly inconsistent performance across peer institutions (University A reported 34 completions while University B reported 19). This small scale and high variance suggest uncertain market demand and may make the program financially marginal unless it can be launched with minimal incremental cost through adjunct faculty, course-sharing partnerships, or shared infrastructure.
 4.	Concentrated Market — Market Concentration, Largest Two Programs.
 Concentration: >25% concerning, >40% very concerning.
-Format: Highly concentrated market, largest two institutions account for 38%. Institution A and B reported 798 and 634 completions.
+Format: Highly concentrated market structure, with the two largest institutions accounting for 38% of all completions (Institution A with 798 completions and Institution B with 634). This concentration suggests significant barriers to entry or strong incumbent advantages—such as established clinical partnerships, specialized facilities, or brand reputation—that may be difficult and expensive for new entrants to replicate.
 5.	Weak Workforce Demand — Jobs SUG, Demand:Supply Ratio, Job Postings Index.
-Format: Weak workforce demand for {role} in {State}. SUG -0.8, Index 0.4, Demand:Supply 72% indicates saturation.
+Format: Weak workforce demand for {role} in {State}, with Jobs SUG of -0.8 indicating declining employment, Job Postings Index of 0.4 showing limited active hiring, and Demand:Supply ratio of 72% suggesting likely workforce saturation. These indicators point to challenging graduate employment prospects that could undermine recruitment, reduce yield rates, and potentially expose the institution to regulatory scrutiny around gainful employment standards.
 6.	Poor Earnings Outcomes — Median salary + first-year earnings.
-Format: Poor earnings outcomes. {Role} in {State} earn $48K median, $42K first-year. Poor ROI may lower tuition revenue per student.
+Format: Poor earnings outcomes for {role} in {State}, with median salary of $48K and first-year earnings of $42K representing weak return on educational investment. These low earnings levels create significant challenges: they may deter prospective students, limit tuition pricing power, increase default risk on student loans, and—particularly for graduate programs—raise questions about financial viability and ethical responsibility to students taking on debt for modest wage premiums.
 OVERALL ASSESSMENT
 Write 3-4 sentence summary based on analysis.
 Add context-specific language:
