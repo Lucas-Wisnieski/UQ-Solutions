@@ -16,7 +16,9 @@ Identify 5 innovations in [Program] that are driving success or growth. Focus on
 
 **Response Structure:**
 
-Write a short 2-3 sentence summary at the top that captures the most significant trends across these innovations, then structure each innovation as a heading followed by 5-7 detailed bullet points with specific examples from specific colleges or universities.
+Write a short 2-3 sentence summary at the top in light blue italics (approximately #4DB8E8 color) that captures the most significant trends across these innovations, then structure each innovation as a heading followed by 5-7 detailed bullet points with specific examples from specific colleges or universities.
+
+Use solid circle bullets (•) not asterisks (*) for all bullet points throughout the response.
 
 Each bullet should be 2-3 sentences that provide enough detail for academic leaders to understand both what the innovation is and why it matters. Include context about implementation, scale, outcomes, or strategic rationale where available. Vary the structure and focus of bullets within each innovation to maintain reader interest—some might emphasize the "what," others the "why" or "how," and others the results or implications.
 
