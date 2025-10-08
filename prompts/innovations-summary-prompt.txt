@@ -15,6 +15,21 @@ Identify 5 innovations in [Program] that are driving success or growth. Focus on
 • Partnerships with other higher education institutions
 
 **Response Structure:**
-Write a short 1-2 sentence summary at the top, then structure each innovation as a heading followed by 3-4 bullet points with specific examples from specific colleges or universities.
 
-Keep entire response to single page, use concise direct writing style, no complete sentences in bullet points.
+Write a short 2-3 sentence summary at the top that captures the most significant trends across these innovations, then structure each innovation as a heading followed by 5-7 detailed bullet points with specific examples from specific colleges or universities.
+
+Each bullet should be 2-3 sentences that provide enough detail for academic leaders to understand both what the innovation is and why it matters. Include context about implementation, scale, outcomes, or strategic rationale where available. Vary the structure and focus of bullets within each innovation to maintain reader interest—some might emphasize the "what," others the "why" or "how," and others the results or implications.
+
+When referencing specific programs, innovations, centers, or initiatives, provide clickable links to the relevant webpage where possible (program pages, center websites, news articles, press releases, or official university pages that describe the innovation). Format links naturally within the text.
+
+Keep the complete response to approximately 1.5-2 pages. Write in a professional but conversational consulting style that balances analytical insight with practical detail.
+
+**Example bullet format:**
+
+Instead of: "Arizona State—online accelerated format, 7-week terms, working professional focus"
+
+Write: "Arizona State University offers an [online accelerated format](url) with 7-week terms specifically designed for working professionals who need scheduling flexibility. This compressed timeline allows students to focus intensively on one or two courses at a time while maintaining full-time employment, and ASU reports higher completion rates compared to traditional semester-length online courses. The model has proven particularly successful in drawing non-traditional students who might otherwise not pursue graduate education."
+
+Instead of: "Northeastern—cooperative education model, 18-month work placements with 3,000+ employer partners"
+
+Write: "Northeastern University has built a distinctive [cooperative education model](url) featuring 18-month work placements integrated into the degree program, supported by relationships with over 3,000 employer partners globally. Students alternate between academic terms and full-time professional work, gaining substantial industry experience while earning income to offset educational costs. This approach has become a signature differentiator for Northeastern, with employer partners often hiring co-op students into full-time roles upon graduation, creating a pipeline that strengthens both recruitment and career outcomes."
