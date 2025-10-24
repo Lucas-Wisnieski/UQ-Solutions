@@ -402,13 +402,26 @@
         });
 
         function loadPrompt() {
-            console.log('🔍 Loading Claude prompt from GitHub...');
+            console.log('🔍 Loading Claude prompt via authenticated proxy...');
             
-            fetch(CLAUDE_PROMPT_URL)
-                .then(r => r.text())
+            // Use the proxy endpoint with authentication
+            const proxyUrl = `${CLAUDE_API_URL.replace('/api/claude', '')}/api/github-proxy?url=${encodeURIComponent(CLAUDE_PROMPT_URL)}`;
+            
+            console.log('📡 Proxy URL:', proxyUrl);
+            
+            fetch(proxyUrl)
+                .then(function(response) {
+                    if (!response.ok) {
+                        return response.json().then(function(error) {
+                            throw new Error(error.error || `HTTP ${response.status}`);
+                        });
+                    }
+                    return response.text();
+                })
                 .then(function(text) {
                     claudePrompt = text.trim();
                     console.log('✅ Claude prompt loaded:', claudePrompt.length, 'characters');
+                    console.log('✅ Using authenticated GitHub API - no more rate limits!');
                     loadTableauAPI();
                 })
                 .catch(function(error) {
