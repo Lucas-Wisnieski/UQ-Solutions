@@ -45,7 +45,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',  // ✅ Updated to Sonnet 4!
         max_tokens: 4096,  // Increased from 1000 to 4096 for longer responses
         temperature: 1,
         messages: [{
